@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"SimCPU_func_synth.vhd" \
+"../../../../../CPU2.srcs/sim_1/imports/new/SimCPU.vhd" \
+
+# Do not sort compile order
+nosort

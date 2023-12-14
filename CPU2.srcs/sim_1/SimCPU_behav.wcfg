@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="SimCPU_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="SimCPU" />
+            <top_module name="utilities" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="156.201 ns"></ZoomEndTime>
+      <Cursor1Time time="1,454.740 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="232"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="14" />
+   <wvobject fp_name="/SimCPU/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/cycle" type="other">
+      <obj_property name="ElementShortName">cycle</obj_property>
+      <obj_property name="ObjectShortName">cycle</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/instruction" type="array">
+      <obj_property name="ElementShortName">instruction[31:0]</obj_property>
+      <obj_property name="ObjectShortName">instruction[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/opcode" type="array">
+      <obj_property name="ElementShortName">opcode[4:0]</obj_property>
+      <obj_property name="ObjectShortName">opcode[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/memop" type="array">
+      <obj_property name="ElementShortName">memop[1:0]</obj_property>
+      <obj_property name="ObjectShortName">memop[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/regop1" type="array">
+      <obj_property name="ElementShortName">regop1[3:0]</obj_property>
+      <obj_property name="ObjectShortName">regop1[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/regop2" type="array">
+      <obj_property name="ElementShortName">regop2[3:0]</obj_property>
+      <obj_property name="ObjectShortName">regop2[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/immop" type="array">
+      <obj_property name="ElementShortName">immop[15:0]</obj_property>
+      <obj_property name="ObjectShortName">immop[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/regtmp" type="array">
+      <obj_property name="ElementShortName">regtmp[31:0]</obj_property>
+      <obj_property name="ObjectShortName">regtmp[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/reg1/ena" type="logic">
+      <obj_property name="ElementShortName">ena</obj_property>
+      <obj_property name="ObjectShortName">ena</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/reg1/we" type="logic">
+      <obj_property name="ElementShortName">we</obj_property>
+      <obj_property name="ObjectShortName">we</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/regnum" type="array">
+      <obj_property name="ElementShortName">regnum[3:0]</obj_property>
+      <obj_property name="ObjectShortName">regnum[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/reg1/regist" type="array">
+      <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+</wave_config>
