@@ -47,18 +47,18 @@ end CPU;
 
 architecture Behavioral of CPU is
 
-    component Decode
-        Port ( 
---            clk : IN STD_LOGIC;
-            inst : IN STD_LOGIC_VECTOR(31 downto 0);
-            opcode : out OPCODETYPE;
-            highlow : out STD_LOGIC;
-            memop :  out MEMTYPE;
-            regop1 : out REGTYPE;
-            regop2 : out REGTYPE;
-            immop : out IMMTYPE
-        ); 
-    end component;            
+--    component Decode
+--        Port ( 
+----            clk : IN STD_LOGIC;
+--            inst : IN STD_LOGIC_VECTOR(31 downto 0);
+--            opcode : out OPCODETYPE;
+--            highlow : out STD_LOGIC;
+--            memop :  out MEMTYPE;
+--            regop1 : out REGTYPE;
+--            regop2 : out REGTYPE;
+--            immop : out IMMTYPE
+--        ); 
+--    end component;            
         
     component Memory
     Port ( 
@@ -121,16 +121,16 @@ begin
 --        led => led
     );
 
-    decode2 : Decode
-    port map (
-            inst => instruction, 
-            highlow => highlow,
-            opcode  => opcode,
-            memop  =>  memop,
-            regop1  => regop1,
-            regop2  => regop2,
-            immop  => immop
-        );
+--    decode2 : Decode
+--    port map (
+--            inst => instruction, 
+--            highlow => highlow,
+--            opcode  => opcode,
+--            memop  =>  memop,
+--            regop1  => regop1,
+--            regop2  => regop2,
+--            immop  => immop
+--        );
     
     reg1 : registers
     port map
@@ -142,6 +142,14 @@ begin
         regin => regin,
         regout => regout    
         );
+
+    opcode <= instruction(31 downto 27);
+    -- Spare bit 26
+    highlow <= instruction(26);
+    memop <= instruction(25 downto 24); 
+    regop1 <= instruction(23 downto 20);
+    regop2 <= instruction(19 downto 16);
+    immop <= instruction(15 downto 0);
 
 
     Reg_Proc: process (clk)

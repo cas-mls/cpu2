@@ -60,7 +60,6 @@ architecture Behavioral of Decode is
 --           regout : out STD_LOGIC_VECTOR (31 downto 0));
 --end component;
 
-    signal cur_opcode : OPCODETYPE;
     
 --    signal we1 : STD_LOGIC :='0';
 --    signal regin1 : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
@@ -76,8 +75,7 @@ architecture Behavioral of Decode is
 
 begin
 
-    cur_opcode <= inst(31 downto 27);
-    opcode <= cur_opcode;
+    opcode <= inst(31 downto 27);
     -- Spare bit 26
     highlow <= inst(26);
     memop <= inst(25 downto 24); 
