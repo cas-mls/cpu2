@@ -48,5 +48,6 @@ package Utilities is
     constant ABSOLUTE : MEMTYPE := "10";
     constant INDEX : MEMTYPE := "11";
 
+    type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
 
 end Package;

@@ -11,15 +11,19 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="156.201 ns"></ZoomEndTime>
-      <Cursor1Time time="1,454.740 ns"></Cursor1Time>
+      <ZoomStartTime time="80.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="394.801 ns"></ZoomEndTime>
+      <Cursor1Time time="315.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="232"></NameColumnWidth>
+      <NameColumnWidth column_width="222"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="14" />
+   <WVObjectSize size="10" />
+   <wave_markers>
+      <marker time="245000" label="" />
+      <marker time="315000" label="" />
+   </wave_markers>
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -56,23 +60,7 @@
       <obj_property name="ElementShortName">immop[15:0]</obj_property>
       <obj_property name="ObjectShortName">immop[15:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/regtmp" type="array">
-      <obj_property name="ElementShortName">regtmp[31:0]</obj_property>
-      <obj_property name="ObjectShortName">regtmp[31:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/memory/reg1/ena" type="logic">
-      <obj_property name="ElementShortName">ena</obj_property>
-      <obj_property name="ObjectShortName">ena</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/memory/reg1/we" type="logic">
-      <obj_property name="ElementShortName">we</obj_property>
-      <obj_property name="ObjectShortName">we</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/memory/regnum" type="array">
-      <obj_property name="ElementShortName">regnum[3:0]</obj_property>
-      <obj_property name="ObjectShortName">regnum[3:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/memory/reg1/regist" type="array">
+   <wvobject fp_name="/SimCPU/memory/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>

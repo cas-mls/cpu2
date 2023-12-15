@@ -79,14 +79,6 @@ instmemory : cpumemory
   );
 
 
---    instmemory : CPUMemory
---    port map
---    (
---        clka => clk,
---        ena => ena,
---        addra => addra,
---        douta => douta
---    );
 
     Reg_Proc: process (clk)
     begin

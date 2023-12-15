@@ -47,19 +47,6 @@ end CPU;
 
 architecture Behavioral of CPU is
 
---    component Decode
---        Port ( 
-----            clk : IN STD_LOGIC;
---            inst : IN STD_LOGIC_VECTOR(31 downto 0);
---            opcode : out OPCODETYPE;
---            highlow : out STD_LOGIC;
---            memop :  out MEMTYPE;
---            regop1 : out REGTYPE;
---            regop2 : out REGTYPE;
---            immop : out IMMTYPE
---        ); 
---    end component;            
-        
     component Memory
     Port ( 
         clk : IN STD_LOGIC;
@@ -69,15 +56,6 @@ architecture Behavioral of CPU is
         dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
         douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
     );
-    end component;
-
-    component Registers 
-    Port (  clk : in STD_LOGIC;
-            ena : in STD_LOGIC;
-            regnum : in STD_LOGIC_VECTOR(3 downto 0);
-            we : in std_logic ;
-            regin : in STD_LOGIC_VECTOR (31 downto 0);
-            regout : out STD_LOGIC_VECTOR (31 downto 0));
     end component;
 
     signal ProgCounter : unsigned(11 downto 0) := X"000";
@@ -96,16 +74,14 @@ architecture Behavioral of CPU is
     signal highlow : STD_LOGIC :='0';
     signal memop :  MEMTYPE;
     signal regop1 : REGTYPE;
+    signal iregop1 : integer;
     signal regop2 : REGTYPE;
+    signal iregop2 : integer;
     signal immop : IMMTYPE;
     
-    signal we : STD_LOGIC :='0';
-    signal regin : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal regout : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    
-    signal datatmp : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal regnum : STD_LOGIC_VECTOR(3 DOWNTO 0) := "0000";
-    signal regena : STD_LOGIC;
+    -- Register information
+    signal regist : reg_type := (others => (others => '0'));
+
 
 
 begin
@@ -121,28 +97,6 @@ begin
 --        led => led
     );
 
---    decode2 : Decode
---    port map (
---            inst => instruction, 
---            highlow => highlow,
---            opcode  => opcode,
---            memop  =>  memop,
---            regop1  => regop1,
---            regop2  => regop2,
---            immop  => immop
---        );
-    
-    reg1 : registers
-    port map
-    (
-        clk => clk,
-        ena => regena,
-        regnum => regnum,
-        we => we,
-        regin => regin,
-        regout => regout    
-        );
-
     opcode <= instruction(31 downto 27);
     -- Spare bit 26
     highlow <= instruction(26);
@@ -150,6 +104,8 @@ begin
     regop1 <= instruction(23 downto 20);
     regop2 <= instruction(19 downto 16);
     immop <= instruction(15 downto 0);
+    iregop1 <= to_integer(unsigned(regop1));
+    iregop2 <= to_integer(unsigned(regop2));
 
 
     Reg_Proc: process (clk)
@@ -176,21 +132,15 @@ begin
         if rst = '1' then
             ProgCounter <= X"000";
             addra <= X"000";
-            regnum <= "0000";
-            regin <= X"00000000";
-            datatmp <= X"00000000";
             instruction <= X"00000000";
-            we <= '0';
             cycle <= prefetch;
             led <= "1111";
             rgb <= "000000";
-            regena <= '0';
             ena <= '1';
             wea <= "0";
         else
             case cycle is
                 when prefetch =>
-                    regena <= '0';
                     ena <= '1';
                     wea <= "0";
                     addra <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
@@ -204,10 +154,7 @@ begin
                     cycle <= decodes;
                 when decodes =>
                     if memop = REGREG then
-                        regena <= '1';
-                        we <= '0';
-                        regnum <= regop2;
-                        cycle <= memrwait;
+                        cycle <= execute;
                     elsif memop = ABSOLUTE then
                         ena <= '1';
                         wea <= "0";
@@ -217,35 +164,22 @@ begin
                         cycle <= memr;
                     end if;
                 when memrwait =>
-                    if memop = REGREG then
-                        datatmp <= regout;
-                    elsif memop = ABSOLUTE then
-                        datatmp <= dina;
-                    end if;
                     cycle <= memr;
                 when memr =>
-                    if memop = REGREG then
-                        datatmp <= regout;
-                        led <= datatmp(3 downto 0);
-                    elsif memop = ABSOLUTE then
-                        datatmp <= dina;
+                    if memop = ABSOLUTE then
                     end if;
                     cycle <= execute;
                 when execute =>
                     if opcode = LOAD then
-                        if  memop = REGREG or 
-                            memop = ABSOLUTE then
-                            we <= '1';
-                            regnum <= regop1;
-                            regin <= datatmp;
+                        if  memop = REGREG then
+                            regist(iregop1) <= regist(iregop2);
+                        elsif memop = ABSOLUTE then
+                            regist(iregop1) <= douta;
                         elsif memop = IMMEDIATE then
-                            regena <= '1';
-                            we <= '1';
-                            regnum <= regop1;
                             if highlow = '1' then
-                                regin(31 downto 16) <= immop;
+                                regist(iregop1)(31 downto 16) <= immop;
                             else
-                                regin(15 downto 0) <= immop;
+                                regist(iregop1)(15 downto 0) <= immop;
                             end if;
                         elsif memop = ABSOLUTE then
                         end if;
