@@ -47,16 +47,22 @@ end CPU;
 
 architecture Behavioral of CPU is
 
-    component Memory
-    Port ( 
-        clk : IN STD_LOGIC;
-        ena : IN STD_LOGIC;
-        wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-        addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-        dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-        douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
-    );
-    end component;
+COMPONENT cpumemory
+  PORT (
+    clka : IN STD_LOGIC;
+    ena : IN STD_LOGIC;
+    wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+    addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+    dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+    clkb : IN STD_LOGIC;
+    enb : IN STD_LOGIC;
+    web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+    addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+    dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) 
+  );
+END COMPONENT;
 
     signal ProgCounter : unsigned(11 downto 0) := X"000";
     signal cycle : CYCLETYPE := PREFETCH;
@@ -67,9 +73,13 @@ architecture Behavioral of CPU is
     signal addra : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
     signal dina : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal douta : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal enb : STD_LOGIC := '1';
+    signal web : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+    signal addrb : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    signal dinb : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal doutb : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
 
     -- Decode information    
-    signal instruction : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal opcode : OPCODETYPE := "00000";
     signal highlow : STD_LOGIC :='0';
     signal memop :  MEMTYPE;
@@ -86,24 +96,30 @@ architecture Behavioral of CPU is
 
 begin
 
-    memory2 : Memory
-    port map (
-        ena => ena,
-        clk => clk,
-        wea => wea,
-        addra => addra,
-        dina => dina,
-        douta => douta
---        led => led
-    );
+your_instance_name : cpumemory
+  PORT MAP (
+    clka => clk,
+    ena => ena,
+    wea => wea,
+    addra => addra,
+    dina => dina,
+    douta => douta,
+    clkb => clk,
+    enb => enb,
+    web => web,
+    addrb => addrb,
+    dinb => dinb,
+    doutb => doutb
+  );
 
-    opcode <= instruction(31 downto 27);
-    -- Spare bit 26
-    highlow <= instruction(26);
-    memop <= instruction(25 downto 24); 
-    regop1 <= instruction(23 downto 20);
-    regop2 <= instruction(19 downto 16);
-    immop <= instruction(15 downto 0);
+
+
+    opcode <= douta(31 downto 27);
+    highlow <= douta(26);
+    memop <= douta(25 downto 24); 
+    regop1 <= douta(23 downto 20);
+    regop2 <= douta(19 downto 16);
+    immop <= douta(15 downto 0);
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
 
@@ -111,33 +127,18 @@ begin
     Reg_Proc: process (clk)
     begin
     
---    if falling_edge (clk) then
---            case cycle is
---                when prefetch =>
---                    cycle <= waits;
---                when waits =>
---                    cycle <= fetch;
---                when fetch =>
---                     cycle <= decodes;
---                when decodes =>
---                    cycle <= execute;
---                when execute =>
---                    cycle <= prefetch;
---                when others =>
---                    cycle <= prefetch;
---            end case;
---    end if;
- 
     if rising_edge  (clk) then
         if rst = '1' then
             ProgCounter <= X"000";
-            addra <= X"000";
-            instruction <= X"00000000";
             cycle <= prefetch;
             led <= "1111";
             rgb <= "000000";
             ena <= '1';
             wea <= "0";
+            addra <= X"000";
+            enb <= '1';
+            web <= "0";
+            addrb <= X"000";
         else
             case cycle is
                 when prefetch =>
@@ -147,34 +148,41 @@ begin
                     cycle <= waits;
                 when waits =>
                     cycle <= fetch;
+                when datain =>
+                    cycle <= fetch;    
                 when fetch =>
-                    instruction <= douta;
                     rgb(4 downto 0) <= opcode(4 downto 0);
                     rgb(5) <= memop(0);
                     cycle <= decodes;
                 when decodes =>
-                    if memop = REGREG then
-                        cycle <= execute;
-                    elsif memop = ABSOLUTE then
-                        ena <= '1';
-                        wea <= "0";
-                        addra <= immop(11 downto 0);
-                        cycle <= memrwait;
+                    if opcode = LOAD then
+                        if memop = REGREG then
+                            cycle <= execute;
+                        elsif memop = ABSOLUTE then
+                            enb <= '1';
+                            web <= "0";
+                            addrb <= immop(11 downto 0);
+                            cycle <= memrwait;
+                        elsif memop = INDEX then
+                            enb <= '1';
+                            web <= "0";
+                            addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                        to_integer(unsigned(regop2)),12));
+                            cycle <= memrwait;
+                        else -- immediate
+                            cycle <= execute;
+                        end if;
                     else
                         cycle <= memr;
                     end if;
                 when memrwait =>
                     cycle <= memr;
                 when memr =>
-                    if memop = ABSOLUTE then
-                    end if;
                     cycle <= execute;
                 when execute =>
                     if opcode = LOAD then
                         if  memop = REGREG then
                             regist(iregop1) <= regist(iregop2);
-                        elsif memop = ABSOLUTE then
-                            regist(iregop1) <= douta;
                         elsif memop = IMMEDIATE then
                             if highlow = '1' then
                                 regist(iregop1)(31 downto 16) <= immop;
@@ -184,9 +192,14 @@ begin
                         elsif memop = ABSOLUTE then
                         end if;
                     end if;
-                    ProgCounter <= ProgCounter + 1;
                     cycle <= memw;
                 when MEMW =>
+                    if opcode = LOAD then
+                        if memop = ABSOLUTE  or memop = INDEX then
+                            regist(iregop1) <= doutb;
+                        end if;
+                    end if;
+                    ProgCounter <= ProgCounter + 1;
                     cycle <= prefetch;
                 when others =>
                     cycle <= prefetch;

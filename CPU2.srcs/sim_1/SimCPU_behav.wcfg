@@ -11,19 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="80.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="394.801 ns"></ZoomEndTime>
-      <Cursor1Time time="315.000 ns"></Cursor1Time>
+      <ZoomStartTime time="19,733.500 ns"></ZoomStartTime>
+      <ZoomEndTime time="20,053.301 ns"></ZoomEndTime>
+      <Cursor1Time time="20,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="222"></NameColumnWidth>
+      <NameColumnWidth column_width="197"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="10" />
-   <wave_markers>
-      <marker time="245000" label="" />
-      <marker time="315000" label="" />
-   </wave_markers>
+   <WVObjectSize size="12" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -36,9 +32,17 @@
       <obj_property name="ElementShortName">cycle</obj_property>
       <obj_property name="ObjectShortName">cycle</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/instruction" type="array">
-      <obj_property name="ElementShortName">instruction[31:0]</obj_property>
-      <obj_property name="ObjectShortName">instruction[31:0]</obj_property>
+   <wvobject fp_name="/SimCPU/memory/ProgCounter" type="array">
+      <obj_property name="ElementShortName">ProgCounter[11:0]</obj_property>
+      <obj_property name="ObjectShortName">ProgCounter[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/addra" type="array">
+      <obj_property name="ElementShortName">addra[11:0]</obj_property>
+      <obj_property name="ObjectShortName">addra[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/douta" type="array">
+      <obj_property name="ElementShortName">douta[31:0]</obj_property>
+      <obj_property name="ObjectShortName">douta[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/memory/opcode" type="array">
       <obj_property name="ElementShortName">opcode[4:0]</obj_property>

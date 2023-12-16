@@ -3,7 +3,6 @@ vhdl xil_defaultlib  \
 "../../../../CPU2.gen/sources_1/ip/cpumemory/cpumemory_sim_netlist.vhdl" \
 "../../../../CPU2.srcs/sources_1/imports/new/Utilities.vhdl" \
 "../../../../CPU2.srcs/sources_1/imports/new/CPU.vhd" \
-"../../../../CPU2.srcs/sources_1/imports/new/Memory.vhd" \
 "../../../../CPU2.srcs/sim_1/imports/new/SimCPU.vhd" \
 
 # Do not sort compile order
