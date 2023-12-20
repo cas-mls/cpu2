@@ -26,6 +26,10 @@
 *_funcsim.v
 *_funcsim.vhdl
 .project
+*.bin
+*.lst
+*.sym
+*.hex
 
 # [dir]
 *.cache

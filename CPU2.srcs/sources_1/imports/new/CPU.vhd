@@ -81,7 +81,7 @@ END COMPONENT;
 
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
-    signal highlow : STD_LOGIC :='0';
+    signal flag : STD_LOGIC :='0';
     signal memop :  MEMTYPE;
     signal regop1 : REGTYPE;
     signal iregop1 : integer;
@@ -96,7 +96,7 @@ END COMPONENT;
 
 begin
 
-your_instance_name : cpumemory
+memory : cpumemory
   PORT MAP (
     clka => clk,
     ena => ena,
@@ -115,7 +115,7 @@ your_instance_name : cpumemory
 
 
     opcode <= douta(31 downto 27);
-    highlow <= douta(26);
+    flag <= douta(26);
     memop <= douta(25 downto 24); 
     regop1 <= douta(23 downto 20);
     regop2 <= douta(19 downto 16);
@@ -155,52 +155,234 @@ your_instance_name : cpumemory
                     rgb(5) <= memop(0);
                     cycle <= decodes;
                 when decodes =>
-                    if opcode = LOAD then
-                        if memop = REGREG then
+                    case memop is
+                        when REGREG =>
+                            case opcode is
+                                when others =>
+                                    cycle <= execute;
+                            end case;
+                        when IMMEDIATE =>
+                            case opcode is
+                                when others =>
+                                    cycle <= execute;
+                            end case;
+                        when ABSOLUTE =>
+                            case opcode is
+                                when oLD | oADD | oJMP | oBE | oBLT | oBGT =>
+                                    enb <= '1';
+                                    web <= "0";
+                                    addrb <= immop(11 downto 0);
+                                    cycle <= memrwait;
+                                when oSTR =>
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <= immop(11 downto 0);
+                                    cycle <= memrwait;
+                                when others =>
+                                    cycle <= execute;
+                            end case;
+                        when INDEX =>
+                            case opcode is
+                                when oLD | oADD | oJMP =>
+                                    enb <= '1';
+                                    web <= "0";
+                                    addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                to_integer(unsigned(regop2)),12));
+                                    cycle <= memrwait;
+                                when oSTR  =>
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                to_integer(unsigned(regop2)),12));
+                                    cycle <= memrwait;
+                                when others =>
+                                    cycle <= execute;
+                            end case;
+                        when others =>
                             cycle <= execute;
-                        elsif memop = ABSOLUTE then
-                            enb <= '1';
-                            web <= "0";
-                            addrb <= immop(11 downto 0);
-                            cycle <= memrwait;
-                        elsif memop = INDEX then
-                            enb <= '1';
-                            web <= "0";
-                            addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
-                                        to_integer(unsigned(regop2)),12));
-                            cycle <= memrwait;
-                        else -- immediate
-                            cycle <= execute;
-                        end if;
-                    else
-                        cycle <= memr;
-                    end if;
+                    end case;
                 when memrwait =>
                     cycle <= memr;
                 when memr =>
                     cycle <= execute;
                 when execute =>
-                    if opcode = LOAD then
-                        if  memop = REGREG then
-                            regist(iregop1) <= regist(iregop2);
-                        elsif memop = IMMEDIATE then
-                            if highlow = '1' then
-                                regist(iregop1)(31 downto 16) <= immop;
-                            else
-                                regist(iregop1)(15 downto 0) <= immop;
-                            end if;
-                        elsif memop = ABSOLUTE then
-                        end if;
-                    end if;
+                    case memop is
+                        when REGREG =>
+                            case opcode is
+                                when oLD =>
+                                    regist(iregop1) <= regist(iregop2);
+                                when oADD =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 
+                                            to_integer(unsigned(regist(iregop2))),32));
+                                when oSUB =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) - 
+                                            to_integer(unsigned(regist(iregop2))),32));
+                                when others =>
+                            end case;
+                        when IMMEDIATE =>
+                            case opcode is
+                                when oLD =>
+                                    if flag = '1' then
+                                        regist(iregop1)(31 downto 16) <= immop;
+                                    else
+                                        regist(iregop1)(15 downto 0) <= immop;
+                                    end if;
+                                when oADD =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 
+                                            to_integer(unsigned(regist(iregop2))) +
+                                            to_integer(unsigned(immop))
+                                            ,32));
+                                when oSUB =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) - 
+                                            to_integer(unsigned(regist(iregop2))) -
+                                            to_integer(unsigned(immop))
+                                            ,32));
+                                when others =>
+                            end case;
+                        when ABSOLUTE  | INDEX =>
+                            case opcode is
+                                when oSTR =>
+                                    dinb <= regist(iregop1);
+                                when others =>
+                            end case;
+                        when others =>
+                    end case;
                     cycle <= memw;
                 when MEMW =>
-                    if opcode = LOAD then
-                        if memop = ABSOLUTE  or memop = INDEX then
-                            regist(iregop1) <= doutb;
-                        end if;
+                    case memop is
+                        when REGREG =>
+                            case opcode is
+                                when oJMP =>
+                                    ProgCounter <= unsigned(regist(iregop2)(11 downto 0));
+                                when others =>
+                            end case;
+                        when IMMEDIATE =>
+                            case opcode is
+                                when oJMP =>
+                                    ProgCounter <= unsigned(immop(11 downto 0));
+                                when oBE =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) = regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) /= regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when oBLT =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) < regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) >= regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when oBGT =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) > regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) <= regist(iregop2) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when others =>
+                            end case;
+                        when ABSOLUTE | INDEX =>
+                            case opcode is
+                                when oLD =>
+                                    regist(iregop1) <= doutb;
+                                when oADD =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 
+                                            to_integer(unsigned(doutb)),32));
+                                when oSUB =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) - 
+                                            to_integer(unsigned(doutb)),32));
+                                when oJMP =>
+                                    ProgCounter <= unsigned(doutb(11 downto 0));
+                                when oBE =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) = regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) /= regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when oBLT =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) < regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) >=regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when oBGT =>
+                                    if FLAG = '0' then
+                                        if regist(iregop1) > regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    else
+                                        if regist(iregop1) <= regist(iregop2) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                        else
+                                            ProgCounter <= ProgCounter + 1;
+                                        end if;
+                                    end if;
+                                when others =>
+                            end case;
+                        when others => 
+                    end case;
+                    if      opcode /= oJMP 
+                        and opcode /= oBE 
+                        and opcode /= oBLT 
+                        and opcode /= oBGT 
+                        and opcode /= oJSR 
+                        and opcode /= oRTN then -- ignore all Jump operations.
+                         ProgCounter <= ProgCounter + 1;
                     end if;
-                    ProgCounter <= ProgCounter + 1;
-                    cycle <= prefetch;
+                   cycle <= prefetch;
                 when others =>
                     cycle <= prefetch;
             end case;                 

@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="19,733.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="20,053.301 ns"></ZoomEndTime>
+      <ZoomStartTime time="19,859.246 ns"></ZoomStartTime>
+      <ZoomEndTime time="20,028.151 ns"></ZoomEndTime>
       <Cursor1Time time="20,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="197"></NameColumnWidth>
+      <NameColumnWidth column_width="187"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="12" />
+   <WVObjectSize size="15" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -68,5 +68,17 @@
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/addrb" type="array">
+      <obj_property name="ElementShortName">addrb[11:0]</obj_property>
+      <obj_property name="ObjectShortName">addrb[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/dinb" type="array">
+      <obj_property name="ElementShortName">dinb[31:0]</obj_property>
+      <obj_property name="ObjectShortName">dinb[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/memory/doutb" type="array">
+      <obj_property name="ElementShortName">doutb[31:0]</obj_property>
+      <obj_property name="ObjectShortName">doutb[31:0]</obj_property>
    </wvobject>
 </wave_config>
