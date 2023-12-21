@@ -21,10 +21,12 @@
     st  r{r1: u4}, mem[{address: u16}]              => 4`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
     st  r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 4`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
     add r{r1: u4}, r{r2: u4}                        => 1`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    add r{r1: u4}, {imm: u16}                       => 1`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     add r{r1: u4}, r{r2: u4}, {imm: u16}            => 1`5  @ 0`1 @ 1`2 @ r1 @ r2 @ imm
     add r{r1: u4}, mem[{address: u16}]              => 1`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
     add r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 1`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
     sub r{r1: u4}, r{r2: u4}                        => 3`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    sub r{r1: u4}, {imm: u16}                       => 3`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
     sub r{r1: u4}, r{r2: u4}, {imm: u16}            => 3`5  @ 0`1 @ 1`2 @ r1 @ r2 @ imm
     sub r{r1: u4}, mem[{address: u16}]              => 3`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
     sub r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 3`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
@@ -55,6 +57,10 @@
 }
 
 #bank program
+
+SP1 = 15 ; Stack Pointer Register
+Stack1 = 0xB00 ; Stack Location
+
 jmpIndex = 10
 testdata1 = 0x1234
 testdata2 = 0x5678
@@ -73,6 +79,41 @@ dataIndex = 20
     st  r0, r3, mem[DATA2-dataIndex]  ; Index + offset
     ld  r5, mem[DATA1]          ; Absolute address
     ld  r6, r3, mem[DATA2-dataIndex]  ; Index + offset
+    ldl r SP1,  Stack1 
+
+; Add Instruction Tests
+addend1 = 12345
+addend2 = 23456
+tr = 14
+sum = addend1 + addend2
+    ld r1, addend1
+    ld r2, addend2
+    ld r3, sum
+    ld r tr, 1
+    add r1, r2          ; Register
+    bne r1, r3, ADDCOMP
+    ld r1, addend1
+    ldl r tr, 2
+    add r1, addend2     ; Immediate
+    bne r1, r3, ADDCOMP
+    ld r1, addend1
+    ldl r tr, 3
+    add r1, mem[AENDMEM]
+    bne r1, r3, ADDCOMP
+    ld r1, addend1
+    ldl r tr, 4
+    ldl r4, AENDMEM1 - AENDMEM
+    add r1, r4, mem[AENDMEM]
+    bne r1, r3, ADDCOMP
+    ldl r tr, 5
+
+    jmp ADDCOMP
+AENDMEM:
+    #d32 addend2
+    #res 2
+AENDMEM1:
+    #d32 addend2
+ADDCOMP:
 
 ; Branch Tests
 eqtest = 0x4444

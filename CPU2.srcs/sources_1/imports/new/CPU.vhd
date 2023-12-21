@@ -141,19 +141,34 @@ memory : cpumemory
             addrb <= X"000";
         else
             case cycle is
+
+                ----------------------------------------------------------------
+                -- This sets up the instruction address to read.
                 when prefetch =>
                     ena <= '1';
                     wea <= "0";
                     addra <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
                     cycle <= waits;
+
+                ----------------------------------------------------------------
+                -- This is the Cycle to wait for the Fetch Instruction Memory
                 when waits =>
                     cycle <= fetch;
+
+                ----------------------------------------------------------------
+                -- This Cycle is not used.
                 when datain =>
                     cycle <= fetch;    
+
+                ----------------------------------------------------------------
+                -- This is the second Cycle for the Fetch Instruction Memory
                 when fetch =>
                     rgb(4 downto 0) <= opcode(4 downto 0);
                     rgb(5) <= memop(0);
                     cycle <= decodes;
+
+                -- Decoding is complete
+                -- Set up memory address for ABSOLUTE and INDEX
                 when decodes =>
                     case memop is
                         when REGREG =>
@@ -187,13 +202,13 @@ memory : cpumemory
                                     enb <= '1';
                                     web <= "0";
                                     addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
-                                                to_integer(unsigned(regop2)),12));
+                                                to_integer(unsigned(regist(iregop2))),12));
                                     cycle <= memrwait;
                                 when oSTR  =>
                                     enb <= '1';
                                     web <= "1";
                                     addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
-                                                to_integer(unsigned(regop2)),12));
+                                                to_integer(unsigned(regist(iregop2))),12));
                                     cycle <= memrwait;
                                 when others =>
                                     cycle <= execute;
@@ -201,10 +216,21 @@ memory : cpumemory
                         when others =>
                             cycle <= execute;
                     end case;
+
+                ----------------------------------------------------------------
+                -- Cycle to wait for memory to be read.
+                -- ABSOLUTE and INDEX operations.
                 when memrwait =>
                     cycle <= memr;
+
+                ----------------------------------------------------------------
+                -- Second Cycle to wait for memory to be read.
+                -- ABSOLUTE and INDEX operations.
                 when memr =>
                     cycle <= execute;
+                    
+                ----------------------------------------------------------------
+                -- Execute intruction
                 when execute =>
                     case memop is
                         when REGREG =>
@@ -232,30 +258,63 @@ memory : cpumemory
                                         regist(iregop1)(15 downto 0) <= immop;
                                     end if;
                                 when oADD =>
-                                    regist(iregop1) <= 
-                                        std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 
-                                            to_integer(unsigned(regist(iregop2))) +
-                                            to_integer(unsigned(immop))
-                                            ,32));
+                                    if iregop2 = 0 then
+                                        regist(iregop1) <= 
+                                            std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) + 
+                                                to_integer(unsigned(immop))
+                                                ,32));
+                                    else
+                                        regist(iregop1) <= 
+                                            std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) + 
+                                                to_integer(unsigned(regist(iregop2))) +
+                                                to_integer(unsigned(immop))
+                                                ,32));
+                                    end if;
                                 when oSUB =>
-                                    regist(iregop1) <= 
-                                        std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 
-                                            to_integer(unsigned(regist(iregop2))) -
-                                            to_integer(unsigned(immop))
-                                            ,32));
+                                    if iregop2 = 0 then
+                                        regist(iregop1) <= 
+                                            std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) - 
+                                                to_integer(unsigned(immop))
+                                                ,32));
+                                    else
+                                        regist(iregop1) <= 
+                                            std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) - 
+                                                to_integer(unsigned(regist(iregop2))) -
+                                                to_integer(unsigned(immop))
+                                                ,32));
+                                    end if; 
                                 when others =>
                             end case;
                         when ABSOLUTE  | INDEX =>
                             case opcode is
+                                when oLD =>
+                                    regist(iregop1) <= doutb;
                                 when oSTR =>
                                     dinb <= regist(iregop1);
+                                when oADD =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 
+                                            to_integer(unsigned(doutb)),32));
+                                when oSUB =>
+                                    regist(iregop1) <= 
+                                        std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) - 
+                                            to_integer(unsigned(doutb)),32));
                                 when others =>
                             end case;
                         when others =>
                     end case;
                     cycle <= memw;
+
+                ----------------------------------------------------------------
+                -- Update the program counter.
+                -- All of these could be included in the Execute cycle and
+                -- this state could be eliminated.
                 when MEMW =>
                     case memop is
                         when REGREG =>
@@ -314,18 +373,6 @@ memory : cpumemory
                             end case;
                         when ABSOLUTE | INDEX =>
                             case opcode is
-                                when oLD =>
-                                    regist(iregop1) <= doutb;
-                                when oADD =>
-                                    regist(iregop1) <= 
-                                        std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 
-                                            to_integer(unsigned(doutb)),32));
-                                when oSUB =>
-                                    regist(iregop1) <= 
-                                        std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 
-                                            to_integer(unsigned(doutb)),32));
                                 when oJMP =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
                                 when oBE =>

@@ -75,7 +75,7 @@ begin
         
         rst <= '0';
   
-        for j in 1 to 200 loop
+        for j in 1 to 500 loop
             wait until rising_edge (clk);
          end loop;
 
