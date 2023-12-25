@@ -56,10 +56,8 @@ package Utilities is
     constant oOr   : OPCODETYPE  := "00111"; -- x07
     constant oNot  : OPCODETYPE  := "01001"; -- x09
     constant oXor  : OPCODETYPE  := "01011"; -- x0B
-    constant oInc  : OPCODETYPE  := "01101"; -- x0D
-    constant oDec  : OPCODETYPE  := "01111"; -- x0F
-    constant oShL  : OPCODETYPE  := "10001"; -- x11
-    constant oShR  : OPCODETYPE  := "10011"; -- x13
+    constant oShL  : OPCODETYPE  := "01101"; -- x0D
+    constant oShR  : OPCODETYPE  := "01111"; -- x0F
 
     constant REGREG : MEMTYPE := "00";
     constant IMMEDIATE : MEMTYPE := "01";
