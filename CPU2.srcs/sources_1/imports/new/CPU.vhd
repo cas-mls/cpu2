@@ -86,8 +86,10 @@ END COMPONENT;
     signal memop :  MEMTYPE;
     signal regop1 : REGTYPE;
     signal iregop1 : integer;
+    signal ireg1value : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal regop2 : REGTYPE;
     signal iregop2 : integer;
+    signal ireg2value : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal immop : IMMTYPE;
     
     -- Register information
@@ -142,6 +144,8 @@ memory : cpumemory
             addrb <= X"000";
             dinb <= X"00000000";
             regist <= (others => (others =>'0'));
+            ireg1value <= (others => '0');
+            ireg2value <= (others => '0');
         else
             case cycle is
 
@@ -173,6 +177,9 @@ memory : cpumemory
                 -- Decoding is complete
                 -- Set up memory address for ABSOLUTE and INDEX
                 when decodes =>
+                    ireg1value <= regist(iregop1);
+                    ireg2value <= regist(iregop2);
+
                     case memop is
                         when REGREG =>
                             case opcode is
@@ -239,6 +246,7 @@ memory : cpumemory
                         when others =>
                             cycle <= execute;
                     end case;
+    
 
                 ----------------------------------------------------------------
                 -- Cycle to wait for memory to be read.
@@ -259,47 +267,47 @@ memory : cpumemory
                         when REGREG =>
                             case opcode is
                                 when oLD =>
-                                    regist(iregop1) <= regist(iregop2);
+                                    regist(iregop1) <= ireg2value;
                                 when oADD =>
                                     regist(iregop1) <= 
                                         std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 
-                                            to_integer(unsigned(regist(iregop2))),32));
+                                            to_integer(unsigned(ireg1value)) + 
+                                            to_integer(unsigned(ireg2value)),32));
                                 when oSUB =>
                                     regist(iregop1) <= 
                                         std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 
-                                            to_integer(unsigned(regist(iregop2))),32));
+                                            to_integer(unsigned(ireg1value)) - 
+                                            to_integer(unsigned(ireg2value)),32));
                                 when oAND =>
                                     if flag = '0' then
-                                        regist(iregop1) <= regist(iregop1) and regist(iregop2);
+                                        regist(iregop1) <= ireg1value and ireg2value;
                                     else
-                                        regist(iregop1) <= (regist(iregop1) nand regist(iregop2));
+                                        regist(iregop1) <= (ireg1value nand ireg2value);
                                     end if;
                                 when oOR =>
                                     if flag = '0' then
-                                        regist(iregop1) <= regist(iregop1) or regist(iregop2);
+                                        regist(iregop1) <= ireg1value or ireg2value;
                                     else
-                                        regist(iregop1) <= (regist(iregop1) nor regist(iregop2));
+                                        regist(iregop1) <= (ireg1value nor ireg2value);
                                     end if;
                                 when oXOR =>
                                     if flag = '0' then
-                                        regist(iregop1) <= regist(iregop1) xor regist(iregop2);
+                                        regist(iregop1) <= ireg1value xor ireg2value;
                                     else
-                                        regist(iregop1) <= (regist(iregop1) xnor regist(iregop2));
+                                        regist(iregop1) <= (ireg1value xnor ireg2value);
                                     end if;
                                 when oSHL =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        sll to_integer(unsigned(regist(iregop2))));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        sll to_integer(unsigned(ireg2value(4 downto 0))));
                                 when oSHR =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        srl to_integer(unsigned(regist(iregop2))));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        srl to_integer(unsigned(ireg2value(4 downto 0))));
                                 when oJMP =>
-                                    ProgCounter <= unsigned(regist(iregop2)(11 downto 0));
+                                    ProgCounter <= unsigned(ireg2value(11 downto 0));
                                 when oJSR =>
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 1,32));
-                                    ProgCounter <= unsigned(regist(iregop2)(11 downto 0));
+                                            to_integer(unsigned(ireg1value)) - 1,32));
+                                    ProgCounter <= unsigned(ireg2value(11 downto 0));
                                 when oRTN =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
                                 when others =>
@@ -315,15 +323,14 @@ memory : cpumemory
                                 when oADD =>
                                     if iregop2 = 0 then
                                         regist(iregop1) <= 
-                                            std_logic_vector(to_unsigned(
-                                                to_integer(unsigned(regist(iregop1))) + 
+                                            std_logic_vector(to_unsigned(to_integer(unsigned(ireg1value)) + 
                                                 to_integer(unsigned(immop))
                                                 ,32));
                                     else
                                         regist(iregop1) <= 
                                             std_logic_vector(to_unsigned(
-                                                to_integer(unsigned(regist(iregop1))) + 
-                                                to_integer(unsigned(regist(iregop2))) +
+                                                to_integer(unsigned(ireg1value)) + 
+                                                to_integer(unsigned(ireg2value)) +
                                                 to_integer(unsigned(immop))
                                                 ,32));
                                     end if;
@@ -331,82 +338,82 @@ memory : cpumemory
                                     if iregop2 = 0 then
                                         regist(iregop1) <= 
                                             std_logic_vector(to_unsigned(
-                                                to_integer(unsigned(regist(iregop1))) - 
+                                                to_integer(unsigned(ireg1value)) - 
                                                 to_integer(unsigned(immop))
                                                 ,32));
                                     else
                                         regist(iregop1) <= 
                                             std_logic_vector(to_unsigned(
-                                                to_integer(unsigned(regist(iregop1))) - 
-                                                to_integer(unsigned(regist(iregop2))) -
+                                                to_integer(unsigned(ireg1value)) - 
+                                                to_integer(unsigned(ireg2value)) -
                                                 to_integer(unsigned(immop))
                                                 ,32));
                                     end if;
                                 when oAND =>
                                     if flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) and (X"1111" & immop);
+                                        regist(iregop1) <= ireg1value and (X"1111" & immop);
                                     elsif flag = '1' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) nand (X"1111" & immop);
+                                        regist(iregop1) <= ireg1value nand (X"1111" & immop);
                                     elsif flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) and regist(iregop2) and (X"1111" & immop);
+                                        regist(iregop1) <= ireg1value and ireg2value and (X"1111" & immop);
                                     else
-                                        regist(iregop1) <= regist(iregop1) nand (regist(iregop2) nand (X"1111" & immop));
+                                        regist(iregop1) <= ireg1value nand (ireg2value nand (X"1111" & immop));
                                     end if;
                                 when oOR =>
                                     if flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) or (X"0000" & immop);
+                                        regist(iregop1) <= ireg1value or (X"0000" & immop);
                                     elsif flag = '1' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) nor (X"0000" & immop);
+                                        regist(iregop1) <= ireg1value nor (X"0000" & immop);
                                     elsif flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) or regist(iregop2) or (X"1111" & immop);
+                                        regist(iregop1) <= ireg1value or ireg2value or (X"1111" & immop);
                                     else
-                                        regist(iregop1) <= regist(iregop1) nor (regist(iregop2) nor (X"1111" & immop));
+                                        regist(iregop1) <= ireg1value nor (ireg2value nor (X"1111" & immop));
                                     end if;
                                 when oXOR =>
                                     if flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) xor (X"0000" & immop);
+                                        regist(iregop1) <= ireg1value xor (X"0000" & immop);
                                     elsif flag = '1' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) xnor (X"0000" & immop);
+                                        regist(iregop1) <= ireg1value xnor (X"0000" & immop);
                                     elsif flag = '0' and iregop2 = 0 then
-                                        regist(iregop1) <= regist(iregop1) xor regist(iregop2) xor (X"1111" & immop);
+                                        regist(iregop1) <= ireg1value xor ireg2value xor (X"1111" & immop);
                                     else
-                                        regist(iregop1) <= regist(iregop1) xnor (regist(iregop2) xnor (X"1111" & immop));
+                                        regist(iregop1) <= ireg1value xnor (ireg2value xnor (X"1111" & immop));
                                     end if;
                                 when oSHL =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        sll to_integer(unsigned(immop)));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        sll to_integer(unsigned(immop(4 downto 0))));
                                 when oSHR =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        srl to_integer(unsigned(immop)));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        srl to_integer(unsigned(immop(4 downto 0))));
                                 when oJMP =>
                                     ProgCounter <= unsigned(immop(11 downto 0));
                                 when oBE =>
-                                    if FLAG = '0' and regist(iregop1) = regist(iregop2) then
+                                    if FLAG = '0' and ireg1value = ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) /= regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value /= ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBLT =>
-                                    if FLAG = '0' and regist(iregop1) < regist(iregop2)then
+                                    if FLAG = '0' and ireg1value < ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) >= regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value >= ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBGT =>
-                                    if FLAG = '0' and regist(iregop1) > regist(iregop2) then
+                                    if FLAG = '0' and ireg1value > ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) <= regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value <= ireg2value then
                                         ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oJSR =>
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 1,32));
+                                            to_integer(unsigned(ireg1value)) - 1,32));
                                     ProgCounter <= unsigned(immop(11 downto 0));
                                 when others =>
                             end case;
@@ -415,63 +422,63 @@ memory : cpumemory
                                 when oLD =>
                                     regist(iregop1) <= doutb;
                                 when oSTR =>
-                                    dinb <= regist(iregop1);
+                                    dinb <= ireg1value;
                                 when oADD =>
                                     regist(iregop1) <= 
                                         std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 
+                                            to_integer(unsigned(ireg1value)) + 
                                             to_integer(unsigned(doutb)),32));
                                 when oSUB =>
                                     regist(iregop1) <= 
                                         std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) - 
+                                            to_integer(unsigned(ireg1value)) - 
                                             to_integer(unsigned(doutb)),32));
                                 when oAND =>
                                     if FLAG = '0' then
-                                        regist(iregop1) <= regist(iregop1) and doutb;
+                                        regist(iregop1) <= ireg1value and doutb;
                                     else
-                                        regist(iregop1) <= regist(iregop1) nand doutb;
+                                        regist(iregop1) <= ireg1value nand doutb;
                                     end if;
                                 when oOR =>
                                     if FLAG = '0' then
-                                        regist(iregop1) <= regist(iregop1) or doutb;
+                                        regist(iregop1) <= ireg1value or doutb;
                                     else
-                                        regist(iregop1) <= regist(iregop1) nor doutb;
+                                        regist(iregop1) <= ireg1value nor doutb;
                                     end if;
                                 when oXOR =>
                                     if FLAG = '0' then
-                                        regist(iregop1) <= regist(iregop1) xor doutb;
+                                        regist(iregop1) <= ireg1value xor doutb;
                                     else
-                                        regist(iregop1) <= regist(iregop1) xnor doutb;
+                                        regist(iregop1) <= ireg1value xnor doutb;
                                     end if;
                                 when oSHL =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        sll to_integer(unsigned(doutb)));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        sll to_integer(unsigned(doutb(4 downto 0))));
                                 when oSHR =>
-                                    regist(iregop1) <= std_logic_vector(unsigned(regist(iregop1)) 
-                                        srl to_integer(unsigned(doutb)));
+                                    regist(iregop1) <= std_logic_vector(unsigned(ireg1value) 
+                                        srl to_integer(unsigned(doutb(4 downto 0))));
                                 when oJMP =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
                                 when oBE =>
-                                    if FLAG = '0' and regist(iregop1) = regist(iregop2) then
+                                    if FLAG = '0' and ireg1value = ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) /= regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value /= ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBLT =>
-                                    if FLAG = '0' and regist(iregop1) < regist(iregop2) then
+                                    if FLAG = '0' and ireg1value < ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) >=regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value >=ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBGT =>
-                                    if FLAG = '0' and regist(iregop1) > regist(iregop2) then
+                                    if FLAG = '0' and ireg1value > ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and regist(iregop1) <= regist(iregop2) then
+                                    elsif FLAG = '1' and ireg1value <= ireg2value then
                                         ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
