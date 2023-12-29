@@ -40,8 +40,18 @@ entity CPU is
   Port (
     rst : IN  STD_LOGIC;
     clk : IN STD_LOGIC;
-    led : OUT STD_LOGIC_VECTOR (3 downto 0);
-    rgb : OUT STD_LOGIC_VECTOR (5 downto 0)
+    
+    
+    ioAddr  : out STD_LOGIC_VECTOR (7 downto 0);
+    IORdata    : in STD_LOGIC_VECTOR (31 downto 0);
+    IOWdata   : out STD_LOGIC_VECTOR (31 downto 0);
+    IORena: out STD_LOGIC;
+    IOWena: out std_logic;
+    IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
+    interrupt : in STD_LOGIC_VECTOR (4 downto 0)
+
+--    led : OUT STD_LOGIC_VECTOR (3 downto 0);
+--    rgb : OUT STD_LOGIC_VECTOR (5 downto 0)
     );
 
 end CPU;
@@ -95,8 +105,6 @@ END COMPONENT;
     -- Register information
     signal regist : reg_type := (others => (others => '0'));
 
-
-
 begin
 
 memory : cpumemory
@@ -134,8 +142,6 @@ memory : cpumemory
         if rst = '1' then
             ProgCounter <= X"000";
             cycle <= prefetch;
-            led <= "1111";
-            rgb <= "000000";
             ena <= '1';
             wea <= "0";
             addra <= X"000";
@@ -146,6 +152,10 @@ memory : cpumemory
             regist <= (others => (others =>'0'));
             ireg1value <= (others => '0');
             ireg2value <= (others => '0');
+            IOWdata <= (others => '0');
+            ioAddr <= (others => '0');
+            IORena <= '0';
+            IOWena <= '0';
         else
             case cycle is
 
@@ -170,8 +180,11 @@ memory : cpumemory
                 ----------------------------------------------------------------
                 -- This is the second Cycle for the Fetch Instruction Memory
                 when fetch =>
-                    rgb(4 downto 0) <= opcode(4 downto 0);
-                    rgb(5) <= memop(0);
+--                    IOAddr <= X"01";
+--                    IOWena <= '1';
+--                    IOWdata(4 downto 0) <=  opcode(4 downto 0);
+--                    rgb(4 downto 0) <= opcode(4 downto 0);
+--                    rgb(5) <= memop(0);
                     cycle <= decodes;
 
                 -- Decoding is complete
@@ -197,6 +210,14 @@ memory : cpumemory
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(iregop1))) + 1,32));
                                     cycle <= memrwait;
+                                when oRIO =>
+                                    IOAddr <= regist(iregop2)(7 downto 0);
+                                    IORena <= '1';
+                                    cycle <= memr;
+                                when oWIO =>
+                                    IOAddr <= regist(iregop2)(7 downto 0);
+                                    IOWena <= '1';
+                                    cycle <= memr;
                                 when others =>
                                     cycle <= execute;
                             end case;
@@ -208,6 +229,14 @@ memory : cpumemory
                                     addrb <= regist(iregop1)(11 downto 0);
                                     dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
                                     cycle <= execute;
+                                when oRIO =>
+                                    IOAddr <= immop(7 downto 0);
+                                    IORena <= '1';
+                                    cycle <= memr;
+                                when oWIO =>
+                                    IOAddr <= immop(7 downto 0);
+                                    IOWena <= '1';
+                                    cycle <= memr;
                                 when others =>
                                     cycle <= execute;
                             end case;
@@ -222,6 +251,20 @@ memory : cpumemory
                                     enb <= '1';
                                     web <= "1";
                                     addrb <= immop(11 downto 0);
+                                    cycle <= memrwait;
+                                when oRIO =>
+                                    IOAddr <= regist(iregop2)(7 downto 0);
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <= immop(11 downto 0);
+                                    IORena <= '1';
+                                    cycle <= memrwait;
+                                when oWIO =>
+                                    IOAddr <= regist(iregop2)(7 downto 0);
+                                    enb <= '1';
+                                    web <= "0";
+                                    addrb <= immop(11 downto 0);
+                                    IOWena <= '1';
                                     cycle <= memrwait;
                                 when others =>
                                     cycle <= execute;
@@ -310,6 +353,14 @@ memory : cpumemory
                                     ProgCounter <= unsigned(ireg2value(11 downto 0));
                                 when oRTN =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
+                                when oPUSH =>
+                                when oPOP =>
+                                when oRIO =>
+                                    regist(iregop1) <= IORdata;
+                                    regist(0) <= x"000000" & IOStatus;
+                                when oWIO =>
+                                    IOWdata <= regist(iregop1);
+                                    regist(0) <= x"000000" & IOStatus;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
@@ -388,26 +439,40 @@ memory : cpumemory
                                 when oJMP =>
                                     ProgCounter <= unsigned(immop(11 downto 0));
                                 when oBE =>
-                                    if FLAG = '0' and ireg1value = ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value /= ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
+                                    if  iregop2 /= 0 
+                                        and  ((FLAG = '0' and ireg1value = ireg2value)
+                                        or (FLAG = '1' and ireg1value /= ireg2value)) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and  ((FLAG = '0' and signed(ireg1value) = 0)
+                                        or (FLAG = '1' and signed(ireg1value) /= 0)) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBLT =>
-                                    if FLAG = '0' and ireg1value < ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value >= ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
+                                    if iregop2 /= 0 
+                                        and ((FLAG = '0' and ireg1value < ireg2value) 
+                                         or (FLAG = '1' and ireg1value >= ireg2value)) 
+                                         then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and ((FLAG = '0' and signed(ireg1value) < 0) 
+                                         or (FLAG = '1' and signed(ireg1value) >= 0))
+                                         then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBGT =>
-                                    if FLAG = '0' and ireg1value > ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value <= ireg2value then
-                                        ProgCounter <= unsigned(immop(11 downto 0));
+                                    if iregop2 /= 0 
+                                        and  ((FLAG = '0' and ireg1value > ireg2value) 
+                                        or (FLAG = '1' and ireg1value <= ireg2value)) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and  ((FLAG = '0' and signed(ireg1value) > 0) 
+                                        or (FLAG = '1' and signed(ireg1value) <= 0)) then
+                                            ProgCounter <= unsigned(immop(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
@@ -415,6 +480,12 @@ memory : cpumemory
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(ireg1value)) - 1,32));
                                     ProgCounter <= unsigned(immop(11 downto 0));
+                                when oRIO =>
+                                    regist(iregop1) <= IORdata;
+                                    regist(0) <= x"000000" & IOStatus;
+                                when oWIO =>
+                                    IOWdata <= regist(iregop1);
+                                    regist(0) <= x"000000" & IOStatus;
                                 when others =>
                             end case;
                         when ABSOLUTE  | INDEX =>
@@ -460,29 +531,71 @@ memory : cpumemory
                                 when oJMP =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
                                 when oBE =>
-                                    if FLAG = '0' and ireg1value = ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value /= ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
+                                    if  iregop2 /= 0 
+                                        and  ((FLAG = '0' and ireg1value = ireg2value)
+                                        or (FLAG = '1' and ireg1value /= ireg2value)) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and  ((FLAG = '0' and signed(ireg1value) = 0)
+                                        or (FLAG = '1' and signed(ireg1value) /= 0)) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBLT =>
-                                    if FLAG = '0' and ireg1value < ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value >=ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
+                                    if iregop2 /= 0 
+                                        and ((FLAG = '0' and ireg1value < ireg2value) 
+                                         or (FLAG = '1' and ireg1value >= ireg2value)) 
+                                         then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and ((FLAG = '0' and signed(ireg1value) < 0) 
+                                         or (FLAG = '1' and signed(ireg1value) >= 0))
+                                         then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oBGT =>
-                                    if FLAG = '0' and ireg1value > ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
-                                    elsif FLAG = '1' and ireg1value <= ireg2value then
-                                        ProgCounter <= unsigned(doutb(11 downto 0));
+                                    if iregop2 /= 0 
+                                        and  ((FLAG = '0' and ireg1value > ireg2value) 
+                                        or (FLAG = '1' and ireg1value <= ireg2value)) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                    elsif iregop2 = 0 
+                                        and  ((FLAG = '0' and signed(ireg1value) > 0) 
+                                        or (FLAG = '1' and signed(ireg1value) <= 0)) then
+                                            ProgCounter <= unsigned(doutb(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
+
+--                                when oBE =>
+--                                    if  (FLAG = '0' and ireg1value = ireg2value) 
+--                                     or (FLAG = '1' and ireg1value /= ireg2value) then
+--                                        ProgCounter <= unsigned(doutb(11 downto 0));
+--                                    else
+--                                        ProgCounter <= ProgCounter + 1;
+--                                    end if;
+--                                when oBLT =>
+--                                    if  (FLAG = '0' and ireg1value < ireg2value) 
+--                                     or (FLAG = '1' and ireg1value >=ireg2value) then
+--                                        ProgCounter <= unsigned(doutb(11 downto 0));
+--                                    else
+--                                        ProgCounter <= ProgCounter + 1;
+--                                    end if;
+--                                when oBGT =>
+--                                    if  (FLAG = '0' and ireg1value > ireg2value) 
+--                                     or (FLAG = '1' and ireg1value <= ireg2value) then
+--                                        ProgCounter <= unsigned(doutb(11 downto 0));
+--                                    else
+--                                        ProgCounter <= ProgCounter + 1;
+--                                    end if;
+                                when oRIO =>
+                                    dinb <= IORdata;
+                                    regist(0) <= x"000000" & IOStatus;
+                                when oWIO =>
+                                    IOWdata <= doutb;
+                                    regist(0) <= x"000000" & IOStatus;
                                 when others =>
                             end case;
                         when others =>
@@ -496,7 +609,12 @@ memory : cpumemory
                         and opcode /= oRTN then -- ignore all Jump operations.
                          ProgCounter <= ProgCounter + 1;
                     end if;
-                   cycle <= prefetch;
+                    if opcode = oRIO or opcode = oWIO then
+                        cycle <= MEMW;
+                    else
+                        cycle <= prefetch;
+                    end if;
+
 
                 ----------------------------------------------------------------
                 -- Update the program counter.
@@ -505,8 +623,29 @@ memory : cpumemory
                 when MEMW =>
                     case memop is
                         when REGREG =>
+                            case opcode is
+                                when oRIO =>
+                                    IORena <= '0';
+                                when oWIO =>
+                                    IOWena <= '0';
+                                when others =>
+                            end case;
                         when IMMEDIATE =>
+                            case opcode is
+                                when oRIO =>
+                                    IORena <= '0';
+                                when oWIO =>
+                                    IOWena <= '0';
+                                when others =>
+                            end case;
                         when ABSOLUTE | INDEX =>
+                            case opcode is
+                                when oRIO =>
+                                    IORena <= '0';
+                                when oWIO =>
+                                    IOWena <= '0';
+                                when others =>
+                            end case;
                         when others => 
                     end case;
                    cycle <= prefetch;

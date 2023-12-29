@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="7,446.180 ns"></ZoomStartTime>
-      <ZoomEndTime time="7,487.276 ns"></ZoomEndTime>
-      <Cursor1Time time="21,000.000 ns"></Cursor1Time>
+      <ZoomStartTime time="2,367.300 ns"></ZoomStartTime>
+      <ZoomEndTime time="2,703.901 ns"></ZoomEndTime>
+      <Cursor1Time time="2,638.300 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="176"></NameColumnWidth>
-      <ValueColumnWidth column_width="79"></ValueColumnWidth>
+      <NameColumnWidth column_width="113"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="17" />
+   <WVObjectSize size="19" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -28,65 +28,74 @@
       <obj_property name="ElementShortName">rst</obj_property>
       <obj_property name="ObjectShortName">rst</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/cycle" type="other">
+   <wvobject fp_name="/SimCPU/cpuCUT/rst" type="logic">
+      <obj_property name="ElementShortName">rst</obj_property>
+      <obj_property name="ObjectShortName">rst</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/cycle" type="other">
       <obj_property name="ElementShortName">cycle</obj_property>
       <obj_property name="ObjectShortName">cycle</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/ProgCounter" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/ProgCounter" type="array">
       <obj_property name="ElementShortName">ProgCounter[11:0]</obj_property>
       <obj_property name="ObjectShortName">ProgCounter[11:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/addra" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/addra" type="array">
       <obj_property name="ElementShortName">addra[11:0]</obj_property>
       <obj_property name="ObjectShortName">addra[11:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/douta" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/douta" type="array">
       <obj_property name="ElementShortName">douta[31:0]</obj_property>
       <obj_property name="ObjectShortName">douta[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/opcode" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/opcode" type="array">
       <obj_property name="ElementShortName">opcode[4:0]</obj_property>
       <obj_property name="ObjectShortName">opcode[4:0]</obj_property>
+      <obj_property name="Radix">HEXRADIX</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/memop" type="array">
-      <obj_property name="ElementShortName">memop[1:0]</obj_property>
-      <obj_property name="ObjectShortName">memop[1:0]</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/ioAddr" type="array">
+      <obj_property name="ElementShortName">ioAddr[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ioAddr[7:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/regop1" type="array">
-      <obj_property name="ElementShortName">regop1[3:0]</obj_property>
-      <obj_property name="ObjectShortName">regop1[3:0]</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/IOStatus" type="array">
+      <obj_property name="ElementShortName">IOStatus[7:0]</obj_property>
+      <obj_property name="ObjectShortName">IOStatus[7:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/ireg1value" type="other">
-      <obj_property name="ElementShortName">ireg1value</obj_property>
-      <obj_property name="ObjectShortName">ireg1value</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/IORena" type="logic">
+      <obj_property name="ElementShortName">IORena</obj_property>
+      <obj_property name="ObjectShortName">IORena</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/regop2" type="array">
-      <obj_property name="ElementShortName">regop2[3:0]</obj_property>
-      <obj_property name="ObjectShortName">regop2[3:0]</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/IORdata" type="array">
+      <obj_property name="ElementShortName">IORdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IORdata[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/ireg2value" type="other">
-      <obj_property name="ElementShortName">ireg2value</obj_property>
-      <obj_property name="ObjectShortName">ireg2value</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/IOWena" type="logic">
+      <obj_property name="ElementShortName">IOWena</obj_property>
+      <obj_property name="ObjectShortName">IOWena</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/immop" type="array">
-      <obj_property name="ElementShortName">immop[15:0]</obj_property>
-      <obj_property name="ObjectShortName">immop[15:0]</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/IOWdata" type="array">
+      <obj_property name="ElementShortName">IOWdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IOWdata[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/regist" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="isExpanded"></obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/addrb" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/addrb" type="array">
       <obj_property name="ElementShortName">addrb[11:0]</obj_property>
       <obj_property name="ObjectShortName">addrb[11:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/dinb" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/dinb" type="array">
       <obj_property name="ElementShortName">dinb[31:0]</obj_property>
       <obj_property name="ObjectShortName">dinb[31:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/memory/doutb" type="array">
+   <wvobject fp_name="/SimCPU/cpuCUT/doutb" type="array">
       <obj_property name="ElementShortName">doutb[31:0]</obj_property>
       <obj_property name="ObjectShortName">doutb[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/echoIO" type="array">
+      <obj_property name="ElementShortName">echoIO[31:0]</obj_property>
+      <obj_property name="ObjectShortName">echoIO[31:0]</obj_property>
    </wvobject>
 </wave_config>

@@ -23,6 +23,8 @@
 {
     r{r1: u4}, r{r2: u4}, {imm: u16}            => 1`2 @ r1 @ r2 @ imm
     r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 2`2 @ r1 @ r2 @ address
+    r{r1: u4}, {imm: u16}                       => 1`2 @ r1 @ 0x0 @ imm
+    r{r1: u4}, mem[{address: u16}]              => 2`2 @ r1 @ 0x0 @ address
 }
 
 
@@ -30,9 +32,11 @@
 {
     noop                                            => 0`32
 
+
     ; Load & Store
-    ld  r{r1: u4}, r{r2: u4}                        => 2`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+     ld  r{r1: u4}, r{r2: u4}                        => 2`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     ld  r{r1: u4}, {imm: i32}                       => 2`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm[31:16] @ 2`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm[15:0]
+    ; ld r{r1: u4}, {imm: u16}                        => 2`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     ldl r{r1: u4}, {imm: u16}                       => 2`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     ldh r{r1: u4}, {imm: u16}                       => 2`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
     ld  r{r1: u4}, mem[{address: u16}]              => 2`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
@@ -75,11 +79,33 @@
     bne {op : branchop}                             => 12`5 @ 1`1 @ op
     bge {op : branchop}                             => 14`5 @ 1`1 @ op
     ble {op : branchop}                             => 16`5 @ 1`1 @ op
+    bz  r{r1: u4}, {imm: u16}                       => 12`5 @ 0`1 @1`2 @ r1 @ 0x0 @ imm
+    bz  r{r1: u4}, mem[{address: u16}]              => 12`5 @ 0`1 @2`2 @ r1 @ 0x0 @ address
+    bnz r{r1: u4}, {imm: u16}                       => 12`5 @ 1`1 @1`2 @ r1 @ 0x0 @ imm
+    bnz r{r1: u4}, mem[{address: u16}]              => 12`5 @ 1`1 @2`2 @ r1 @ 0x0 @ address
+    bn  r{r1: u4}, {imm: u16}                       => 14`5 @ 0`1 @1`2 @ r1 @ 0x0 @ imm
+    bn  r{r1: u4}, mem[{address: u16}]              => 14`5 @ 0`1 @2`2 @ r1 @ 0x0 @ address
+    bp  r{r1: u4}, {imm: u16}                       => 16`5 @ 0`1 @1`2 @ r1 @ 0x0 @ imm
+    bp  r{r1: u4}, mem[{address: u16}]              => 16`5 @ 0`1 @2`2 @ r1 @ 0x0 @ address
 
     ; Subroutine
     jsr r{r1: u4}, r{r2: u4}                        => 8`5  @ 0`1 @ 0`2 @ r1 @ r2  @ 0x0000
     jsr r{r1: u4}, {imm: u16}                       => 8`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     rtn r{r1: u4}                                   => 10`5 @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
+
+    ; Input / Output
+    rio r{r1: u4}, r{r2: u4}                        => 22`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    rio r{r1: u4}, {imm: u16}                       => 22`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    rio r{r2: u4}, mem[{address: u16}]              => 22`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
+    ;rio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
+
+
+    wio r{r1: u4}, r{r2: u4}                        => 24`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    wio r{r1: u4}, {imm: u16}                       => 24`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    wio r{r2: u4}, mem[{address: u16}]              => 24`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
+    ;wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 24`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
+    
+
 }
 
 #bankdef program
@@ -106,6 +132,7 @@ ER = 13
     ldl r SP1,  Stack1
     ldl r ER, 0
 START:
+    jsr r SP1, IOTESTS
     jsr r SP1, ANDTEST
     jsr r SP1, NANDTEST
     jsr r SP1, ORTEST
@@ -117,9 +144,70 @@ START:
     jsr r SP1, LSTEST
     jsr r SP1, ADDTEST
     jsr r SP1, SUBTEST
+    jsr r SP1, BRTEST2
     jsr r SP1, BRTEST
     jsr r SP1, JMPTEST
     jmp START
+
+
+
+; Input / Output Tests.
+IOTESTS:
+    ldl r tr, 0x100
+    ld  r3, 0x0F ; Data
+    ld  r2, 0x01 ; Address
+    ld  r1, r3
+    wio r1, r2
+    bnz r0, IOERR
+    add r tr, 1
+    ld  r1, 0x00
+    rio r1, r2
+    bne r0, IOERR
+    bne r1, r3, IOERR
+    add r tr, 1
+    ldl r2, 0x02
+    wio r1, r2
+    bz r0, IOERR
+
+    ld  r1, r3
+    wio r1, 0x1
+    bne r0, IOERR
+    add r tr, 1
+    ld  r1, 0x00
+    rio r1, 0x1
+    bne r0, IOERR
+    bne r1, r3, IOERR
+    add r tr, 1
+    ldl r2, 0x02
+    wio r1, 0x2
+    bz r0, IOERR
+
+    ld  r2, 0x01 ; Address
+    ld  r3, mem[WRITEMEM] ; Data
+    ld  r1, 0x00
+    wio r2, mem[WRITEMEM]
+    bnz r0, IOERR
+    add r tr, 1
+    rio r2, mem[READMEM]
+    ld r1, mem[READMEM]
+    bnz r0, IOERR
+    bne r1, r3, IOERR
+    add r tr, 1
+    ldl r2, 0x02
+    wio r2, mem[WRITEMEM]
+    be r0, IOERR
+
+    add r tr, 1
+    jmp IOCOMPLETE
+
+READMEM:
+    #d32 0x0
+WRITEMEM:
+    #d32 0xff
+IOERR:
+    add r ER, 1
+IOCOMPLETE:
+    rtn r SP1
 
 ; Load and Store Tests
 dataIndex = 20
@@ -608,6 +696,81 @@ BRERR:
     add r ER, 1
 
 BRCOMPLETE:
+    rtn r SP1
+
+; Branch Tests #2
+zerotest = 0
+negtest = -10000
+posTest = 20000
+BRTEST2:
+    ld r tr, 0x130
+    ld r1, zerotest
+    ld r2, zerotest
+    ld r3, negtest
+    ld r4, posTest
+BETESTZERO:
+    be r3, BR2ERR   ; FALSE [R3 /= 0]- No branch
+    add r tr, 1
+    bz r4, BR2ERR   ; FALSE [R4 /= 0]- No branch
+    add r tr, 1
+    bnz r1, BR2ERR ; FALSE [r1 = 0] - No Branch
+    add r tr, 1
+    be r1, BEZEROTEST  ; TRUE [r1 = 0]- Branch Immediate
+    jmp BR2ERR
+BZTESTMEM:
+    #d32 BNTESTNE
+BEZEROTEST:
+    add r tr, 1
+    bne r1, mem[BR2COMPMEM] ; FALSE [r1 = r2] - No Branch
+    add r tr, 1
+    be r1, mem[BZTESTMEM]  ; TRUE [r1 = r2] - Branch Memory
+    jmp BRERR
+BNTESTNE:
+    add r tr, 1
+    bge r3, BRERR    ; FALSE [R2 >= 0] = No Branch
+    add r tr, 1
+    bn r1, BRERR   ; FALSE [R2 = R1] - No branch
+    add r tr, 1
+    blt r4, BRERR   ; FALSE [r4 > 0] - No branch
+    add r tr, 1
+BNTEST:
+    bn r3, BNTEST1  ; TRUE [r3 < 0]- Branch Immediate
+    jmp BRERR
+
+BNTESTMEM:
+    #d32 BPTESTNE
+BNTEST1:
+    add r tr, 1
+    bge r3, mem[BNTESTMEM]  ; FALSE [r3 < 0] - Branch Memory
+    add r tr, 1
+    blt r3, mem[BNTESTMEM]  ; TRUE [r3 < 0] - Branch Memory
+    noop
+BPTESTNE:
+    add r tr, 1
+    bgt r2, BR2ERR   ; FALSE [R2 = 0] - No branch
+    add r tr, 1
+    bgt r3, BR2ERR   ; FALSE [r3 < 0] - No branch
+    add r tr, 1
+BPTEST:
+    bp r4, BPTEST1  ; TRUE [r4 > 0]- Branch Immediate
+    jmp BRERR
+BR2COMPMEM:
+    #d32 BR2ERR
+BPTEST2MEM:
+    #d32 BGTEST2
+BPTEST1:
+    add r tr, 1
+    bgt r4, r1, mem[BPTEST2MEM]  ; TRUE [r4 > r1] - Branch Memory
+    jmp BRERR
+    noop
+BPTEST2:
+    add r tr, 1
+    jmp BR2COMPLETE
+
+BR2ERR:
+    add r ER, 1
+
+BR2COMPLETE:
     rtn r SP1
 
 ; Jump Tests

@@ -49,6 +49,13 @@ package Utilities is
     constant oBE   : OPCODETYPE  := "01100"; -- x0C
     constant oBLT  : OPCODETYPE  := "01110"; -- x0E
     constant oBGT  : OPCODETYPE  := "10000"; -- x10
+    constant oPUSH : OPCODETYPE  := "10010"; -- x12
+    constant oPOP  : OPCODETYPE  := "10100"; -- x14
+    constant oRIO  : OPCODETYPE  := "10110"; -- x16
+    constant oWIO  : OPCODETYPE  := "11000"; -- x18
+    constant oRTI  : OPCODETYPE  := "11010"; -- x1A
+    constant oWAIT : OPCODETYPE  := "11100"; -- x1C
+    constant oIENA : OPCODETYPE  := "11110"; -- x1E
 
     constant oAdd  : OPCODETYPE  := "00001"; -- x01
     constant oSub  : OPCODETYPE  := "00011"; -- x03
@@ -63,6 +70,10 @@ package Utilities is
     constant IMMEDIATE : MEMTYPE := "01";
     constant ABSOLUTE : MEMTYPE := "10";
     constant INDEX : MEMTYPE := "11";
+    
+    -- IO Status Word Bit Positions:
+    constant OIBusy : integer := 0;
+    constant OIError : integer := 1;
 
     type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
 

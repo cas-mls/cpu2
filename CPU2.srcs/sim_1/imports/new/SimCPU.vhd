@@ -18,7 +18,8 @@
 -- 
 ----------------------------------------------------------------------------------
 
-
+library STD;
+use STD.textio.all;                     -- basic I/O
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
@@ -40,43 +41,75 @@ architecture Behavioral of SimCPU is
     component CPU 
         port (  
             rst : IN std_logic ;
-            clk : IN STD_LOGIC
+            clk : IN STD_LOGIC;
+            ioAddr  : out STD_LOGIC_VECTOR (7 downto 0);
+            IORdata    : in STD_LOGIC_VECTOR (31 downto 0);
+            IOWdata   : out STD_LOGIC_VECTOR (31 downto 0);
+            IORena: out STD_LOGIC;
+            IOWena: out std_logic;
+            IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
+            interrupt : in STD_LOGIC_VECTOR (4 downto 0)
             );
     end component;            
 
     constant HALF_PERIOD: time := 5 ns;
     signal clk : std_logic ;
---    signal led : STD_LOGIC_VECTOR(3 DOWNTO 0);
     signal rst : std_logic ;
+    signal ioAddr  : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal IORdata    : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+    signal IOWdata   : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+    signal IORena: STD_LOGIC := '0';
+    signal IOWena: std_logic := '0';
+    signal IOStatus: STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal interrupt : STD_LOGIC_VECTOR (4 downto 0) := (others => '0');
+
+    signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+
 
 begin
 
-    memory : CPU
+    cpuCUT : CPU
     port map
     (
         rst => rst,
-        clk => clk
+        clk => clk,
+        ioAddr => ioAddr,
+        IORdata => IORdata,
+        IOWdata => IOWdata,
+        IORena => IORena,
+        IOWena => IOWena,
+        IOStatus => IOStatus,
+        interrupt => interrupt
     );
 
 
     clk <= '0' after HALF_PERIOD when clk = '1' else '1' after HALF_PERIOD;
 
     test : process
+
+        variable my_line : line;  -- type 'line' comes from textio
+
     begin
     
         rst <= '1';
-        for j in 1 to 2 loop
+        for j in 1 to 4 loop
             wait until rising_edge (clk);
         end loop;
-        
-        for j in 1 to 2 loop
-            wait until rising_edge (clk);
-        end loop;
-        
         rst <= '0';
   
-        for j in 1 to 2000 loop
+        for j in 1 to 10000 loop
             wait until rising_edge (clk);
+            if ioaddr = X"01" and IORena = '1' then
+                IORdata <= echoIO;
+                IOStatus <= X"00";
+            elsif ioaddr = X"01" and IOWena = '1' then
+                echoIO <= IOWdata;
+                IOStatus <= X"00";
+            elsif ioaddr = X"02" and IOWena = '1' then
+                IOStatus <= X"10";
+            else
+                IOStatus <= X"00";
+            end if;
          end loop;
 
          
