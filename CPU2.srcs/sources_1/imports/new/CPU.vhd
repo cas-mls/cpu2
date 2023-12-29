@@ -218,6 +218,20 @@ memory : cpumemory
                                     IOAddr <= regist(iregop2)(7 downto 0);
                                     IOWena <= '1';
                                     cycle <= memr;
+                                when oPUSH =>
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <= regist(iregop1)(11 downto 0);
+                                    dinb <= regist(iregop2);
+                                    cycle <= execute;
+                                when oPOP =>
+                                    enb <= '1';
+                                    web <= "0";
+                                    addrb <= std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 1,12));
+                                    regist(iregop1) <= std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(regist(iregop1))) + 1,32));
+                                    cycle <= memrwait;
                                 when others =>
                                     cycle <= execute;
                             end case;
@@ -237,6 +251,12 @@ memory : cpumemory
                                     IOAddr <= immop(7 downto 0);
                                     IOWena <= '1';
                                     cycle <= memr;
+                                when oPUSH =>
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <= regist(iregop1)(11 downto 0);
+                                    dinb <= X"0000" & immop;
+                                    cycle <= execute;
                                 when others =>
                                     cycle <= execute;
                             end case;
@@ -353,14 +373,17 @@ memory : cpumemory
                                     ProgCounter <= unsigned(ireg2value(11 downto 0));
                                 when oRTN =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
-                                when oPUSH =>
-                                when oPOP =>
                                 when oRIO =>
                                     regist(iregop1) <= IORdata;
                                     regist(0) <= x"000000" & IOStatus;
                                 when oWIO =>
                                     IOWdata <= regist(iregop1);
                                     regist(0) <= x"000000" & IOStatus;
+                                when oPUSH =>
+                                    regist(iregop1) <= std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(ireg1value)) - 1,32));
+                                when oPOP =>
+                                    regist(iregop2) <= doutb;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
@@ -486,6 +509,9 @@ memory : cpumemory
                                 when oWIO =>
                                     IOWdata <= regist(iregop1);
                                     regist(0) <= x"000000" & IOStatus;
+                                when oPUSH =>
+                                    regist(iregop1) <= std_logic_vector(to_unsigned(
+                                            to_integer(unsigned(ireg1value)) - 1,32));
                                 when others =>
                             end case;
                         when ABSOLUTE  | INDEX =>

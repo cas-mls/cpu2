@@ -105,6 +105,10 @@
     wio r{r2: u4}, mem[{address: u16}]              => 24`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
     ;wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 24`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
     
+    ; Stack Operations
+    push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    pop r{r1: u4}, r{r2: u4}                        => 20`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
 
 }
 
@@ -132,6 +136,7 @@ ER = 13
     ldl r SP1,  Stack1
     ldl r ER, 0
 START:
+    jsr r SP1, STACKTESTS
     jsr r SP1, IOTESTS
     jsr r SP1, ANDTEST
     jsr r SP1, NANDTEST
@@ -149,6 +154,30 @@ START:
     jsr r SP1, JMPTEST
     jmp START
 
+; Stack Tests
+STACKTESTS:
+    ldl r tr, 0x110
+    ld r2, 0x54321
+    ld r3, 0x55555
+    ld r4, 0x1234
+    push r SP1, r2
+    push r SP1, 0x1234
+    pop r SP1, r5
+    bne r4, r5, STACKERR
+    add r tr, 1
+    push r SP1, r3
+    pop r SP1, r5
+    bne r3, r5, STACKERR
+    add r tr, 1
+    pop r SP1, r5
+    bne r2, r5, STACKERR
+    add r tr, 1
+    jmp STACKCOMPLETE
+
+STACKERR:
+    add r ER, 1
+STACKCOMPLETE:
+    rtn r SP1
 
 
 ; Input / Output Tests.
