@@ -43,7 +43,6 @@ architecture Behavioral of Computer is
 
 component CPU
     Port ( 
-        rst : IN  STD_LOGIC;
         clk : IN STD_LOGIC;
         ioAddr : out STD_LOGIC_VECTOR (7 downto 0);
         IORdata : in STD_LOGIC_VECTOR (31 downto 0);
@@ -51,18 +50,19 @@ component CPU
         IORena: out STD_LOGIC;
         IOWena: out std_logic;
         IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-        Interrupt : in STD_LOGIC_VECTOR (4 downto 0)
+        Interrupt : in STD_LOGIC_VECTOR (31 downto 0)
         );
 end component;
 
     signal ioAddr : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
     signal IORdata : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
     signal IOWdata : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal interrupt : STD_LOGIC_VECTOR (4 downto 0) := (others => '0');
+    signal interrupt : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
     signal IOWena : STD_LOGIC := '0';
     signal IORena : STD_LOGIC := '0';
     signal IOStatus : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
     
+    signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
 
 begin
@@ -70,7 +70,6 @@ begin
     cpu1 : CPU
     port map
     (
-        rst => rst,
         clk => clk,
         ioAddr => ioAddr,
         IORdata => IORdata,
@@ -81,6 +80,7 @@ begin
         interrupt => interrupt    
         );
 
+    interrupt(0) <= rst;
 
     Comp : process (clk)
     begin
@@ -88,14 +88,24 @@ begin
     if rising_edge  (clk) then
         if rst = '1' then
             IORdata <= (others => '0');
-            interrupt <= (others => '0');
+            interrupt(31 downto 1) <= (others => '0');
             IOStatus <= (others => '0');
         end if;
         if IORena = '1' then
         end if;
         if IOWena = '1' then
-            if ioAddr = X"01" then
+            if ioAddr = X"03" then
                 led <= IOWdata(3 downto 0);
+            elsif ioaddr = X"01" and IORena = '1' then
+                IORdata <= echoIO;
+                IOStatus <= X"00";
+            elsif ioaddr = X"01" and IOWena = '1' then
+                echoIO <= IOWdata;
+                IOStatus <= X"00";
+            elsif ioaddr = X"02" and IOWena = '1' then
+                IOStatus <= X"10";
+            else
+                IOStatus <= X"00";
             end if;
         end if;
     end if;

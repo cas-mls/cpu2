@@ -40,7 +40,6 @@ architecture Behavioral of SimCPU is
 
     component CPU 
         port (  
-            rst : IN std_logic ;
             clk : IN STD_LOGIC;
             ioAddr  : out STD_LOGIC_VECTOR (7 downto 0);
             IORdata    : in STD_LOGIC_VECTOR (31 downto 0);
@@ -48,7 +47,7 @@ architecture Behavioral of SimCPU is
             IORena: out STD_LOGIC;
             IOWena: out std_logic;
             IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-            interrupt : in STD_LOGIC_VECTOR (4 downto 0)
+            interrupt : in STD_LOGIC_VECTOR (31 downto 0)
             );
     end component;            
 
@@ -61,7 +60,7 @@ architecture Behavioral of SimCPU is
     signal IORena: STD_LOGIC := '0';
     signal IOWena: std_logic := '0';
     signal IOStatus: STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-    signal interrupt : STD_LOGIC_VECTOR (4 downto 0) := (others => '0');
+    signal interrupt : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
     signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
@@ -71,7 +70,6 @@ begin
     cpuCUT : CPU
     port map
     (
-        rst => rst,
         clk => clk,
         ioAddr => ioAddr,
         IORdata => IORdata,
@@ -91,12 +89,12 @@ begin
 
     begin
     
-        rst <= '1';
+        interrupt(0) <= '1';
         for j in 1 to 4 loop
             wait until rising_edge (clk);
         end loop;
-        rst <= '0';
-  
+        interrupt(0) <= '0';
+
         for j in 1 to 10000 loop
             wait until rising_edge (clk);
             if ioaddr = X"01" and IORena = '1' then
@@ -107,6 +105,8 @@ begin
                 IOStatus <= X"00";
             elsif ioaddr = X"02" and IOWena = '1' then
                 IOStatus <= X"10";
+            elsif ioaddr = X"05" and IOWena = '1' then
+                interrupt(2) <= IOWdata(0);
             else
                 IOStatus <= X"00";
             end if;

@@ -1,11 +1,3 @@
-;#bits 32
-
-;#subruledef source
-;{
-;    {immediate: i16} => 0xd @ immediate
-;    mem[{address: i16}] => 0xe @ address
-;    ptr[{r: register}] => 0xf @ r`16
-;}
 
                                                     ; Instruction fields:
                                                     ; | op  | flg | mem | r1 | r2 | imm
@@ -110,6 +102,14 @@
     push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     pop r{r1: u4}, r{r2: u4}                        => 20`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
 
+    ; Interrupt
+    RTI                                             => 26`5  @ 0`1 @ 0`2 @ 0x0 @ 0x0 @ 0x0000
+    SWI r{r1: u4}                                   => 28`5  @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
+    SWI {imm: u16}                                  => 28`5  @ 0`1 @ 1`2 @ 0x0 @ 0x0 @ imm
+    SWI mem[{address: u16}]                         => 28`5  @ 0`1 @ 2`2 @ 0x0 @ 0x0 @ address
+    IENA r{r1: u4}, r{r2: u4}                       => 30`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    IENA r{r1: u4}, {imm: u16}                      => 30`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    IENA r{r1: u4}, mem[{address: u16}]             => 30`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
 }
 
 #bankdef program
@@ -124,6 +124,15 @@
 
 #bank program
 
+
+INT0:
+    ; jmp START
+    #d32    START
+INT1:
+    #d32    SWINT
+INT2:
+    #d32    HWINT
+
 SP1 = 15 ; Stack Pointer Register
 Stack1 = 0xB00 ; Stack Location
 
@@ -132,10 +141,13 @@ testdata2 = 0x5678
 testdata3 = 0x4321
 tr = 14
 ER = 13
-
+#addr 32
+START:
     ldl r SP1,  Stack1
     ldl r ER, 0
-START:
+LOOP:
+    ldl r ER, 0
+    jsr r SP1, INTERRUPTTEST
     jsr r SP1, STACKTESTS
     jsr r SP1, IOTESTS
     jsr r SP1, ANDTEST
@@ -152,7 +164,65 @@ START:
     jsr r SP1, BRTEST2
     jsr r SP1, BRTEST
     jsr r SP1, JMPTEST
-    jmp START
+    wio r ER, 0x03    
+    jmp LOOP
+
+SWINT:
+    add r tr, 10
+    ld r4, SWIntTestValue
+    RTI
+
+HWINT:
+    wio r10, 0x05 ; Tell the tester to cancel the interrupt.
+    add r tr, 100
+    ld r6, HWIntTestValue
+    RTI
+
+
+INTERRUPTTEST:
+SWIntTestValue = 0x54545
+HWIntTestValue = 0x665566
+    ldl r tr, 0x120
+    ld r1, 0b10
+    ld r5, SWIntTestValue
+    ld r4, 0x0
+    ld r2, 1
+    swi r2
+    bnz r4, INTERR
+    add r tr, 1
+    iena r SP1, r1
+    swi 1
+    bne r5, r4, INTERR 
+    add r tr, 1
+    ld r4, 0x0
+    swi mem[INTSW]
+    bne r5, r4, INTERR 
+    add r tr, 1
+    ; Hardware Interrupt
+    ld r6, 0x0
+    ld r7, HWIntTestValue
+    ld r9, 0x1
+    ld r10, 0x0
+    wio r9, 0x05 ; Tell Tester to send (set) interrupt
+    wio r10, 0x05 ; Tell the tester to cancel the interrupt.
+    bnz r6, INTERR
+    wio r9, 0x05 ; Tell Tester to send (set) interrupt
+    iena r SP1, 0b100
+    iena r SP1, mem[INTMASK] ; disable all interrupts.
+    bne r6, r7, INTERR
+    jmp INTCOMPLETE
+
+INTSW:
+    #d32 1
+
+INTMASK:
+    #d32 0
+
+INTERR:
+    add r ER, 1
+
+INTCOMPLETE:
+    rtn r SP1
 
 ; Stack Tests
 STACKTESTS:

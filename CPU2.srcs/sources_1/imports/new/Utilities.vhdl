@@ -54,7 +54,7 @@ package Utilities is
     constant oRIO  : OPCODETYPE  := "10110"; -- x16
     constant oWIO  : OPCODETYPE  := "11000"; -- x18
     constant oRTI  : OPCODETYPE  := "11010"; -- x1A
-    constant oWAIT : OPCODETYPE  := "11100"; -- x1C
+    constant oSWI  : OPCODETYPE  := "11100"; -- x1C
     constant oIENA : OPCODETYPE  := "11110"; -- x1E
 
     constant oAdd  : OPCODETYPE  := "00001"; -- x01
@@ -76,5 +76,8 @@ package Utilities is
     constant OIError : integer := 1;
 
     type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
+    
+    type INTERRUPTCYCLETYPE is (SAVEENA1, SAVEENA2, INTERRUPTDISABLE, PUSHPC1, PUSHPC2, JINTERRUPT, WAIT1, WAIT2, JUMP);
+    constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
 
 end Package;
