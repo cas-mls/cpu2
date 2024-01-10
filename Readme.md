@@ -223,8 +223,8 @@ Operations:
 
 | Assembly   | Addressing        | Code | Clock Cycles | Operation                                       |
 | ---------- | ----------------- | ---- | ------------ | ----------------------------------------------- |
-| jmp r1, r2 | Register/Register | 40   | 5            | PC+1 → mem(R1)<br />R1-1 → R1<br />R2 → PC      |
-| jmp Imm    | Immediate         | 41   | 5            | PC+1 → mem(R1), <br />R1-1 → R1, <br />Imm → PC |
+| jsr r1, r2 | Register/Register | 40   | 5            | PC+1 → mem(R1)<br />R1-1 → R1<br />R2 → PC      |
+| jsr Imm    | Immediate         | 41   | 5            | PC+1 → mem(R1), <br />R1-1 → R1, <br />Imm → PC |
 
 ### Return
 
@@ -444,4 +444,29 @@ Return from interrupt processing:
 | MEMW      | DoutB → IntEna                           |
 
 
+
+
+
+
+
+
+
+|      | 0         | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | a    | b    | c    | d    | e    | f    |
+| ---- | --------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 0    |           | <sub>ld r1, r2</sub> |      | <sub>jmp r1</sub> | <sub>jsr r1, r2</sub> | <sub>rtn r1</sub> |      |      |      | <sub>push r1, r2</sub> | <sub>pop r1, r2</sub> | <sub>rio r1, r2</sub> | <sub>wio r1, r2</sub> | <sub>rti</sub> | <sub>swi r2</sub> | <sub>iena r1, r2</sub> |
+| 1 |  | <sub>ldl r1, Imm</sub> |      | <sub>jmp Imm</sub> | <sub>jsr Imm</sub> |      | <sub>be r1, r2, Imm<br />bz r1, Imm</sub> | <sub>blt r1, r2, Imm<br />bn r1, Imm </sub> | <sub>bgt r1, r2, Imm<br />bp r1, Imm</sub> | <sub>push r1, Imm</sub> |                       | <sub>roi r1, Imm</sub>               | <sub>woi r1, Imm</sub> |                | <sub>swi Imm</sub> | <sub>iena r1, Imm</sub> |
+| 2 |           | <sub>ld r1, mem [addr]</sub> | <sub>st r1, mem [addr]</sub> | <sub>jmp mem [addr]</sub> |      |      | <sub>be r1, r2, mem [addr]<br />bz r1, mem [addr]</sub> | <sub>blt r1, r2, mem[addr] <br /> bn r1, mem[addr]</sub> | <sub>bgt r1, r2, mem[addr]<br />bp r1, mem[addr]</sub> |      |                       | <sub>roi r1, mem[addr]</sub>         | <sub>woi r1, mem[addr]</sub> |      | <sub>swi mem[addr]</sub> | <sub>iena r1, mem[addr]</sub> |
+| 3 |           | <sub>ld r1, r2, mem [addr]</sub> | <sub>st r1, r2, mem [addr]</sub> | <sub>jmp r2, mem [addr]</sub> |      |      |      |      |      |      |                       | <sub>~~roi r1, r2, mem[addr]~~</sub> | <sub>~~woi r1, r2, mem[addr]~~</sub> |      |      |      |
+| 4 |           |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |
+| 5 |           | <sub>ldh r1, Imm</sub> |      |      |      |      | <sub>bne r1, r2, Imm<br />bnz r1, Imm</sub> | <sub>bge r1, r2, Imm<br />bl r1, r0, Imm</sub> | <sub>ble r1, r2, Imm<br />bg r1, r0, Imm</sub> |      |      |      |      |      |      |      |
+| 6 |           |      |      |      |      |      | <sub>bne r1, r2, mem [addr]<br />bnz r1, mem [addr]</sub> | <sub>bge r1, r2, mem[addr]<br />bl r1, r0, mem[addr]</sub> | <sub>ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]</sub> |      |      |      |      |      |      |      |
+| 7 |           |      |      |      |      |      |      |      |      |      |      |      |      |      |      |      |
+| 8 | <sub>add r1, r2</sub> | <sub>sub r1, r2</sub> | <sub>and r1, r2</sub> | <sub>or r1, r2</sub> |      | <sub>xor r1, r2</sub> | <sub>sll r1, r2</sub> | <sub>srl r1, r2</sub> |      |      |      |      |      |      |      |      |
+| 9 | <sub>add r1, r2, Imm<br />add r1, Imm</sub> | <sub>sub r1, r2, Imm<br />sub r1, Imm</sub> | <sub>and r1, r2, Imm<br />and r1, Imm</sub> | <sub>or r1, r2, Imm <br />or r1, Imm</sub> |      | <sub>xor r1, r2, Imm<br />xor r1, Imm</sub> | <sub>sll r1, r2, Imm<br />sll r1, Imm</sub> | <sub>srl r1, r2, Imm<br />srl r1, Imm</sub> |      |      |      |      |      |      |      |      |
+| a | <sub>add  r1, mem[addr]</sub> | <sub>sub r1, mem[addr]</sub> | <sub>and r1, mem[addr]</sub> | <sub>or r1, mem[addr]</sub> |      | <sub>xor r1, mem[addr]</sub> | <sub>sll r1, mem[addr]</sub> | <sub>srl r1, mem[addr]</sub> |      |      |      |      |      |      |      |      |
+| b | <sub>add r1, r2, mem[addr]</sub> | <sub>sub r1, r2, mem[addr]</sub> | <sub>and r1, r2, mem[addr]</sub> | <sub>or r1, r2, mem[addr]</sub> |      | <sub>xor r1, r2, mem[addr]</sub> | <sub>sll r1, r2, mem[addr]</sub> | <sub>srl r1, r2, mem[addr]</sub> |      |      |      |      |      |      |      |      |
+| c |                                             |                                             | <sub>nand r1, r2</sub>                        | <sub>nor r1, r2</sub>                       |                       | <sub>xnor r1, r2</sub>                        |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
+| d    |                                             |                                             | <sub>nand r1, r2, Imm<br />nand r1, Imm</sub> | <sub>nor r1, r2, Imm<br />nor r1, Imm</sub> |                       | <sub>xnor r1, r2, Imm<br />xnor r1, Imm</sub> |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
+| e    |                                             |                                             | <sub>nand r1, mem[addr]</sub>                 | <sub>nor r1, mem[addr]</sub>                |                       | <sub>xnor r1, mem[addr]</sub>                 |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
+| f    |                                             |      | <sub>nand r1, r2, mem[addr]</sub> | <sub>nor r1, r2, mem[addr]</sub> |      | <sub>xnor r1, r2, mem[addr]</sub> |      |      |      |      |      |      |      |      |      |      |
 
