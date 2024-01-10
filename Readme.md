@@ -6,9 +6,66 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 ## Hardware
 
+- Computer (Laptop) - 13th Gen i9-13900 2.20GHz, 32 GB
+
+- Arty-S7 Rev-E with AMD XC7S50-1CSGA324C FPGA
+
+  | Description  | Specification    |
+  | ------------ | ---------------- |
+  | Logic Slices | 8,150            |
+  | 6-Input LUT  | 32,200           |
+  | Flip-Flops   | 65,200           |
+  | Block RAM    | 337.5 KB         |
+  | DPS          | 120              |
+  | Clock        | 100 MHz / 12 MHz |
+
+
+* Connectivity and IO
+
+  | Input/Output     | Specification                    |
+  | ---------------- | -------------------------------- |
+  | USB              | USB-UART USB-JTAG Programmer     |
+  | Pmod Connectors  | 4                                |
+  | Other Connectors | Arduino/chipKIT shield connector |
+  | Switches         | 4 slide switches                 |
+  | Buttons          | 4 Push buttons                   |
+  | LEDs             | 4 LEDs, 2 RGB LEDs               |
+
 ## Software
 
+- Microsoft Windows 11 Pro
+- AMD Vivado v2023.2 (64-bit)
+  - VHDL 2K
+- Visual Studio Code
+  - Extensions
+    - VHDL
+    - CustomAsm
+- [CustomAsm](https://github.com/hlorenzi/customasm) 
+
 ## IPs
+
+- Block Memory Generator v8.4
+
+  - Interface Type: Native
+
+  - Memory Type :True Dual Port RAM
+
+  - Port A/B
+
+    - Write Width - 32 bits
+    - Read Width - 32 bits
+    - Write Depth - 4096
+    - Read Depth - 4096
+    - Primitive Output Register
+
+  - Other Options
+
+    - Load Init File - Program.coe
+    - Fill Remaining Memory Locations - A5
+
+  - Read Latency - 2
+
+    
 
 ## Principles
 
@@ -36,71 +93,60 @@ There are 5 bits for the opcode.
 
 ### Flag
 
-High 1/2 word = 1, Low 1/2 Word = 0
+Load instruction - High 1/2 word = 1, Low 1/2 Word = 0
 
-1 = NOT for the following instructions.
+1 = NOT for the following instructions:
+
+- Branch
+- And
+- Nand
+- Or
+- Nor
+- Xor
+- Xnor
 
 ### Access (Memory)
 
+Register/Register - The first register is an destination/accumulator.  The second register is a source/memory index.
+
+Immediate - This is 16-bit data that can be used to load or change the accumulator.
+
+Absolute - This gets the address from the 16-bit Immediate part of the instruction.
+
+Index - This gets the address from the addition of the 2nd register and the Immediate part of the instruction.
+
 ### Register 1
+
+The first Register is the destination for load, source for the store, and accumulator for Add, Subtract, And, etc.
 
 ### Register 2
 
-Need to talk about Register 0.
+The Second Register is the source or index.  For Operations (Add, Subtract, Add, etc.) this can be added to the Immediate value.  If Register 0 is used then nothing will be used in the operation.  For Branch instruction the second Register is Register 0 this will cause Register 1 to be compared with 0 (branch zero, branch not zero, branch negative and branch positive, etc).
 
 ### Immediate
 
-limited to 16 bits. It can only load 1/2 word.
+The immediate part of the instruction is limited to 16 bits. It can only load the lower have of the word.  Setting the flag will cause the load to work on the higher bits.  The Immediate is currently a unsigned integer.
 
 ## Architecture / Design
-
-### Cycles
 
 The operation cycles in the order: PREFETCH, WAITS, FETCH, DECODE, MEMRWAIT, MEMR, EXECUTE, and MEMW.  Some instructions do not use all of the cycles.  Example: the MEMW only is used during Read / Write IO operations, other operations completely skipped this cycle.  Another exception MEMRWAIT and MEMR cycle are skipped when the operation is not a Memory read (Access / Memory operations 2 and 3).
 
 During each cycle, the Access (Memory) value is selected (Case statement) and then the Opcode is selected (Case).  This is opposite to the normal method of CPU operation (Opcode first, Memory second).
 
-#### PREFETCH
-
-Sets the instruction address.
-
-Start interrupt processing
-
-#### WAITS
-
-Wait for instruction data.
-
-#### FETCH
-
-Wait for instruction data.
-
-#### DECODE
-
-Instruction Data is available and the Instruction is separated into different fields.
-
-The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1 the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address.
-
-#### MEMRWAIT
-
-Wait for Read for Access (Memory) types 2 and 3.
-
-The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask.
-
-#### MEMR
-
-Wait for Read for Access (Memory) types 2 and 3. 
-
-#### EXECUTE
-
-Perform the operations.
-
-#### MEMW
-
-Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state.
+| Cycle    | Description                                                  |
+| -------- | ------------------------------------------------------------ |
+| PREFETCH | Sets the instruction address.<br />Start interrupt processing |
+| WAITS    | Wait for instruction data.                                   |
+| FETCH    | Wait for instruction data.                                   |
+| DECODE   | Instruction Data is available and the Instruction is separated into different fields.<br/>The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1 the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address. |
+| MEMRWAIT | Wait for Access (Memory) types 2 and 3.<br />The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask. |
+| MEMR     | Wait for Read for Access (Memory) types 2 and 3.             |
+| EXECUTE  | Perform the operations.                                      |
+| MEMW     | Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state to reset the enable flag. |
 
 ## Instructions
 
-| Opcode                                                       | Bits  | Flag              | Access (Memory) #0 <u>Register / Register</u>     | Access (Memory) #1 <u>Immediate</u>                          | Access (Memory) #2 <u>Absolute Memory</u>               | Access (Memory) #3 <u>Index Memory</u>                       |                                                              |
+| Opcode                                                       | Bits  | Flag              | Access (Memory) #0 <u>Register / Register</u>     | Access (Memory) #1 <u>Immediate</u>                          | Access (Memory) #2 <u>Absolute Memory</u>               | Access (Memory) #3 <u>Index Memory</u>                       | Notes                                                        |
 | ------------------------------------------------------------ | ----- | ----------------- | ------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | NOOP                                                         | 00000 | NA                | NA                                                | NA                                                           | NA                                                      | NA                                                           |                                                              |
 | ld (Load)                                                    | 00010 | High Bits (16-31) | R2 → R1                                           | Imm → R1                                                     | mem(imm) → R1                                           | mem(r2+imm) → R1                                             |                                                              |
@@ -398,6 +444,4 @@ Return from interrupt processing:
 | MEMW      | DoutB → IntEna                           |
 
 
-
-### 
 
