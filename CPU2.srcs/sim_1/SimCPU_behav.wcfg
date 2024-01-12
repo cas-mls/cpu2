@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,317.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="2,142.501 ns"></ZoomEndTime>
-      <Cursor1Time time="2,005.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="308.001 ns"></ZoomEndTime>
+      <Cursor1Time time="1,000,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="139"></NameColumnWidth>
-      <ValueColumnWidth column_width="79"></ValueColumnWidth>
+      <NameColumnWidth column_width="190"></NameColumnWidth>
+      <ValueColumnWidth column_width="138"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="11" />
+   <WVObjectSize size="13" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -46,6 +46,10 @@
       <obj_property name="Radix">HEXRADIX</obj_property>
       <obj_property name="CustomSignalColor">#E0FFFF</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/ffopcode" type="array">
+      <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
+      <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
    </wvobject>
    <wvobject fp_name="group105" type="group">
       <obj_property name="label">Instruction</obj_property>
@@ -137,10 +141,10 @@
    <wvobject fp_name="group161" type="group">
       <obj_property name="label">Interrupt</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/interrupt" type="array">
          <obj_property name="ElementShortName">interrupt[31:0]</obj_property>
          <obj_property name="ObjectShortName">interrupt[31:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/interruptMask" type="array">
          <obj_property name="ElementShortName">interruptMask[31:0]</obj_property>
@@ -163,5 +167,11 @@
    <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/metrics.CycleCount" type="array">
+      <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
+      <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
 </wave_config>
