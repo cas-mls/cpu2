@@ -20,6 +20,8 @@
 
 
 library IEEE;
+use ieee.numeric_std.all;
+
 use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if using
@@ -79,5 +81,9 @@ package Utilities is
     
     type INTERRUPTCYCLETYPE is (SAVEENA1, SAVEENA2, INTERRUPTDISABLE, PUSHPC1, PUSHPC2, JINTERRUPT, WAIT1, WAIT2, JUMP);
     constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
+    
+    type METRICSTYPE is record
+        CycleCount : unsigned(63 downto 0);
+    end record;
 
 end Package;
