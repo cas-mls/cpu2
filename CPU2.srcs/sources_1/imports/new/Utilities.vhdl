@@ -35,7 +35,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 package Utilities is
 
-    type CYCLETYPE is (PREFETCH, DATAIN, FETCH, WAITS, DECODES, MEMRWAIT, MEMR, EXECUTE, MEMW);
+    type CYCLETYPE is (ADDRESS, INSTFETCH1, INSTFETCH2, DECODE, MEMFETCH1, MEMFETCH2, EXECUTE, CLEANUP);
     
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
@@ -79,7 +79,7 @@ package Utilities is
 
     type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
     
-    type INTERRUPTCYCLETYPE is (SAVEENA1, SAVEENA2, INTERRUPTDISABLE, PUSHPC1, PUSHPC2, JINTERRUPT, WAIT1, WAIT2, JUMP);
+    type INTERRUPTCYCLETYPE is (SAVEENA, DISABLEINT, JMPADDR, JMPFETCH1, JMPFETCH2, JUMP);
     constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
     
     type METRICSTYPE is record

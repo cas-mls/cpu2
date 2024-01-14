@@ -71,7 +71,7 @@ COMPONENT cpumemory
 END COMPONENT;
 
     signal ProgCounter : unsigned(11 downto 0) := X"000";
-    signal cycle : CYCLETYPE := PREFETCH;
+    signal cycle : CYCLETYPE := ADDRESS;
 
     -- Memory Information
     signal ena : STD_LOGIC := '1';
@@ -207,8 +207,8 @@ memory : cpumemory
             IOWena <= '0';
             isInterrupt <= '1';
             interruptNum <= interNum;
-            cycle <= prefetch;
-            icycle <= jinterrupt;
+            cycle <= ADDRESS;
+            icycle <= JMPADDR;
             cycleCount <= (others => '0');
             metrics.cycleCount <= (others => '0');
         else
@@ -219,30 +219,26 @@ memory : cpumemory
     
                     ----------------------------------------------------------------
                     -- This sets up the instruction address to read.
-                    when prefetch =>
+                    when ADDRESS =>
                         ena <= '1';
                         wea <= "0";
                         addra <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
-                        cycle <= waits;
+                        cycle <= INSTFETCH1;
     
                     ----------------------------------------------------------------
                     -- This is the Cycle to wait for the Fetch Instruction Memory
-                    when waits =>
-                        cycle <= fetch;
+                    when INSTFETCH1 =>
+                        cycle <= INSTFETCH2;
     
-                    ----------------------------------------------------------------
-                    -- This Cycle is not used.
-                    when datain =>
-                        cycle <= fetch;    
     
                     ----------------------------------------------------------------
                     -- This is the second Cycle for the Fetch Instruction Memory
-                    when fetch =>
-                        cycle <= decodes;
+                    when INSTFETCH2 =>
+                        cycle <= DECODE;
     
                     -- Decoding is complete
                     -- Set up memory address for ABSOLUTE and INDEX
-                    when decodes =>
+                    when DECODE =>
                         ireg1value <= regist(iregop1);
                         ireg2value <= regist(iregop2);
                         ffopcode <= opcode;
@@ -260,7 +256,7 @@ memory : cpumemory
                                         web <= "1";
                                         addrB <= regist(iregop1)(11 downto 0);
                                         dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                     when oRTN =>
                                         enb <= '1';
                                         web <= "0";
@@ -268,21 +264,21 @@ memory : cpumemory
                                                 to_integer(unsigned(regist(iregop1))) + 1,12));
                                         regist(iregop1) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(iregop1))) + 1,32));
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oRIO =>
                                         IOAddr <= regist(iregop2)(7 downto 0);
                                         IORena <= '1';
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                     when oWIO =>
                                         IOAddr <= regist(iregop2)(7 downto 0);
                                         IOWena <= '1';
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                     when oPUSH =>
                                         enb <= '1';
                                         web <= "1";
                                         addrb <= regist(iregop1)(11 downto 0);
                                         dinb <= regist(iregop2);
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                     when oPOP =>
                                         enb <= '1';
                                         web <= "0";
@@ -290,19 +286,19 @@ memory : cpumemory
                                                 to_integer(unsigned(regist(iregop1))) + 1,12));
                                         regist(iregop1) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(iregop1))) + 1,32));
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oRTI =>
---                                        DECODES	InterSP+1 ? addrB
---                                        MEMRWAIT	InterSP+2 ? addrB
---                                        MEMR	Wait
+--                                        DECODE	InterSP+1 ? addrB
+--                                        MEMFETCH1	InterSP+2 ? addrB
+--                                        MEMFETCH2	Wait
 --                                        EXECUTE	DoutB ? PC, InterSP+2 ? InterSP
 --                                        MEMW	DoutB ? IntEna
                                         --addrB <= regist(interruptSP)(11 downto 0);
                                         addrb <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(interruptSP))) + 1,12));
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when others =>
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                 end case;
                             when IMMEDIATE =>
                                 case opcode is
@@ -311,23 +307,23 @@ memory : cpumemory
                                         web <= "1";
                                         addrb <= regist(iregop1)(11 downto 0);
                                         dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                     when oRIO =>
                                         IOAddr <= immop(7 downto 0);
                                         IORena <= '1';
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                     when oWIO =>
                                         IOAddr <= immop(7 downto 0);
                                         IOWena <= '1';
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                     when oPUSH =>
                                         enb <= '1';
                                         web <= "1";
                                         addrb <= regist(iregop1)(11 downto 0);
                                         dinb <= X"0000" & immop;
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                     when others =>
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                 end case;
                             when ABSOLUTE =>
                                 case opcode is
@@ -335,28 +331,28 @@ memory : cpumemory
                                         enb <= '1';
                                         web <= "0";
                                         addrb <= immop(11 downto 0);
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oSTR =>
                                         enb <= '1';
                                         web <= "1";
                                         addrb <= immop(11 downto 0);
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oRIO =>
                                         IOAddr <= regist(iregop2)(7 downto 0);
                                         enb <= '1';
                                         web <= "1";
                                         addrb <= immop(11 downto 0);
                                         IORena <= '1';
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oWIO =>
                                         IOAddr <= regist(iregop2)(7 downto 0);
                                         enb <= '1';
                                         web <= "0";
                                         addrb <= immop(11 downto 0);
                                         IOWena <= '1';
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when others =>
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                 end case;
                             when INDEX =>
                                 case opcode is
@@ -365,18 +361,18 @@ memory : cpumemory
                                         web <= "0";
                                         addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when oSTR  =>
                                         enb <= '1';
                                         web <= "1";
                                         addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
-                                        cycle <= memrwait;
+                                        cycle <= MEMFETCH1;
                                     when others =>
-                                        cycle <= execute;
+                                        cycle <= EXECUTE;
                                 end case;
                             when others =>
-                                cycle <= execute;
+                                cycle <= EXECUTE;
                         end case;
                         if      opcode /= oJMP 
                             and opcode /= oBE 
@@ -393,14 +389,14 @@ memory : cpumemory
                     ----------------------------------------------------------------
                     -- Cycle to wait for memory to be read.
                     -- ABSOLUTE and INDEX operations.
-                    when memrwait =>
+                    when MEMFETCH1 =>
                         case ffmemop is
                             when REGREG =>
                                 case ffopcode is
                                     when oRTI =>
---                                        DECODES	InterSP+1 ? addrB
---                                        MEMRWAIT	InterSP+2 ? addrB
---                                        MEMR	Wait
+--                                        DECODE	InterSP+1 ? addrB
+--                                        MEMFETCH1	InterSP+2 ? addrB
+--                                        MEMFETCH2	Wait
 --                                        EXECUTE	DoutB ? PC, InterSP+2 ? InterSP
 --                                        MEMW	DoutB ? IntEna
                                         addrb <= std_logic_vector(to_unsigned(
@@ -408,24 +404,24 @@ memory : cpumemory
                                         regist(interruptSP) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(interruptSP))) + 2,32));
 
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                     when others =>
-                                        cycle <= memr;
+                                        cycle <= MEMFETCH2;
                                 end case;
                                 when others =>
-                                    cycle <= memr;
+                                    cycle <= MEMFETCH2;
                             end case;
-                        cycle <= memr;
+                        cycle <= MEMFETCH2;
     
                     ----------------------------------------------------------------
                     -- Second Cycle to wait for memory to be read.
                     -- ABSOLUTE and INDEX operations.
-                    when memr =>
-                        cycle <= execute;
+                    when MEMFETCH2 =>
+                        cycle <= EXECUTE;
                         
                     ----------------------------------------------------------------
                     -- Execute intruction
-                    when execute =>
+                    when EXECUTE =>
                         case ffmemop is
                             when REGREG =>
                                 case ffopcode is
@@ -746,7 +742,7 @@ memory : cpumemory
                             or ffopcode = oWIO 
                             or ffopcode = oRTI
                             then -- Need additional step.
-                            cycle <= MEMW;
+                            cycle <= CLEANUP;
                         elsif ffopcode /= oJMP 
                             and ffopcode /= oBE 
                             and ffopcode /= oBLT 
@@ -756,12 +752,12 @@ memory : cpumemory
                             and ffopcode /= oRTI 
                             then
                             if ffmemop = ABSOLUTE or ffmemop = INDEX then
-                                cycle <= decodes;
+                                cycle <= DECODE;
                             else
-                                cycle <= fetch;
+                                cycle <= INSTFETCH2;
                             end if;
                         else
-                            cycle <= prefetch;
+                            cycle <= ADDRESS;
                         end if;
                         
                         -- Check interrupt
@@ -776,7 +772,7 @@ memory : cpumemory
                     -- Update the program counter.
                     -- All of these could be included in the Execute cycle and
                     -- this state could be eliminated.
-                    when MEMW =>
+                    when CLEANUP =>
                         case ffmemop is
                             when REGREG =>
                                 case ffopcode is
@@ -806,14 +802,14 @@ memory : cpumemory
                                 end case;
                             when others => 
                         end case;
-                       cycle <= prefetch;
+                       cycle <= ADDRESS;
                     when others =>
-                        cycle <= prefetch;
+                        cycle <= ADDRESS;
                 end case;  
             else
                         
 --        Cycle	    Interrupt Process
---        PREFETCH	InterSP ? addrB, IntEna ? dinB
+--        ADDRESS	InterSP ? addrB, IntEna ? dinB
 --        SAVEENA2	InterSP ? InterSP - 1
 --        INTERRUPTDISABLE	'0' ? IntEna(interNum)
 --        PUSHPC1	InterSP ? addrB, PC+1 ? dinB
@@ -825,44 +821,38 @@ memory : cpumemory
         
         
                 case icycle is
-                    when SAVEENA1 =>
+                    when SAVEENA =>
                         weB <= "1";
                         addrB <= regist(interruptSP)(11 downto 0);
                         dinB <= interruptMask;
-                        icycle <= saveena2;
-                    when SAVEENA2 =>
                         regist(interruptSP) <= std_logic_vector(to_unsigned(
                                 to_integer(unsigned(regist(interruptSP))) - 1,32));
-                        icycle <= interruptDisable;
-                    when INTERRUPTDISABLE =>
+                        icycle <= DISABLEINT;
+                    when DISABLEINT =>
                         interruptMask <= (others => '0');
-                        icycle <= pushPc1;
-                    when PUSHPC1 =>
                         weB <= "1";
                         addrb <= regist(interruptSP)(11 downto 0);
                         dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter));
-                        icycle <= pushPc2;
-                    when PUSHPC2 =>
+                        icycle <= JMPADDR;
+                    when JMPADDR =>
                         regist(interruptSP) <= std_logic_vector(to_unsigned(
                                 to_integer(unsigned(regist(interruptSP))) - 1,32));
-                        icycle <= jInterrupt;
-                    when JINTERRUPT =>
                         weB <= "0";
                         addrB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
-                        icycle <= wait1;
-                    when WAIT1 =>
-                        icycle <= wait2;
-                    when WAIT2 =>
+                        icycle <= JMPFETCH1;
+                    when JMPFETCH1 =>
+                        icycle <= JMPFETCH2;
+                    when JMPFETCH2 =>
                         icycle <= jump;
                     when JUMP =>
                         ProgCounter <= unsigned(doutB(11 downto 0));
                         isInterrupt <= '0';
-                        icycle <= saveena1;
-                        cycle <= prefetch;
+                        icycle <= SAVEENA;
+                        cycle <= ADDRESS;
                     when others =>
                         isInterrupt <= '0';
-                        icycle <= saveena1;
-                        cycle <= prefetch;
+                        icycle <= SAVEENA;
+                        cycle <= ADDRESS;
                 end case;      
             end if;
         end if;
