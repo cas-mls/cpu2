@@ -166,8 +166,8 @@ stateDiagram
     DECODE --> EXECUTE : addr modes 0 & 1
     EXECUTE --> ADDRESS : jumps & branches
     EXECUTE --> CLEANUP : rio & wio
-    EXECUTE --> DECODE : addr modes 0 & 1
-    EXECUTE --> INSTFETCH2 : addr modes 2 & 3
+    EXECUTE --> DECODE : addr modes 2 & 3
+    EXECUTE --> INSTFETCH2 : addr modes 0 & 1
     EXECUTE --> SAVEENA : interrupt
     SAVEENA --> DISABLEINT
     DISABLEINT --> JMPADDR
@@ -427,7 +427,11 @@ Stack operations require a stack pointer register for R1.  This is a normal regi
 
 ### Interrupts
 
-#### Interrrupt Enable Mask
+There are 32 unique interrupts.  Only 31 can be programmed interrupt 0 is for resetting the CPU.    The CPU contains an interrupt enable mask (32-bit word).  The CPU can only start processing one interrupt at a time.  The interrupts are checked at the start of an instruction cycle (ADDRESS cycle).  Interrupt 0 is the only non-maskable interrupt.
+
+Software interrupts specify as part of the instruction the interrupt to process.  The SW interrupt can start the same interrupt as a hardware interrupt.    The software can reset the CPU by issuing a SW interrupt 0, this has not been tested.  Interrupt Process initiated by Hardware or Software interrupt has a unique set up states (see Cycle States).
+
+#### Interrupt Enable Mask
 
 | Assembly              | Addressing        | Code | Clock Cycles | Operation                                                    |
 | --------------------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
@@ -441,9 +445,9 @@ The Software Interrupt just sets the Interrupt Process Flag and sets the Interru
 
 | Assembly         | Addressing        | Code | Clock Cycles | Operation                                                    |
 | ---------------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
-| swi r2           | Register/Register | e0   | 5            | IR Process Flag → ‘1’ <br />R1 → Interrupt Number            |
-| swi Imm          | Immediate         | e100 | 5            | IR Process Flag → ‘1’ <br />Imm  → Interrupt Number          |
-| swi mem[address] | Absolute          | e2   | 7            | IR Process Flag → ‘1’    <br />mem(address) → Interrupts Enable Mask |
+| swi r2           | Register/Register | e0   | 5            | Check for Interrupt Enabled.<br />IR Process Flag → ‘1’ <br />R1 → Interrupt Number<br />Perform Hardware Interrupt |
+| swi Imm          | Immediate         | e100 | 5            | Check for Interrupt Enabled.<br />IR Process Flag → ‘1’ <br />Imm  → Interrupt Number<br />Perform Hardware Interrupt |
+| swi mem[address] | Absolute          | e2   | 7            | Check for Interrupt Enabled.<br />IR Process Flag → ‘1’    <br />mem(address) → Interrupts Enable Mask<br />Perform Hardware Interrupt |
 
 #### Return from Interrupt
 
@@ -451,17 +455,15 @@ The Software Interrupt just sets the Interrupt Process Flag and sets the Interru
 | -------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
 | rti      | Register/Register | d000 | 8            | mem(reg(InterSP)+1) → PC <br />mem(reg(InterSP))+2) → IntEna<br />reg(InterSP)+2 → reg(InterSP) |
 
-There are 32 unique interrupts.  Only 31 can be programmed interrupt 0 is for resetting the CPU.    The CPU contains an interrupt enable mask (32-bit word).  The CPU can only start processing one interrupt at a time.  The interrupts are checked at the start of an instruction cycle (ADDRESS cycle).  Interrupt 0 is the only non-maskable interrupt.
+#### Hardware Interrupt
 
-Software interrupts specify as part of the instruction the interrupt to process.  The SW interrupt can start the same interrupt as a hardware interrupt.    The software can reset the CPU by issuing a SW interrupt 0, this has not been tested.  Interrupt Process initiated by Hardware or Software interrupt has a unique set up states (see Cycle States).
+1. IntEna → mem(reg(InterSP)) 
+2. InterSP - 1 →  InterSp
+3. Set Mask to Disable All Interrupts
+4. InterSP - 1 →  InterSp
+5. PC →  mem(reg(InterSP)) 
+6. Read Interrupt Handler address from Interrupt Vector
+7. JUMP to Handler
 
-Return from interrupt processing:
 
-| **Cycle** | **Return Process**                       |
-| --------- | ---------------------------------------- |
-| DECODES   | reg(InterSP)+1 → addrB                   |
-| MEMFETCH1 | reg(InterSP))+2 → addrB                  |
-| MEMFETCH2 | Wait                                     |
-| EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
-| CLEANUP   | DoutB → IntEna                           |
 

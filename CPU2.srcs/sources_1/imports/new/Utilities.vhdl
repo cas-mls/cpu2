@@ -24,9 +24,6 @@ use ieee.numeric_std.all;
 
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -35,7 +32,22 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 package Utilities is
 
-    type CYCLETYPE is (ADDRESS, INSTFETCH1, INSTFETCH2, DECODE, MEMFETCH1, MEMFETCH2, EXECUTE, CLEANUP);
+    type CYCLETYPE is (
+        ADDRESS, 
+        INSTFETCH1, 
+        INSTFETCH2, 
+        DECODE, 
+        MEMFETCH1, 
+        MEMFETCH2, 
+        EXECUTE, 
+        CLEANUP,
+        SAVEENA, 
+        DISABLEINT, 
+        JMPADDR, 
+        JMPFETCH1, 
+        JMPFETCH2, 
+        JUMP
+        );
     
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
@@ -79,7 +91,7 @@ package Utilities is
 
     type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
     
-    type INTERRUPTCYCLETYPE is (SAVEENA, DISABLEINT, JMPADDR, JMPFETCH1, JMPFETCH2, JUMP);
+
     constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
     
     type METRICSTYPE is record
