@@ -158,10 +158,10 @@ memory : cpumemory
         13 when interrupt = X"00002000" else
         14 when interrupt = X"00004000" else
         15 when interrupt = X"00008000" else
-        16when interrupt = X"00000001" else
+        16 when interrupt = X"00000001" else
         17 when interrupt = X"00000002" else
         18 when interrupt = X"00040000" else
-        19when interrupt = X"00080000" else
+        19 when interrupt = X"00080000" else
         20 when interrupt = X"00100000" else
         21 when interrupt = X"00200000" else
         22 when interrupt = X"00400000" else
@@ -358,6 +358,22 @@ memory : cpumemory
                                     web <= "1";
                                     addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                 to_integer(unsigned(regist(iregop2))),12));
+                                    cycle <= MEMFETCH1;
+                                when oRIO =>
+                                    IOAddr <= regist(iregop1)(7 downto 0);
+                                    enb <= '1';
+                                    web <= "1";
+                                    addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                to_integer(unsigned(regist(iregop2))),12));
+                                    IORena <= '1';
+                                    cycle <= MEMFETCH1;
+                                when oWIO =>
+                                    IOAddr <= regist(iregop1)(7 downto 0);
+                                    enb <= '1';
+                                    web <= "0";
+                                    addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                to_integer(unsigned(regist(iregop2))),12));
+                                    IOWena <= '1';
                                     cycle <= MEMFETCH1;
                                 when others =>
                                     cycle <= EXECUTE;

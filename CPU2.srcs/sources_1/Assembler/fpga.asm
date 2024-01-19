@@ -89,13 +89,13 @@
     rio r{r1: u4}, r{r2: u4}                        => 22`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     rio r{r1: u4}, {imm: u16}                       => 22`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     rio r{r2: u4}, mem[{address: u16}]              => 22`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
-    ;rio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
+    rio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
 
 
     wio r{r1: u4}, r{r2: u4}                        => 24`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     wio r{r1: u4}, {imm: u16}                       => 24`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     wio r{r2: u4}, mem[{address: u16}]              => 24`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
-    ;wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 24`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
+    wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 24`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
     
     ; Stack Operations
     push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
@@ -281,7 +281,7 @@ IOTESTS:
     wio r1, 0x2
     bz r0, IOERR
 
-    ld  r2, 0x01 ; Address
+    ld  r2, 0x01 ; IO Address
     ld  r3, mem[WRITEMEM] ; Data
     ld  r1, 0x00
     wio r2, mem[WRITEMEM]
@@ -292,9 +292,28 @@ IOTESTS:
     bnz r0, IOERR
     bne r1, r3, IOERR
     add r tr, 1
+
     ldl r2, 0x02
     wio r2, mem[WRITEMEM]
-    be r0, IOERR
+    be r0, IOERR            ; test status not zero.
+    add r tr, 1
+
+    ld  r4, -2 ; index -- try negative numbers.
+    ld  r2, 0x01 ; IO Address
+    ld  r3, mem[WRITEMEM] ; Data
+    ld  r1, 0x00
+    wio r2, r4, mem[WRITEMEM + 2]
+    bnz r0, IOERR
+    add r tr, 1
+    ld  r1, 0x00
+    st r1, mem[READMEM]
+    rio r2, r4, mem[READMEM + 2]
+    ld r1, mem[READMEM]
+    bnz r0, IOERR
+    bne r1, r3, IOERR
+    add r tr, 1
+
+
 
     add r tr, 1
     jmp IOCOMPLETE
