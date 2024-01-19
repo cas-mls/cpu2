@@ -53,7 +53,6 @@ architecture Behavioral of SimCPU is
 
     constant HALF_PERIOD: time := 5 ns;
     signal clk : std_logic ;
-    signal rst : std_logic ;
     signal ioAddr  : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
     signal IORdata    : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
     signal IOWdata   : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
@@ -84,8 +83,6 @@ begin
     clk <= '0' after HALF_PERIOD when clk = '1' else '1' after HALF_PERIOD;
 
     test : process
-
-        variable my_line : line;  -- type 'line' comes from textio
 
     begin
     
