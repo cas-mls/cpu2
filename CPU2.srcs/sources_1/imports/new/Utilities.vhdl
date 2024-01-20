@@ -55,30 +55,31 @@ package Utilities is
     subtype IMMTYPE is  STD_LOGIC_VECTOR (15 downto 0);
 
     -- Opcodes
-    constant oLD   : OPCODETYPE  := "00010"; -- x02
-    constant oSTR  : OPCODETYPE  := "00100"; -- x04
-    constant oJmp  : OPCODETYPE  := "00110"; -- x06
-    constant oJsr  : OPCODETYPE  := "01000"; -- x08
-    constant oRtn  : OPCODETYPE  := "01010"; -- x0A
-    constant oBE   : OPCODETYPE  := "01100"; -- x0C
-    constant oBLT  : OPCODETYPE  := "01110"; -- x0E
-    constant oBGT  : OPCODETYPE  := "10000"; -- x10
-    constant oPUSH : OPCODETYPE  := "10010"; -- x12
-    constant oPOP  : OPCODETYPE  := "10100"; -- x14
-    constant oRIO  : OPCODETYPE  := "10110"; -- x16
-    constant oWIO  : OPCODETYPE  := "11000"; -- x18
-    constant oRTI  : OPCODETYPE  := "11010"; -- x1A
-    constant oSWI  : OPCODETYPE  := "11100"; -- x1C
-    constant oIENA : OPCODETYPE  := "11110"; -- x1E
+    constant oLD    : OPCODETYPE  := "00010"; -- x02
+    constant oSTR   : OPCODETYPE  := "00100"; -- x04
+    constant oJmp   : OPCODETYPE  := "00110"; -- x06
+    constant oJsr   : OPCODETYPE  := "01000"; -- x08
+    constant oRtn   : OPCODETYPE  := "01010"; -- x0A
+    constant oBE    : OPCODETYPE  := "01100"; -- x0C
+    constant oBLT   : OPCODETYPE  := "01110"; -- x0E
+    constant oBGT   : OPCODETYPE  := "10000"; -- x10
+    constant oPUSHPOP 
+                    : OPCODETYPE  := "10010"; -- x12
+    constant oWAIT  : OPCODETYPE  := "10100"; -- x14
+    constant oRWIO  : OPCODETYPE  := "10110"; -- x16
+    constant oCANCEL: OPCODETYPE  := "11000"; -- x18
+    constant oRTI   : OPCODETYPE  := "11010"; -- x1A
+    constant oSWI   : OPCODETYPE  := "11100"; -- x1C
+    constant oIENA  : OPCODETYPE  := "11110"; -- x1E
 
-    constant oAdd  : OPCODETYPE  := "00001"; -- x01
-    constant oSub  : OPCODETYPE  := "00011"; -- x03
-    constant oAnd  : OPCODETYPE  := "00101"; -- x05
-    constant oOr   : OPCODETYPE  := "00111"; -- x07
-    constant oNot  : OPCODETYPE  := "01001"; -- x09
-    constant oXor  : OPCODETYPE  := "01011"; -- x0B
-    constant oShL  : OPCODETYPE  := "01101"; -- x0D
-    constant oShR  : OPCODETYPE  := "01111"; -- x0F
+    constant oAdd   : OPCODETYPE  := "00001"; -- x01
+    constant oSub   : OPCODETYPE  := "00011"; -- x03
+    constant oAnd   : OPCODETYPE  := "00101"; -- x05
+    constant oOr    : OPCODETYPE  := "00111"; -- x07
+    constant oNot   : OPCODETYPE  := "01001"; -- x09
+    constant oXor   : OPCODETYPE  := "01011"; -- x0B
+    constant oShL   : OPCODETYPE  := "01101"; -- x0D
+    constant oShR   : OPCODETYPE  := "01111"; -- x0F
 
     constant REGREG : MEMTYPE := "00";
     constant IMMEDIATE : MEMTYPE := "01";
