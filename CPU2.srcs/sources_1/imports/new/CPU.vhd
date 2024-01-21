@@ -110,6 +110,20 @@ END COMPONENT;
     
     -- metrics
     signal cycleCount : unsigned (63 downto 0) := (others => '0');
+
+    -- Wait
+    signal waitReg : integer range -1 to 15 := -1;
+    signal waitTime : unsigned (31 downto 0) := (others => '0');
+    signal waitCount : unsigned (31 downto 0) := (others => '0');
+    signal waitResolution : unsigned (15 downto 0) := (others => '0');
+    signal waitResCounter : unsigned (15 downto 0) := (others => '0');
+
+    signal timerReg : integer := -1;
+    signal timerTime : unsigned (31 downto 0) := (others => '0');
+    signal timerCount : unsigned (31 downto 0) := (others => '0');
+    signal timerInt : unsigned (4 downto 0) := "00000";
+    signal timerResolution : unsigned (15 downto 0) := (others => '0');
+    signal timerResConter : unsigned (15 downto 0) := (others => '0');
     
 begin
 
@@ -203,6 +217,8 @@ memory : cpumemory
             cycle <= JMPADDR;
             cycleCount <= (others => '0');
             metrics.cycleCount <= (others => '0');
+            timerReg <= -1;
+            waitReg <= -1;
         else
             cycleCount <= cycleCount + 1;
             metrics.cycleCount <= cycleCount;
@@ -646,6 +662,27 @@ memory : cpumemory
                                 when oIENA =>
                                     interruptSP <= ffiregop1;
                                     interruptMask <= X"0000" & ffimmop;
+                                when oWAIT =>
+                                    if ffflag = '0' then
+                                        if ffiregop2 = 0 then
+                                            waitReg <= ffiregop1;
+                                            waitTime <= unsigned(regist(ffiregop1));
+                                            waitResolution <= unsigned(ffimmop);
+                                            waitCount <= (others => '0');
+                                        else
+                                            timerreg <= ffiregop1;
+                                            timerTime <= unsigned(regist(ffiregop1));
+                                            timerInt <= unsigned(regist(ffiregop2)(4 downto 0));
+                                            timerResolution <= unsigned(ffimmop);
+                                            waitCount <= (others => '0');
+                                        end if;
+                                    else
+                                        if ffiregop1 = waitReg then
+                                            waitReg <= -1;
+                                        elsif ffiregop1 = timerReg then
+                                            timerReg <= -1;
+                                        end if;
+                                    end if;
                                 when others =>
                             end case;
                         when ABSOLUTE  | INDEX =>
@@ -765,6 +802,8 @@ memory : cpumemory
                         or ffopcode = oRTI
                         then -- Need additional step.
                         cycle <= CLEANUP;
+                    elsif ffopcode = oWait and ffiregop2 = 0 then
+                        cycle <= WAITS;
                     elsif ffopcode = oSWI then
                         addrB <= regist(interruptSP)(11 downto 0);
                         cycle <= SAVEENA;
@@ -863,9 +902,44 @@ memory : cpumemory
                 ProgCounter <= unsigned(doutB(11 downto 0));
                 isInterrupt <= '0';
                 cycle <= ADDRESS;
+            when WAITS =>
+                if waitReg /= -1 and waitCount >= waitTime then
+                    waitReg <= -1;
+                    waitCount <= (others => '0');
+                    cycle <= ADDRESS;
+                else
+                    cycle <= WAITS;
+                end if;
             when others =>
                 cycle <= ADDRESS;
-            end case;  
+            end case;
+
+            -- Wait Counter
+            if waitReg /= -1 then
+                waitResCounter <= waitResCounter + 1;
+                if waitResCounter >= waitResolution-1 then
+                    waitCount <= waitCount + 1;
+                    waitResCounter <= (others => '0');
+                end if;
+            end if;
+
+            -- Timer Counter and Start Interrupt
+            if timerReg /= -1 then
+                timerResConter <= timerResConter + 1;
+                if timerResConter >= timerResolution-1 then
+                    timerCount <= timerCount + 1;
+                    timerResConter <= (others => '0');
+                    if timerCount >= timerTime then
+                        if interruptMask(to_integer(unsigned(timerInt))) = '1' then
+                            isInterrupt <= '1';
+                            interruptNum <= to_integer(unsigned(timerInt));
+                            cycle <= SAVEENA;
+                        end if;
+                        timerCount <= (others => '0');
+                        timerReg <= -1;
+                    end if;
+                end if;
+            end if;
         end if;
      end if;
 

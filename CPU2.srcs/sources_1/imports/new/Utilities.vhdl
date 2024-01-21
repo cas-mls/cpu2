@@ -46,7 +46,8 @@ package Utilities is
         JMPADDR, 
         JMPFETCH1, 
         JMPFETCH2, 
-        JUMP
+        JUMP,
+        WAITS
         );
     
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
@@ -67,7 +68,7 @@ package Utilities is
                     : OPCODETYPE  := "10010"; -- x12
     constant oWAIT  : OPCODETYPE  := "10100"; -- x14
     constant oRWIO  : OPCODETYPE  := "10110"; -- x16
-    constant oCANCEL: OPCODETYPE  := "11000"; -- x18
+    constant oEMPTY1: OPCODETYPE  := "11000"; -- x18
     constant oRTI   : OPCODETYPE  := "11010"; -- x1A
     constant oSWI   : OPCODETYPE  := "11100"; -- x1C
     constant oIENA  : OPCODETYPE  := "11110"; -- x1E
@@ -76,7 +77,7 @@ package Utilities is
     constant oSub   : OPCODETYPE  := "00011"; -- x03
     constant oAnd   : OPCODETYPE  := "00101"; -- x05
     constant oOr    : OPCODETYPE  := "00111"; -- x07
-    constant oNot   : OPCODETYPE  := "01001"; -- x09
+    constant oEMPTY2: OPCODETYPE  := "01001"; -- x09
     constant oXor   : OPCODETYPE  := "01011"; -- x0B
     constant oShL   : OPCODETYPE  := "01101"; -- x0D
     constant oShR   : OPCODETYPE  := "01111"; -- x0F

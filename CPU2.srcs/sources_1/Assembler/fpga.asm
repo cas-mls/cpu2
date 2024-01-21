@@ -112,9 +112,10 @@
     IENA r{r1: u4}, mem[{address: u16}]             => 30`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
 
     ; WAIT/TIMER & CANCEL
-    wait {op : operands}                            => 20`5  @ 0`1 @ op
-    time {op : operands}                            => 20`5  @ 1`1 @ op
-    canc {op : operands}                            => 24`5  @ 0`1 @ op
+    wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    time r{r1: u4}, r{r2: u4}, {imm: u16}           => 20`5 @ 0`1 @ 1`2 @ r1 @ r2 @ imm
+    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 1`2 @ 0x0 @ 0x0 @ 0x0000
+
 }
 
 #bankdef program
@@ -137,6 +138,9 @@ INT1:
     #d32    SWINT
 INT2:
     #d32    HWINT
+#addr 10
+INTTIMER:
+    #d32    TIMERHANDLER
 
 SP1 = 15 ; Stack Pointer Register
 Stack1 = 0xB00 ; Stack Location
@@ -152,6 +156,7 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
+    jsr r SP1, WAITTEST
     jsr r SP1, INTERRUPTTEST
     jsr r SP1, STACKTESTS
     jsr r SP1, IOTESTS
@@ -183,6 +188,24 @@ HWINT:
     ld r6, HWIntTestValue
     RTI
 
+TIMERHANDLER:
+    add r tr, 1
+    rti
+
+WAITTEST:
+    ldl r tr, 0x130
+    ld r1, 10
+    wait r1, 10
+    add r tr, 1
+    ld r1, 4
+    ld r2, 10
+    iena r SP1, 1<<10
+    time r1, r2, 8
+    add r tr, 1
+    jmp WAITCOMPLETE
+
+WAITCOMPLETE:
+    rtn r SP1
 
 INTERRUPTTEST:
 SWIntTestValue = 0x54545
