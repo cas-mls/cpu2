@@ -114,7 +114,7 @@
     ; WAIT/TIMER & CANCEL
     wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     time r{r1: u4}, r{r2: u4}, {imm: u16}           => 20`5 @ 0`1 @ 1`2 @ r1 @ r2 @ imm
-    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 1`2 @ 0x0 @ 0x0 @ 0x0000
+    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 1`2 @ r1 @ 0x0 @ 0x0000
 
 }
 
@@ -195,13 +195,19 @@ TIMERHANDLER:
 WAITTEST:
     ldl r tr, 0x130
     ld r1, 10
-    wait r1, 10
+    wait r1, 10         ; test wait
     add r tr, 1
     ld r1, 4
     ld r2, 10
     iena r SP1, 1<<10
-    time r1, r2, 8
+    time r1, r2, 8      ; test timer
     add r tr, 1
+    ld r3, 2
+    wait r3, 5
+    canc r1             ; test cancel
+    add r tr, 1
+    time r1, r2, 4      ; test interrupting WAIT.  WAIT should complete in the correct time.
+    wait r1, 10
     jmp WAITCOMPLETE
 
 WAITCOMPLETE:

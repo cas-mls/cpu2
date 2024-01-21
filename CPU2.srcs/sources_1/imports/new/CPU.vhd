@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
 -- Company: 
--- Engineer: 
+-- Engineer: Craig Shannon
 -- 
 -- Create Date: 11/29/2023 05:57:00 PM
 -- Design Name: 
 -- Module Name: CPU - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
+-- Project Name: Craig's CPU
+-- Target Devices: Arty S7
+-- Tool Versions: Viviado
 -- Description: 
 -- 
--- Dependencies: 
+-- Dependencies: Block Memory Generator
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
@@ -111,19 +111,21 @@ END COMPONENT;
     -- metrics
     signal cycleCount : unsigned (63 downto 0) := (others => '0');
 
-    -- Wait
-    signal waitReg : integer range -1 to 15 := -1;
+    -- Wait & Timer
+    signal waitEna : std_logic := '0';
+    signal waitReg : integer range 0 to 15 := 0;
     signal waitTime : unsigned (31 downto 0) := (others => '0');
     signal waitCount : unsigned (31 downto 0) := (others => '0');
     signal waitResolution : unsigned (15 downto 0) := (others => '0');
     signal waitResCounter : unsigned (15 downto 0) := (others => '0');
 
-    signal timerReg : integer := -1;
+    signal timerEna : std_logic := '0';
+    signal timerReg : integer range 0 to 15 := 0;
     signal timerTime : unsigned (31 downto 0) := (others => '0');
     signal timerCount : unsigned (31 downto 0) := (others => '0');
     signal timerInt : unsigned (4 downto 0) := "00000";
     signal timerResolution : unsigned (15 downto 0) := (others => '0');
-    signal timerResConter : unsigned (15 downto 0) := (others => '0');
+    signal timerResCounter : unsigned (15 downto 0) := (others => '0');
     
 begin
 
@@ -219,6 +221,8 @@ memory : cpumemory
             metrics.cycleCount <= (others => '0');
             timerReg <= -1;
             waitReg <= -1;
+            timerEna <= '0';
+            waitEna <= '0';
         else
             cycleCount <= cycleCount + 1;
             metrics.cycleCount <= cycleCount;
@@ -423,11 +427,6 @@ memory : cpumemory
                         when REGREG =>
                             case ffopcode is
                                 when oRTI =>
---                                        DECODE	InterSP+1 ? addrB
---                                        MEMFETCH1	InterSP+2 ? addrB
---                                        MEMFETCH2	Wait
---                                        EXECUTE	DoutB ? PC, InterSP+2 ? InterSP
---                                        MEMW	DoutB ? IntEna
                                     addrb <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 2,12));
                                     regist(interruptSP) <= std_logic_vector(to_unsigned(
@@ -669,18 +668,26 @@ memory : cpumemory
                                             waitTime <= unsigned(regist(ffiregop1));
                                             waitResolution <= unsigned(ffimmop);
                                             waitCount <= (others => '0');
+                                            waitEna <= '1';
                                         else
                                             timerreg <= ffiregop1;
                                             timerTime <= unsigned(regist(ffiregop1));
                                             timerInt <= unsigned(regist(ffiregop2)(4 downto 0));
                                             timerResolution <= unsigned(ffimmop);
-                                            waitCount <= (others => '0');
+                                            timerCount <= (others => '0');
+                                            timerEna <= '1';
                                         end if;
                                     else
                                         if ffiregop1 = waitReg then
-                                            waitReg <= -1;
+                                            waitReg <= 0;
+                                            waitResCounter <= (others => '0');
+                                            waitCount <= (others => '0');
+                                            waitEna <= '0';
                                         elsif ffiregop1 = timerReg then
-                                            timerReg <= -1;
+                                            timerReg  <= 0;
+                                            timerResCounter <= (others => '0');
+                                            timerCount <= (others => '0');
+                                            timerEna <= '0';
                                         end if;
                                     end if;
                                 when others =>
@@ -802,7 +809,9 @@ memory : cpumemory
                         or ffopcode = oRTI
                         then -- Need additional step.
                         cycle <= CLEANUP;
-                    elsif ffopcode = oWait and ffiregop2 = 0 then
+                    elsif       ffopcode = oWait 
+                            and ffflag = '0' 
+                            and ffiregop2 = 0 then -- Specific requirement for only WAIT
                         cycle <= WAITS;
                     elsif ffopcode = oSWI then
                         addrB <= regist(interruptSP)(11 downto 0);
@@ -869,7 +878,11 @@ memory : cpumemory
                             end case;
                         when others => 
                     end case;
-                    cycle <= ADDRESS;
+                    if opcode = oRTI and waitEna = '1' then
+                        cycle <= WAITS;
+                    else
+                        cycle <= ADDRESS;
+                    end if;
 
             when SAVEENA =>
                 if isInterrupt = '1' then
@@ -903,9 +916,9 @@ memory : cpumemory
                 isInterrupt <= '0';
                 cycle <= ADDRESS;
             when WAITS =>
-                if waitReg /= -1 and waitCount >= waitTime then
-                    waitReg <= -1;
+                if waitEna = '1' and waitCount >= waitTime then
                     waitCount <= (others => '0');
+                    waitEna <= '0';
                     cycle <= ADDRESS;
                 else
                     cycle <= WAITS;
@@ -915,7 +928,7 @@ memory : cpumemory
             end case;
 
             -- Wait Counter
-            if waitReg /= -1 then
+            if waitEna = '1' then
                 waitResCounter <= waitResCounter + 1;
                 if waitResCounter >= waitResolution-1 then
                     waitCount <= waitCount + 1;
@@ -924,11 +937,11 @@ memory : cpumemory
             end if;
 
             -- Timer Counter and Start Interrupt
-            if timerReg /= -1 then
-                timerResConter <= timerResConter + 1;
-                if timerResConter >= timerResolution-1 then
+            if timerEna = '1' then
+                timerResCounter <= timerResCounter + 1;
+                if timerResCounter >= timerResolution-1 then
                     timerCount <= timerCount + 1;
-                    timerResConter <= (others => '0');
+                    timerResCounter <= (others => '0');
                     if timerCount >= timerTime then
                         if interruptMask(to_integer(unsigned(timerInt))) = '1' then
                             isInterrupt <= '1';
@@ -936,7 +949,7 @@ memory : cpumemory
                             cycle <= SAVEENA;
                         end if;
                         timerCount <= (others => '0');
-                        timerReg <= -1;
+                        timerEna <= '0';
                     end if;
                 end if;
             end if;
