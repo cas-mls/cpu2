@@ -1,16 +1,16 @@
 ----------------------------------------------------------------------------------
 -- Company: 
--- Engineer: 
+-- Engineer: Craig Shannon
 -- 
 -- Create Date: 11/29/2023 05:57:00 PM
 -- Design Name: 
 -- Module Name: CPU - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
+-- Project Name: Craig's CPU
+-- Target Devices: Arty S7
+-- Tool Versions: Viviado
 -- Description: 
 -- 
--- Dependencies: 
+-- Dependencies: Block Memory Generator
 -- 
 -- Revision:
 -- Revision 0.01 - File Created
@@ -110,6 +110,22 @@ END COMPONENT;
     
     -- metrics
     signal cycleCount : unsigned (63 downto 0) := (others => '0');
+
+    -- Wait & Timer
+    signal waitEna : std_logic := '0';
+    signal waitReg : integer range 0 to 15 := 0;
+    signal waitTime : unsigned (31 downto 0) := (others => '0');
+    signal waitCount : unsigned (31 downto 0) := (others => '0');
+    signal waitResolution : unsigned (15 downto 0) := (others => '0');
+    signal waitResCounter : unsigned (15 downto 0) := (others => '0');
+
+    signal timerEna : std_logic := '0';
+    signal timerReg : integer range 0 to 15 := 0;
+    signal timerTime : unsigned (31 downto 0) := (others => '0');
+    signal timerCount : unsigned (31 downto 0) := (others => '0');
+    signal timerInt : unsigned (4 downto 0) := "00000";
+    signal timerResolution : unsigned (15 downto 0) := (others => '0');
+    signal timerResCounter : unsigned (15 downto 0) := (others => '0');
     
 begin
 
@@ -203,6 +219,10 @@ memory : cpumemory
             cycle <= JMPADDR;
             cycleCount <= (others => '0');
             metrics.cycleCount <= (others => '0');
+            timerReg <= 0;
+            waitReg <= 0;
+            timerEna <= '0';
+            waitEna <= '0';
         else
             cycleCount <= cycleCount + 1;
             metrics.cycleCount <= cycleCount;
@@ -256,35 +276,33 @@ memory : cpumemory
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(iregop1))) + 1,32));
                                     cycle <= MEMFETCH1;
-                                when oRIO =>
-                                    IOAddr <= regist(iregop2)(7 downto 0);
-                                    IORena <= '1';
-                                    cycle <= MEMFETCH2;
-                                when oWIO =>
-                                    IOAddr <= regist(iregop2)(7 downto 0);
-                                    IOWena <= '1';
-                                    cycle <= MEMFETCH2;
-                                when oPUSH =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= regist(iregop1)(11 downto 0);
-                                    dinb <= regist(iregop2);
-                                    cycle <= EXECUTE;
-                                when oPOP =>
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 1,12));
-                                    regist(iregop1) <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(regist(iregop1))) + 1,32));
-                                    cycle <= MEMFETCH1;
+                                when oRWIO =>
+                                    if flag = '0' then
+                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        IORena <= '1';
+                                        cycle <= MEMFETCH2;
+                                    else
+                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        IOWena <= '1';
+                                        cycle <= MEMFETCH2;
+                                    end if;
+                                when oPUSHPOP =>
+                                    if flag = '0' then
+                                        enb <= '1';
+                                        web <= "1";
+                                        addrb <= regist(iregop1)(11 downto 0);
+                                        dinb <= regist(iregop2);
+                                        cycle <= EXECUTE;
+                                    else
+                                        enb <= '1';
+                                        web <= "0";
+                                        addrb <= std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) + 1,12));
+                                        regist(iregop1) <= std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(regist(iregop1))) + 1,32));
+                                        cycle <= MEMFETCH1;
+                                    end if;
                                 when oRTI =>
---                                        DECODE	InterSP+1 ? addrB
---                                        MEMFETCH1	InterSP+2 ? addrB
---                                        MEMFETCH2	Wait
---                                        EXECUTE	DoutB ? PC, InterSP+2 ? InterSP
---                                        MEMW	DoutB ? IntEna
-                                    --addrB <= regist(interruptSP)(11 downto 0);
                                     addrb <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 1,12));
                                     cycle <= MEMFETCH1;
@@ -299,20 +317,24 @@ memory : cpumemory
                                     addrb <= regist(iregop1)(11 downto 0);
                                     dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
                                     cycle <= EXECUTE;
-                                when oRIO =>
-                                    IOAddr <= immop(7 downto 0);
-                                    IORena <= '1';
-                                    cycle <= MEMFETCH2;
-                                when oWIO =>
-                                    IOAddr <= immop(7 downto 0);
-                                    IOWena <= '1';
-                                    cycle <= MEMFETCH2;
-                                when oPUSH =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= regist(iregop1)(11 downto 0);
-                                    dinb <= X"0000" & immop;
-                                    cycle <= EXECUTE;
+                                when oRWIO =>
+                                    if flag = '0' then
+                                        IOAddr <= immop(7 downto 0);
+                                        IORena <= '1';
+                                        cycle <= MEMFETCH2;
+                                    else
+                                        IOAddr <= immop(7 downto 0);
+                                        IOWena <= '1';
+                                        cycle <= MEMFETCH2;
+                                    end if;
+                                when oPUSHPOP =>
+                                    if flag = '0' then
+                                        enb <= '1';
+                                        web <= "1";
+                                        addrb <= regist(iregop1)(11 downto 0);
+                                        dinb <= X"0000" & immop;
+                                        cycle <= EXECUTE;
+                                    end if;
                                 when others =>
                                     cycle <= EXECUTE;
                             end case;
@@ -328,20 +350,22 @@ memory : cpumemory
                                     web <= "1";
                                     addrb <= immop(11 downto 0);
                                     cycle <= MEMFETCH1;
-                                when oRIO =>
-                                    IOAddr <= regist(iregop2)(7 downto 0);
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= immop(11 downto 0);
-                                    IORena <= '1';
-                                    cycle <= MEMFETCH1;
-                                when oWIO =>
-                                    IOAddr <= regist(iregop2)(7 downto 0);
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <= immop(11 downto 0);
-                                    IOWena <= '1';
-                                    cycle <= MEMFETCH1;
+                                when oRWIO =>
+                                    if flag = '0' then
+                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        enb <= '1';
+                                        web <= "1";
+                                        addrb <= immop(11 downto 0);
+                                        IORena <= '1';
+                                        cycle <= MEMFETCH1;
+                                    else
+                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        enb <= '1';
+                                        web <= "0";
+                                        addrb <= immop(11 downto 0);
+                                        IOWena <= '1';
+                                        cycle <= MEMFETCH1;
+                                    end if;
                                 when others =>
                                     cycle <= EXECUTE;
                             end case;
@@ -359,22 +383,24 @@ memory : cpumemory
                                     addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                 to_integer(unsigned(regist(iregop2))),12));
                                     cycle <= MEMFETCH1;
-                                when oRIO =>
-                                    IOAddr <= regist(iregop1)(7 downto 0);
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
-                                                to_integer(unsigned(regist(iregop2))),12));
-                                    IORena <= '1';
-                                    cycle <= MEMFETCH1;
-                                when oWIO =>
-                                    IOAddr <= regist(iregop1)(7 downto 0);
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
-                                                to_integer(unsigned(regist(iregop2))),12));
-                                    IOWena <= '1';
-                                    cycle <= MEMFETCH1;
+                                when oRWIO =>
+                                    if flag = '0' then
+                                        IOAddr <= regist(iregop1)(7 downto 0);
+                                        enb <= '1';
+                                        web <= "1";
+                                        addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                    to_integer(unsigned(regist(iregop2))),12));
+                                        IORena <= '1';
+                                        cycle <= MEMFETCH1;
+                                    else
+                                        IOAddr <= regist(iregop1)(7 downto 0);
+                                        enb <= '1';
+                                        web <= "0";
+                                        addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                                    to_integer(unsigned(regist(iregop2))),12));
+                                        IOWena <= '1';
+                                        cycle <= MEMFETCH1;
+                                    end if;
                                 when others =>
                                     cycle <= EXECUTE;
                             end case;
@@ -401,11 +427,6 @@ memory : cpumemory
                         when REGREG =>
                             case ffopcode is
                                 when oRTI =>
---                                        DECODE	InterSP+1 ? addrB
---                                        MEMFETCH1	InterSP+2 ? addrB
---                                        MEMFETCH2	Wait
---                                        EXECUTE	DoutB ? PC, InterSP+2 ? InterSP
---                                        MEMW	DoutB ? IntEna
                                     addrb <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 2,12));
                                     regist(interruptSP) <= std_logic_vector(to_unsigned(
@@ -477,17 +498,21 @@ memory : cpumemory
                                     ProgCounter <= unsigned(doutb(11 downto 0));
                                 when oRTI =>
                                     ProgCounter <= unsigned(doutb(11 downto 0));
-                                when oRIO =>
-                                    regist(ffiregop1) <= IORdata;
-                                    regist(0) <= x"000000" & IOStatus;
-                                when oWIO =>
-                                    IOWdata <= regist(ffiregop1);
-                                    regist(0) <= x"000000" & IOStatus;
-                                when oPUSH =>
-                                    regist(ffiregop1) <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(ireg1value)) - 1,32));
-                                when oPOP =>
-                                    regist(iregop2) <= doutb;
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        regist(ffiregop1) <= IORdata;
+                                        regist(0) <= x"000000" & IOStatus;
+                                    else
+                                        IOWdata <= regist(ffiregop1);
+                                        regist(0) <= x"000000" & IOStatus;
+                                    end if;
+                                when oPUSHPOP =>
+                                    if ffflag = '0' then
+                                        regist(ffiregop1) <= std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(ireg1value)) - 1,32));
+                                    else
+                                        regist(iregop2) <= doutb;
+                                    end if;
                                 when oSWI =>
                                     if interruptMask(ffiregop1) = '1' then
                                         isInterrupt <= '1';
@@ -496,6 +521,20 @@ memory : cpumemory
                                 when oIENA =>
                                     interruptSP <= ffiregop1;
                                     interruptMask <= ireg2value;
+                                when oWAIT =>
+                                    if ffflag = '1' then
+                                        if ffiregop1 = waitReg then
+                                            waitReg <= 0;
+                                            waitResCounter <= (others => '0');
+                                            waitCount <= (others => '0');
+                                            waitEna <= '0';
+                                        elsif ffiregop1 = timerReg then
+                                            timerReg  <= 0;
+                                            timerResCounter <= (others => '0');
+                                            timerCount <= (others => '0');
+                                            timerEna <= '0';
+                                        end if;
+                                    end if;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
@@ -615,15 +654,19 @@ memory : cpumemory
                                     regist(ffiregop1) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(ireg1value)) - 1,32));
                                     ProgCounter <= unsigned(ffimmop(11 downto 0));
-                                when oRIO =>
-                                    regist(ffiregop1) <= IORdata;
-                                    regist(0) <= x"000000" & IOStatus;
-                                when oWIO =>
-                                    IOWdata <= regist(ffiregop1);
-                                    regist(0) <= x"000000" & IOStatus;
-                                when oPUSH =>
-                                    regist(ffiregop1) <= std_logic_vector(to_unsigned(
-                                            to_integer(unsigned(ireg1value)) - 1,32));
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        regist(ffiregop1) <= IORdata;
+                                        regist(0) <= x"000000" & IOStatus;
+                                    else
+                                        IOWdata <= regist(ffiregop1);
+                                        regist(0) <= x"000000" & IOStatus;
+                                    end if;
+                                when oPUSHPOP =>
+                                    if ffflag = '0' then
+                                        regist(ffiregop1) <= std_logic_vector(to_unsigned(
+                                                to_integer(unsigned(ireg1value)) - 1,32));
+                                    end if;
                                 when oSWI =>
                                     if interruptMask(to_integer(unsigned(ffimmop(4 downto 0)))) = '1' then
                                         isInterrupt <= '1';
@@ -632,6 +675,35 @@ memory : cpumemory
                                 when oIENA =>
                                     interruptSP <= ffiregop1;
                                     interruptMask <= X"0000" & ffimmop;
+                                when oWAIT =>
+                                    if ffflag = '0' then
+                                        if ffiregop2 = 0 then
+                                            waitReg <= ffiregop1;
+                                            waitTime <= unsigned(regist(ffiregop1));
+                                            waitResolution <= unsigned(ffimmop);
+                                            waitCount <= (others => '0');
+                                            waitEna <= '1';
+                                        else
+                                            timerreg <= ffiregop1;
+                                            timerTime <= unsigned(regist(ffiregop1));
+                                            timerInt <= unsigned(regist(ffiregop2)(4 downto 0));
+                                            timerResolution <= unsigned(ffimmop);
+                                            timerCount <= (others => '0');
+                                            timerEna <= '1';
+                                        end if;
+                                    -- else
+                                    --     if ffiregop1 = waitReg then
+                                    --         waitReg <= 0;
+                                    --         waitResCounter <= (others => '0');
+                                    --         waitCount <= (others => '0');
+                                    --         waitEna <= '0';
+                                    --     elsif ffiregop1 = timerReg then
+                                    --         timerReg  <= 0;
+                                    --         timerResCounter <= (others => '0');
+                                    --         timerCount <= (others => '0');
+                                    --         timerEna <= '0';
+                                    --     end if;
+                                    end if;
                                 when others =>
                             end case;
                         when ABSOLUTE  | INDEX =>
@@ -714,12 +786,14 @@ memory : cpumemory
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
-                                when oRIO =>
-                                    dinb <= IORdata;
-                                    regist(0) <= x"000000" & IOStatus;
-                                when oWIO =>
-                                    IOWdata <= doutb;
-                                    regist(0) <= x"000000" & IOStatus;
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        dinb <= IORdata;
+                                        regist(0) <= x"000000" & IOStatus;
+                                    else
+                                        IOWdata <= doutb;
+                                        regist(0) <= x"000000" & IOStatus;
+                                    end if;
                                 when oSWI =>
                                     if interruptMask(to_integer(unsigned(doutb(4 downto 0)))) = '1' then
                                         isInterrupt <= '1';
@@ -745,11 +819,14 @@ memory : cpumemory
                     end if;
                     
                     -- Find the next cycle state....
-                    if ffopcode = oRIO 
-                        or ffopcode = oWIO 
+                    if ffopcode = oRWIO 
                         or ffopcode = oRTI
                         then -- Need additional step.
                         cycle <= CLEANUP;
+                    elsif       ffopcode = oWait 
+                            and ffflag = '0' 
+                            and ffiregop2 = 0 then -- Specific requirement for only WAIT
+                        cycle <= WAITS;
                     elsif ffopcode = oSWI then
                         addrB <= regist(interruptSP)(11 downto 0);
                         cycle <= SAVEENA;
@@ -783,33 +860,43 @@ memory : cpumemory
                     case ffmemop is
                         when REGREG =>
                             case ffopcode is
-                                when oRIO =>
-                                    IORena <= '0';
-                                when oWIO =>
-                                    IOWena <= '0';
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        IORena <= '0';
+                                    else
+                                        IOWena <= '0';
+                                    end if;
                                 when oRTI =>
                                     interruptMask <= doutb;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
                             case ffopcode is
-                                when oRIO =>
-                                    IORena <= '0';
-                                when oWIO =>
-                                    IOWena <= '0';
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        IORena <= '0';
+                                    else
+                                        IOWena <= '0';
+                                    end if;
                                 when others =>
                             end case;
                         when ABSOLUTE | INDEX =>
                             case ffopcode is
-                                when oRIO =>
-                                    IORena <= '0';
-                                when oWIO =>
-                                    IOWena <= '0';
+                                when oRWIO =>
+                                    if ffflag = '0' then
+                                        IORena <= '0';
+                                    else
+                                        IOWena <= '0';
+                                    end if;
                                 when others =>
                             end case;
                         when others => 
                     end case;
-                    cycle <= ADDRESS;
+                    if opcode = oRTI and waitEna = '1' then
+                        cycle <= WAITS;
+                    else
+                        cycle <= ADDRESS;
+                    end if;
 
             when SAVEENA =>
                 if isInterrupt = '1' then
@@ -842,9 +929,44 @@ memory : cpumemory
                 ProgCounter <= unsigned(doutB(11 downto 0));
                 isInterrupt <= '0';
                 cycle <= ADDRESS;
+            when WAITS =>
+                if waitTime /= 0 and waitEna = '1' and waitCount >= waitTime then
+                    waitCount <= (others => '0');
+                    waitEna <= '0';
+                    cycle <= ADDRESS;
+                else
+                    cycle <= WAITS;
+                end if;
             when others =>
                 cycle <= ADDRESS;
-            end case;  
+            end case;
+
+            -- Wait Counter
+            if waitEna = '1' then
+                waitResCounter <= waitResCounter + 1;
+                if waitResCounter >= waitResolution-1 then
+                    waitCount <= waitCount + 1;
+                    waitResCounter <= (others => '0');
+                end if;
+            end if;
+
+            -- Timer Counter and Start Interrupt
+            if timerEna = '1' then
+                timerResCounter <= timerResCounter + 1;
+                if timerResCounter >= timerResolution-1 then
+                    timerCount <= timerCount + 1;
+                    timerResCounter <= (others => '0');
+                    if timerTime /= 0 and timerCount >= timerTime then
+                        if interruptMask(to_integer(unsigned(timerInt))) = '1' then
+                            isInterrupt <= '1';
+                            interruptNum <= to_integer(unsigned(timerInt));
+                            cycle <= SAVEENA;
+                        end if;
+                        timerCount <= (others => '0');
+                        timerEna <= '0';
+                    end if;
+                end if;
+            end if;
         end if;
      end if;
 

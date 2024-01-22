@@ -11,22 +11,24 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="872.428 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,027.429 ns"></ZoomEndTime>
-      <Cursor1Time time="745.000 ns"></Cursor1Time>
+      <ZoomStartTime time="999,924.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="1,000,015.201 ns"></ZoomEndTime>
+      <Cursor1Time time="999,951.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="128"></ValueColumnWidth>
+      <ValueColumnWidth column_width="118"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="13" />
+   <wave_markers>
+      <marker time="998795000" label="" />
+      <marker time="999195000" label="" />
+      <marker time="1375000" label="" />
+      <marker time="365000" label="" />
+   </wave_markers>
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/rst" type="logic">
-      <obj_property name="ElementShortName">rst</obj_property>
-      <obj_property name="ObjectShortName">rst</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/cycle" type="other">
       <obj_property name="ElementShortName">cycle</obj_property>
@@ -125,7 +127,6 @@
    <wvobject fp_name="group162" type="group">
       <obj_property name="label">MemB</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/addrb" type="array">
          <obj_property name="ElementShortName">addrb[11:0]</obj_property>
          <obj_property name="ObjectShortName">addrb[11:0]</obj_property>
@@ -160,19 +161,71 @@
          <obj_property name="ElementShortName">isInterrupt</obj_property>
          <obj_property name="ObjectShortName">isInterrupt</obj_property>
       </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/icycle" type="other">
-         <obj_property name="ElementShortName">icycle</obj_property>
-         <obj_property name="ObjectShortName">icycle</obj_property>
-      </wvobject>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/metrics.CycleCount" type="array">
       <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
       <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
       <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject fp_name="group335" type="group">
+      <obj_property name="label">WaitTimer</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitEna" type="logic">
+         <obj_property name="ElementShortName">waitEna</obj_property>
+         <obj_property name="ObjectShortName">waitEna</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitReg" type="other">
+         <obj_property name="ElementShortName">waitReg</obj_property>
+         <obj_property name="ObjectShortName">waitReg</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitResolution" type="array">
+         <obj_property name="ElementShortName">waitResolution[15:0]</obj_property>
+         <obj_property name="ObjectShortName">waitResolution[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitResCounter" type="array">
+         <obj_property name="ElementShortName">waitResCounter[15:0]</obj_property>
+         <obj_property name="ObjectShortName">waitResCounter[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitTime" type="array">
+         <obj_property name="ElementShortName">waitTime[31:0]</obj_property>
+         <obj_property name="ObjectShortName">waitTime[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitCount" type="array">
+         <obj_property name="ElementShortName">waitCount[31:0]</obj_property>
+         <obj_property name="ObjectShortName">waitCount[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerEna" type="logic">
+         <obj_property name="ElementShortName">timerEna</obj_property>
+         <obj_property name="ObjectShortName">timerEna</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerReg" type="other">
+         <obj_property name="ElementShortName">timerReg</obj_property>
+         <obj_property name="ObjectShortName">timerReg</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerResolution" type="array">
+         <obj_property name="ElementShortName">timerResolution[15:0]</obj_property>
+         <obj_property name="ObjectShortName">timerResolution[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerResCounter" type="array">
+         <obj_property name="ElementShortName">timerResCounter[15:0]</obj_property>
+         <obj_property name="ObjectShortName">timerResCounter[15:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerTime" type="array">
+         <obj_property name="ElementShortName">timerTime[31:0]</obj_property>
+         <obj_property name="ObjectShortName">timerTime[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerCount" type="array">
+         <obj_property name="ElementShortName">timerCount[31:0]</obj_property>
+         <obj_property name="ObjectShortName">timerCount[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerInt" type="array">
+         <obj_property name="ElementShortName">timerInt[4:0]</obj_property>
+         <obj_property name="ObjectShortName">timerInt[4:0]</obj_property>
+      </wvobject>
    </wvobject>
 </wave_config>

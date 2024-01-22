@@ -92,15 +92,15 @@
     rio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
 
 
-    wio r{r1: u4}, r{r2: u4}                        => 24`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
-    wio r{r1: u4}, {imm: u16}                       => 24`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    wio r{r2: u4}, mem[{address: u16}]              => 24`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
-    wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 24`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
+    wio r{r1: u4}, r{r2: u4}                        => 22`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    wio r{r1: u4}, {imm: u16}                       => 22`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
+    wio r{r2: u4}, mem[{address: u16}]              => 22`5  @ 1`1 @ 2`2 @ 0x0 @ r2 @ address
+    wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 1`1 @ 3`2 @ r1 @ r2 @ address
     
     ; Stack Operations
     push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    pop r{r1: u4}, r{r2: u4}                        => 20`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    pop r{r1: u4}, r{r2: u4}                        => 18`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
 
     ; Interrupt
     RTI                                             => 26`5  @ 0`1 @ 0`2 @ 0x0 @ 0x0 @ 0x0000
@@ -110,6 +110,12 @@
     IENA r{r1: u4}, r{r2: u4}                       => 30`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     IENA r{r1: u4}, {imm: u16}                      => 30`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     IENA r{r1: u4}, mem[{address: u16}]             => 30`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
+
+    ; WAIT/TIMER & CANCEL
+    wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    time r{r1: u4}, r{r2: u4}, {imm: u16}           => 20`5 @ 0`1 @ 1`2 @ r1 @ r2 @ imm
+    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
+
 }
 
 #bankdef program
@@ -132,6 +138,9 @@ INT1:
     #d32    SWINT
 INT2:
     #d32    HWINT
+#addr 10
+INTTIMER:
+    #d32    TIMERHANDLER
 
 SP1 = 15 ; Stack Pointer Register
 Stack1 = 0xB00 ; Stack Location
@@ -147,6 +156,7 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
+    jsr r SP1, WAITTEST
     jsr r SP1, INTERRUPTTEST
     jsr r SP1, STACKTESTS
     jsr r SP1, IOTESTS
@@ -178,6 +188,33 @@ HWINT:
     ld r6, HWIntTestValue
     RTI
 
+TIMERHANDLER:
+    add r tr, 1
+    rti
+
+WAITTEST:
+    ldl r tr, 0x130
+    ld r1, 10
+    wait r1, 10         ; test wait
+    add r tr, 1
+    ld r1, 4
+    ld r2, 10
+    iena r SP1, 1<<10
+    time r1, r2, 8      ; test timer
+    add r tr, 1
+    ld r3, 2
+    wait r3, 5
+    canc r1             ; test cancel
+    add r tr, 1
+    time r1, r2, 4      ; test interrupting WAIT.  WAIT should complete in the correct time.
+    wait r1, 10
+    ld r1, 0
+    ;wait r1, 10        ; infinit wait
+    ;time r1, r2, 8      ; infinit timer
+    jmp WAITCOMPLETE
+
+WAITCOMPLETE:
+    rtn r SP1
 
 INTERRUPTTEST:
 SWIntTestValue = 0x54545
