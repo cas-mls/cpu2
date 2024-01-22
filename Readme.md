@@ -507,7 +507,7 @@ Performs the shift right logical to the accumulator.
 
 ### Wait / Timer
 
-The Wait instruction will accept the number of time cycles (R1 with 32-bits), and resolution (immediate 16-bits).  The Timer instruction will accept the number of time cycles (R1 with 32-bits), interrupt number (R2 with lowest 5-bits), and resolution (immediate with 16-bits). 
+The Wait instruction will accept the number of time cycles (R1 with 32-bits), and resolution (immediate 16-bits).  The Timer instruction will accept the number of time cycles (R1 with 32-bits), interrupt number (R2 with lowest 5-bits), and resolution (immediate with 16-bits).   If the wait and timer times is zero then the wait and timer will be set to infinite.
 
 The 32-bit counter of a 100MHz clock will only count for 43 seconds.  The Resolution field extends the time to 782 days, but the precision is maintained at 32 bits.  The precision for the max time (782 days) is 0.6ms.  The system contains a resolution counter and a timer counter.  For each clock cycle the CPU increments the resolution counter.  When the resolution counter reaches the resolution value it increments the timer counter.
 

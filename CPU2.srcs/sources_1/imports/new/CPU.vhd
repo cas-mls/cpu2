@@ -219,8 +219,8 @@ memory : cpumemory
             cycle <= JMPADDR;
             cycleCount <= (others => '0');
             metrics.cycleCount <= (others => '0');
-            timerReg <= -1;
-            waitReg <= -1;
+            timerReg <= 0;
+            waitReg <= 0;
             timerEna <= '0';
             waitEna <= '0';
         else
@@ -930,7 +930,7 @@ memory : cpumemory
                 isInterrupt <= '0';
                 cycle <= ADDRESS;
             when WAITS =>
-                if waitEna = '1' and waitCount >= waitTime then
+                if waitTime /= 0 and waitEna = '1' and waitCount >= waitTime then
                     waitCount <= (others => '0');
                     waitEna <= '0';
                     cycle <= ADDRESS;
@@ -956,7 +956,7 @@ memory : cpumemory
                 if timerResCounter >= timerResolution-1 then
                     timerCount <= timerCount + 1;
                     timerResCounter <= (others => '0');
-                    if timerCount >= timerTime then
+                    if timerTime /= 0 and timerCount >= timerTime then
                         if interruptMask(to_integer(unsigned(timerInt))) = '1' then
                             isInterrupt <= '1';
                             interruptNum <= to_integer(unsigned(timerInt));

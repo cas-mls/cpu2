@@ -208,6 +208,9 @@ WAITTEST:
     add r tr, 1
     time r1, r2, 4      ; test interrupting WAIT.  WAIT should complete in the correct time.
     wait r1, 10
+    ld r1, 0
+    ;wait r1, 10        ; infinit wait
+    ;time r1, r2, 8      ; infinit timer
     jmp WAITCOMPLETE
 
 WAITCOMPLETE:
