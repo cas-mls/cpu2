@@ -114,7 +114,7 @@
     ; WAIT/TIMER & CANCEL
     wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     time r{r1: u4}, r{r2: u4}, {imm: u16}           => 20`5 @ 0`1 @ 1`2 @ r1 @ r2 @ imm
-    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 1`2 @ r1 @ 0x0 @ 0x0000
+    canc r{r1: u4}                                  => 20`5 @ 1`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
 
 }
 

@@ -2,7 +2,7 @@
 2020.2
 Oct 13 2023
 20:47:58
-D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.gen/sources_1/ip/cpumemory/cpumemory_sim_netlist.vhdl,1705872860,vhdl,,,,\cpumemory_blk_mem_gen_prim_width__parameterized0\;\cpumemory_blk_mem_gen_prim_width__parameterized1\;\cpumemory_blk_mem_gen_prim_width__parameterized2\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized0\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized1\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized2\;cpumemory;cpumemory_blk_mem_gen_generic_cstr;cpumemory_blk_mem_gen_prim_width;cpumemory_blk_mem_gen_prim_wrapper_init;cpumemory_blk_mem_gen_top;cpumemory_blk_mem_gen_v8_4_7;cpumemory_blk_mem_gen_v8_4_7_synth,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.gen/sources_1/ip/cpumemory/cpumemory_sim_netlist.vhdl,1705875396,vhdl,,,,\cpumemory_blk_mem_gen_prim_width__parameterized0\;\cpumemory_blk_mem_gen_prim_width__parameterized1\;\cpumemory_blk_mem_gen_prim_width__parameterized2\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized0\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized1\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized2\;cpumemory;cpumemory_blk_mem_gen_generic_cstr;cpumemory_blk_mem_gen_prim_width;cpumemory_blk_mem_gen_prim_wrapper_init;cpumemory_blk_mem_gen_top;cpumemory_blk_mem_gen_v8_4_7;cpumemory_blk_mem_gen_v8_4_7_synth,,,,,,,,
 D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sim_1/imports/new/SimCPU.vhd,1705628079,vhdl,,,,simcpu,,,,,,,,
-D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/imports/new/CPU.vhd,1705873587,vhdl,,,,cpu,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/imports/new/CPU.vhd,1705875255,vhdl,,,,cpu,,,,,,,,
 D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/imports/new/Utilities.vhdl,1705792364,vhdl,D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/imports/new/CPU.vhd,,,utilities,,,,,,,,

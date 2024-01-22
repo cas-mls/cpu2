@@ -521,6 +521,20 @@ memory : cpumemory
                                 when oIENA =>
                                     interruptSP <= ffiregop1;
                                     interruptMask <= ireg2value;
+                                when oWAIT =>
+                                    if ffflag = '1' then
+                                        if ffiregop1 = waitReg then
+                                            waitReg <= 0;
+                                            waitResCounter <= (others => '0');
+                                            waitCount <= (others => '0');
+                                            waitEna <= '0';
+                                        elsif ffiregop1 = timerReg then
+                                            timerReg  <= 0;
+                                            timerResCounter <= (others => '0');
+                                            timerCount <= (others => '0');
+                                            timerEna <= '0';
+                                        end if;
+                                    end if;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
@@ -677,18 +691,18 @@ memory : cpumemory
                                             timerCount <= (others => '0');
                                             timerEna <= '1';
                                         end if;
-                                    else
-                                        if ffiregop1 = waitReg then
-                                            waitReg <= 0;
-                                            waitResCounter <= (others => '0');
-                                            waitCount <= (others => '0');
-                                            waitEna <= '0';
-                                        elsif ffiregop1 = timerReg then
-                                            timerReg  <= 0;
-                                            timerResCounter <= (others => '0');
-                                            timerCount <= (others => '0');
-                                            timerEna <= '0';
-                                        end if;
+                                    -- else
+                                    --     if ffiregop1 = waitReg then
+                                    --         waitReg <= 0;
+                                    --         waitResCounter <= (others => '0');
+                                    --         waitCount <= (others => '0');
+                                    --         waitEna <= '0';
+                                    --     elsif ffiregop1 = timerReg then
+                                    --         timerReg  <= 0;
+                                    --         timerResCounter <= (others => '0');
+                                    --         timerCount <= (others => '0');
+                                    --         timerEna <= '0';
+                                    --     end if;
                                     end if;
                                 when others =>
                             end case;
