@@ -11,21 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="999,924.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,000,015.201 ns"></ZoomEndTime>
-      <Cursor1Time time="999,951.000 ns"></Cursor1Time>
+      <ZoomStartTime time="1,962.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="2,063.801 ns"></ZoomEndTime>
+      <Cursor1Time time="2,180.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="118"></ValueColumnWidth>
+      <ValueColumnWidth column_width="108"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="13" />
-   <wave_markers>
-      <marker time="998795000" label="" />
-      <marker time="999195000" label="" />
-      <marker time="1375000" label="" />
-      <marker time="365000" label="" />
-   </wave_markers>
+   <WVObjectSize size="26" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -37,10 +31,6 @@
    <wvobject fp_name="/SimCPU/cpuCUT/ProgCounter" type="array">
       <obj_property name="ElementShortName">ProgCounter[11:0]</obj_property>
       <obj_property name="ObjectShortName">ProgCounter[11:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/cpuCUT/douta" type="array">
-      <obj_property name="ElementShortName">douta[31:0]</obj_property>
-      <obj_property name="ObjectShortName">douta[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/opcode" type="array">
       <obj_property name="ElementShortName">opcode[4:0]</obj_property>
@@ -56,14 +46,7 @@
    <wvobject fp_name="group105" type="group">
       <obj_property name="label">Instruction</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/SimCPU/cpuCUT/addra" type="array">
-         <obj_property name="ElementShortName">addra[11:0]</obj_property>
-         <obj_property name="ObjectShortName">addra[11:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/douta" type="array">
-         <obj_property name="ElementShortName">douta[31:0]</obj_property>
-         <obj_property name="ObjectShortName">douta[31:0]</obj_property>
-      </wvobject>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/opcode" type="array">
          <obj_property name="ElementShortName">opcode[4:0]</obj_property>
          <obj_property name="ObjectShortName">opcode[4:0]</obj_property>
@@ -127,17 +110,26 @@
    <wvobject fp_name="group162" type="group">
       <obj_property name="label">MemB</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <wvobject fp_name="/SimCPU/cpuCUT/addrb" type="array">
-         <obj_property name="ElementShortName">addrb[11:0]</obj_property>
-         <obj_property name="ObjectShortName">addrb[11:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/SimCPU/cpuCUT/MEM_ENB" type="logic">
+         <obj_property name="ElementShortName">MEM_ENB</obj_property>
+         <obj_property name="ObjectShortName">MEM_ENB</obj_property>
       </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/dinb" type="array">
-         <obj_property name="ElementShortName">dinb[31:0]</obj_property>
-         <obj_property name="ObjectShortName">dinb[31:0]</obj_property>
+      <wvobject fp_name="/SimCPU/cpuCUT/MEM_WEB" type="array">
+         <obj_property name="ElementShortName">MEM_WEB[0:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_WEB[0:0]</obj_property>
       </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/doutb" type="array">
-         <obj_property name="ElementShortName">doutb[31:0]</obj_property>
-         <obj_property name="ObjectShortName">doutb[31:0]</obj_property>
+      <wvobject fp_name="/SimCPU/cpuCUT/MEM_ADDRB" type="array">
+         <obj_property name="ElementShortName">MEM_ADDRB[11:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_ADDRB[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/MEM_DINB" type="array">
+         <obj_property name="ElementShortName">MEM_DINB[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DINB[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/MEM_DOUTB" type="array">
+         <obj_property name="ElementShortName">MEM_DOUTB[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DOUTB[31:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject fp_name="group161" type="group">
@@ -165,6 +157,7 @@
    <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/metrics.CycleCount" type="array">
       <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
@@ -227,5 +220,61 @@
          <obj_property name="ElementShortName">timerInt[4:0]</obj_property>
          <obj_property name="ObjectShortName">timerInt[4:0]</obj_property>
       </wvobject>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_DINA" type="array">
+      <obj_property name="ElementShortName">MEM_DINA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DINA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/RUN_ADDRA" type="array">
+      <obj_property name="ElementShortName">RUN_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">RUN_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/RUN_DINA" type="array">
+      <obj_property name="ElementShortName">RUN_DINA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">RUN_DINA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/RUN_DOUTA" type="array">
+      <obj_property name="ElementShortName">RUN_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">RUN_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/LD_WEA" type="array">
+      <obj_property name="ElementShortName">LD_WEA[0:0]</obj_property>
+      <obj_property name="ObjectShortName">LD_WEA[0:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/LD_ADDRA" type="array">
+      <obj_property name="ElementShortName">LD_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">LD_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/LD_DINA" type="array">
+      <obj_property name="ElementShortName">LD_DINA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">LD_DINA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/LD_DOUTA" type="array">
+      <obj_property name="ElementShortName">LD_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">LD_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_CLK" type="logic">
+      <obj_property name="ElementShortName">MEM_CLK</obj_property>
+      <obj_property name="ObjectShortName">MEM_CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/LD_CLK" type="logic">
+      <obj_property name="ElementShortName">LD_CLK</obj_property>
+      <obj_property name="ObjectShortName">LD_CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/RUN" type="other">
+      <obj_property name="ElementShortName">RUN</obj_property>
+      <obj_property name="ObjectShortName">RUN</obj_property>
    </wvobject>
 </wave_config>
