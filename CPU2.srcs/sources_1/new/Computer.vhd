@@ -33,7 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 entity Computer is
     Port ( rst : in STD_LOGIC;
-           clk : in STD_LOGIC;
+           SYS_CLK : in STD_LOGIC;
            led : out STD_LOGIC_VECTOR (3 downto 0)
 --           rgb : out STD_LOGIC_VECTOR (5 downto 0)
            );
@@ -43,14 +43,14 @@ architecture Behavioral of Computer is
 
     component CPU
     Port ( 
-        clk : IN STD_LOGIC;
-        ioAddr : out STD_LOGIC_VECTOR (7 downto 0);
-        IORdata : in STD_LOGIC_VECTOR (31 downto 0);
-        IOWdata : out STD_LOGIC_VECTOR (31 downto 0);
-        IORena: out STD_LOGIC;
-        IOWena: out std_logic;
-        IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-        Interrupt : in STD_LOGIC_VECTOR (31 downto 0);
+        SYS_CLK     : IN STD_LOGIC;
+        IO_ADDR     : out STD_LOGIC_VECTOR (7 downto 0);
+        IOR_DATA    : in STD_LOGIC_VECTOR (31 downto 0);
+        IOW_DATA    : out STD_LOGIC_VECTOR (31 downto 0);
+        IOR_ENA     : out STD_LOGIC;
+        IOW_ENA     : out STD_LOGIC;
+        IO_STATUS   : in STD_LOGIC_VECTOR (7 downto 0);
+        INTERRUPT   : in STD_LOGIC_VECTOR (31 downto 0);
         MEM_ENA     : out STD_LOGIC := '1';
         MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
@@ -128,14 +128,14 @@ begin
     cpu1 : CPU
     port map
     (
-        clk => clk,
-        ioAddr => ioAddr,
-        IORdata => IORdata,
-        IOWdata => IOWdata,
-        IORena => IORena,
-        IOWena => IOWena,
-        IOStatus => IOStatus,
-        interrupt => interrupt,
+        SYS_CLK => SYS_CLK,
+        IO_ADDR => ioAddr,
+        IOR_DATA => IORdata,
+        IOW_DATA => IOWdata,
+        IOR_ENA => IORena,
+        IOW_ENA => IOWena,
+        IO_STATUS => IOStatus,
+        INTERRUPT => interrupt,
         -- MEM_ENA     => RUN_ENA  ,
         -- MEM_WEA     => RUN_WEA  ,
         -- MEM_ADDRA   => RUN_ADDRA,
@@ -154,12 +154,12 @@ begin
         );
 
     interrupt(0) <= rst;
-    MEM_CLK <= CLK;
+    MEM_CLK <= SYS_CLK;
 
-    Comp : process (clk)
+    Comp : process (SYS_CLK)
     begin
     
-    if rising_edge  (clk) then
+    if rising_edge  (SYS_CLK) then
         if rst = '1' then
             IORdata <= (others => '0');
             interrupt(31 downto 1) <= (others => '0');

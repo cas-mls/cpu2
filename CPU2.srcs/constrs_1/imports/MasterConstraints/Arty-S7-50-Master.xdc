@@ -8,8 +8,8 @@
 #create_clock -add -name sys_clk_pin -period 83.333 -waveform {0 41.667} [get_ports { CLK12MHZ }];
 #set_property -dict { PACKAGE_PIN R2    IOSTANDARD SSTL135 } [get_ports { CLK100MHZ }]; #IO_L12P_T1_MRCC_34 Sch=ddr3_clk[200]
 #create_clock -add -name sys_clk_pin -period 10.000 -waveform {0 5.000}  [get_ports { CLK100MHZ }];
-set_property -dict {PACKAGE_PIN R2 IOSTANDARD SSTL135} [get_ports clk]
-create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports clk]
+set_property -dict {PACKAGE_PIN R2 IOSTANDARD SSTL135} [get_ports SYS_CLK]
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports SYS_CLK]
 
 ## Switches
 #set_property -dict { PACKAGE_PIN H14   IOSTANDARD LVCMOS33 } [get_ports { sw[0] }]; #IO_L20N_T3_A19_15 Sch=sw[0]
@@ -440,6 +440,9 @@ set_property MARK_DEBUG true [get_nets {cpu1/regist_reg[15]_11[13]}]
 set_property MARK_DEBUG true [get_nets {cpu1/regist_reg[15]_11[22]}]
 set_property MARK_DEBUG true [get_nets {cpu1/regist_reg[15]_11[25]}]
 set_property MARK_DEBUG true [get_nets {cpu1/regist_reg[15]_11[26]}]
+connect_debug_port u_ila_0/clk [get_nets [list clk_IBUF_BUFG]]
+connect_debug_port dbg_hub/clk [get_nets clk_IBUF_BUFG]
+
 create_debug_core u_ila_0 ila
 set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
 set_property ALL_PROBE_SAME_MU_CNT 2 [get_debug_cores u_ila_0]
@@ -450,26 +453,26 @@ set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
 set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
 set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
 set_property port_width 1 [get_debug_ports u_ila_0/clk]
-connect_debug_port u_ila_0/clk [get_nets [list clk_IBUF_BUFG]]
+connect_debug_port u_ila_0/clk [get_nets [list SYS_CLK_IBUF_BUFG]]
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
-set_property port_width 12 [get_debug_ports u_ila_0/probe0]
-connect_debug_port u_ila_0/probe0 [get_nets [list {cpu1/MEM_ADDRA_reg[11]_0[0]} {cpu1/MEM_ADDRA_reg[11]_0[1]} {cpu1/MEM_ADDRA_reg[11]_0[2]} {cpu1/MEM_ADDRA_reg[11]_0[3]} {cpu1/MEM_ADDRA_reg[11]_0[4]} {cpu1/MEM_ADDRA_reg[11]_0[5]} {cpu1/MEM_ADDRA_reg[11]_0[6]} {cpu1/MEM_ADDRA_reg[11]_0[7]} {cpu1/MEM_ADDRA_reg[11]_0[8]} {cpu1/MEM_ADDRA_reg[11]_0[9]} {cpu1/MEM_ADDRA_reg[11]_0[10]} {cpu1/MEM_ADDRA_reg[11]_0[11]}]]
+set_property port_width 32 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {cpu1/doutb[0]} {cpu1/doutb[1]} {cpu1/doutb[2]} {cpu1/doutb[3]} {cpu1/doutb[4]} {cpu1/doutb[5]} {cpu1/doutb[6]} {cpu1/doutb[7]} {cpu1/doutb[8]} {cpu1/doutb[9]} {cpu1/doutb[10]} {cpu1/doutb[11]} {cpu1/doutb[12]} {cpu1/doutb[13]} {cpu1/doutb[14]} {cpu1/doutb[15]} {cpu1/doutb[16]} {cpu1/doutb[17]} {cpu1/doutb[18]} {cpu1/doutb[19]} {cpu1/doutb[20]} {cpu1/doutb[21]} {cpu1/doutb[22]} {cpu1/doutb[23]} {cpu1/doutb[24]} {cpu1/doutb[25]} {cpu1/doutb[26]} {cpu1/doutb[27]} {cpu1/doutb[28]} {cpu1/doutb[29]} {cpu1/doutb[30]} {cpu1/doutb[31]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
 set_property port_width 4 [get_debug_ports u_ila_0/probe1]
 connect_debug_port u_ila_0/probe1 [get_nets [list {cpu1/cycle[0]} {cpu1/cycle[1]} {cpu1/cycle[2]} {cpu1/cycle[3]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
-set_property port_width 32 [get_debug_ports u_ila_0/probe2]
-connect_debug_port u_ila_0/probe2 [get_nets [list {cpu1/MEM_DINB_reg[31]_0[0]} {cpu1/MEM_DINB_reg[31]_0[1]} {cpu1/MEM_DINB_reg[31]_0[2]} {cpu1/MEM_DINB_reg[31]_0[3]} {cpu1/MEM_DINB_reg[31]_0[4]} {cpu1/MEM_DINB_reg[31]_0[5]} {cpu1/MEM_DINB_reg[31]_0[6]} {cpu1/MEM_DINB_reg[31]_0[7]} {cpu1/MEM_DINB_reg[31]_0[8]} {cpu1/MEM_DINB_reg[31]_0[9]} {cpu1/MEM_DINB_reg[31]_0[10]} {cpu1/MEM_DINB_reg[31]_0[11]} {cpu1/MEM_DINB_reg[31]_0[12]} {cpu1/MEM_DINB_reg[31]_0[13]} {cpu1/MEM_DINB_reg[31]_0[14]} {cpu1/MEM_DINB_reg[31]_0[15]} {cpu1/MEM_DINB_reg[31]_0[16]} {cpu1/MEM_DINB_reg[31]_0[17]} {cpu1/MEM_DINB_reg[31]_0[18]} {cpu1/MEM_DINB_reg[31]_0[19]} {cpu1/MEM_DINB_reg[31]_0[20]} {cpu1/MEM_DINB_reg[31]_0[21]} {cpu1/MEM_DINB_reg[31]_0[22]} {cpu1/MEM_DINB_reg[31]_0[23]} {cpu1/MEM_DINB_reg[31]_0[24]} {cpu1/MEM_DINB_reg[31]_0[25]} {cpu1/MEM_DINB_reg[31]_0[26]} {cpu1/MEM_DINB_reg[31]_0[27]} {cpu1/MEM_DINB_reg[31]_0[28]} {cpu1/MEM_DINB_reg[31]_0[29]} {cpu1/MEM_DINB_reg[31]_0[30]} {cpu1/MEM_DINB_reg[31]_0[31]}]]
+set_property port_width 12 [get_debug_ports u_ila_0/probe2]
+connect_debug_port u_ila_0/probe2 [get_nets [list {cpu1/MEM_ADDRA_reg[11]_0[0]} {cpu1/MEM_ADDRA_reg[11]_0[1]} {cpu1/MEM_ADDRA_reg[11]_0[2]} {cpu1/MEM_ADDRA_reg[11]_0[3]} {cpu1/MEM_ADDRA_reg[11]_0[4]} {cpu1/MEM_ADDRA_reg[11]_0[5]} {cpu1/MEM_ADDRA_reg[11]_0[6]} {cpu1/MEM_ADDRA_reg[11]_0[7]} {cpu1/MEM_ADDRA_reg[11]_0[8]} {cpu1/MEM_ADDRA_reg[11]_0[9]} {cpu1/MEM_ADDRA_reg[11]_0[10]} {cpu1/MEM_ADDRA_reg[11]_0[11]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
 set_property port_width 32 [get_debug_ports u_ila_0/probe3]
-connect_debug_port u_ila_0/probe3 [get_nets [list {cpu1/douta[0]} {cpu1/douta[1]} {cpu1/douta[2]} {cpu1/douta[3]} {cpu1/douta[4]} {cpu1/douta[5]} {cpu1/douta[6]} {cpu1/douta[7]} {cpu1/douta[8]} {cpu1/douta[9]} {cpu1/douta[10]} {cpu1/douta[11]} {cpu1/douta[12]} {cpu1/douta[13]} {cpu1/douta[14]} {cpu1/douta[15]} {cpu1/douta[16]} {cpu1/douta[17]} {cpu1/douta[18]} {cpu1/douta[19]} {cpu1/douta[20]} {cpu1/douta[21]} {cpu1/douta[22]} {cpu1/douta[23]} {cpu1/douta[24]} {cpu1/douta[25]} {cpu1/douta[26]} {cpu1/douta[27]} {cpu1/douta[28]} {cpu1/douta[29]} {cpu1/douta[30]} {cpu1/douta[31]}]]
+connect_debug_port u_ila_0/probe3 [get_nets [list {cpu1/MEM_DINB_reg[31]_0[0]} {cpu1/MEM_DINB_reg[31]_0[1]} {cpu1/MEM_DINB_reg[31]_0[2]} {cpu1/MEM_DINB_reg[31]_0[3]} {cpu1/MEM_DINB_reg[31]_0[4]} {cpu1/MEM_DINB_reg[31]_0[5]} {cpu1/MEM_DINB_reg[31]_0[6]} {cpu1/MEM_DINB_reg[31]_0[7]} {cpu1/MEM_DINB_reg[31]_0[8]} {cpu1/MEM_DINB_reg[31]_0[9]} {cpu1/MEM_DINB_reg[31]_0[10]} {cpu1/MEM_DINB_reg[31]_0[11]} {cpu1/MEM_DINB_reg[31]_0[12]} {cpu1/MEM_DINB_reg[31]_0[13]} {cpu1/MEM_DINB_reg[31]_0[14]} {cpu1/MEM_DINB_reg[31]_0[15]} {cpu1/MEM_DINB_reg[31]_0[16]} {cpu1/MEM_DINB_reg[31]_0[17]} {cpu1/MEM_DINB_reg[31]_0[18]} {cpu1/MEM_DINB_reg[31]_0[19]} {cpu1/MEM_DINB_reg[31]_0[20]} {cpu1/MEM_DINB_reg[31]_0[21]} {cpu1/MEM_DINB_reg[31]_0[22]} {cpu1/MEM_DINB_reg[31]_0[23]} {cpu1/MEM_DINB_reg[31]_0[24]} {cpu1/MEM_DINB_reg[31]_0[25]} {cpu1/MEM_DINB_reg[31]_0[26]} {cpu1/MEM_DINB_reg[31]_0[27]} {cpu1/MEM_DINB_reg[31]_0[28]} {cpu1/MEM_DINB_reg[31]_0[29]} {cpu1/MEM_DINB_reg[31]_0[30]} {cpu1/MEM_DINB_reg[31]_0[31]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe4]
 set_property port_width 32 [get_debug_ports u_ila_0/probe4]
-connect_debug_port u_ila_0/probe4 [get_nets [list {cpu1/doutb[0]} {cpu1/doutb[1]} {cpu1/doutb[2]} {cpu1/doutb[3]} {cpu1/doutb[4]} {cpu1/doutb[5]} {cpu1/doutb[6]} {cpu1/doutb[7]} {cpu1/doutb[8]} {cpu1/doutb[9]} {cpu1/doutb[10]} {cpu1/doutb[11]} {cpu1/doutb[12]} {cpu1/doutb[13]} {cpu1/doutb[14]} {cpu1/doutb[15]} {cpu1/doutb[16]} {cpu1/doutb[17]} {cpu1/doutb[18]} {cpu1/doutb[19]} {cpu1/doutb[20]} {cpu1/doutb[21]} {cpu1/doutb[22]} {cpu1/doutb[23]} {cpu1/doutb[24]} {cpu1/doutb[25]} {cpu1/doutb[26]} {cpu1/doutb[27]} {cpu1/doutb[28]} {cpu1/doutb[29]} {cpu1/doutb[30]} {cpu1/doutb[31]}]]
+connect_debug_port u_ila_0/probe4 [get_nets [list {cpu1/douta[0]} {cpu1/douta[1]} {cpu1/douta[2]} {cpu1/douta[3]} {cpu1/douta[4]} {cpu1/douta[5]} {cpu1/douta[6]} {cpu1/douta[7]} {cpu1/douta[8]} {cpu1/douta[9]} {cpu1/douta[10]} {cpu1/douta[11]} {cpu1/douta[12]} {cpu1/douta[13]} {cpu1/douta[14]} {cpu1/douta[15]} {cpu1/douta[16]} {cpu1/douta[17]} {cpu1/douta[18]} {cpu1/douta[19]} {cpu1/douta[20]} {cpu1/douta[21]} {cpu1/douta[22]} {cpu1/douta[23]} {cpu1/douta[24]} {cpu1/douta[25]} {cpu1/douta[26]} {cpu1/douta[27]} {cpu1/douta[28]} {cpu1/douta[29]} {cpu1/douta[30]} {cpu1/douta[31]}]]
 create_debug_port u_ila_0 probe
 set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe5]
 set_property port_width 32 [get_debug_ports u_ila_0/probe5]
@@ -481,4 +484,4 @@ connect_debug_port u_ila_0/probe6 [get_nets [list {cpu1/regist_reg[15]_11[0]} {c
 set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
 set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
 set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
-connect_debug_port dbg_hub/clk [get_nets clk_IBUF_BUFG]
+connect_debug_port dbg_hub/clk [get_nets SYS_CLK_IBUF_BUFG]

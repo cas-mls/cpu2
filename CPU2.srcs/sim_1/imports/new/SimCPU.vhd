@@ -43,14 +43,14 @@ architecture Behavioral of SimCPU is
 
     component CPU 
         port (  
-            clk : IN STD_LOGIC;
-            ioAddr  : out STD_LOGIC_VECTOR (7 downto 0);
-            IORdata    : in STD_LOGIC_VECTOR (31 downto 0);
-            IOWdata   : out STD_LOGIC_VECTOR (31 downto 0);
-            IORena: out STD_LOGIC;
-            IOWena: out std_logic;
-            IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-            interrupt : in STD_LOGIC_VECTOR (31 downto 0);
+            SYS_CLK     : IN STD_LOGIC;
+            IO_ADDR     : out STD_LOGIC_VECTOR (7 downto 0);
+            IOR_DATA    : in STD_LOGIC_VECTOR (31 downto 0);
+            IOW_DATA    : out STD_LOGIC_VECTOR (31 downto 0);
+            IOR_ENA     : out STD_LOGIC;
+            IOW_ENA     : out std_logic;
+            IO_STATUS   : in STD_LOGIC_VECTOR (7 downto 0);
+            interrupt   : in STD_LOGIC_VECTOR (31 downto 0);
             MEM_ENA     : out STD_LOGIC := '1';
             MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
             MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
@@ -178,13 +178,13 @@ begin
     cpuCUT : CPU
     port map
     (
-        clk         => clk,
-        ioAddr      => ioAddr,
-        IORdata     => IORdata,
-        IOWdata     => IOWdata,
-        IORena      => IORena,
-        IOWena      => IOWena,
-        IOStatus    => IOStatus,
+        SYS_CLK     => clk,
+        IO_ADDR     => ioAddr,
+        IOR_DATA    => IORdata,
+        IOW_DATA    => IOWdata,
+        IOR_ENA     => IORena,
+        IOW_ENA     => IOWena,
+        IO_STATUS   => IOStatus,
         interrupt   => interrupt,
         MEM_ENA     => RUN_ENA  ,
         MEM_WEA     => RUN_WEA  ,

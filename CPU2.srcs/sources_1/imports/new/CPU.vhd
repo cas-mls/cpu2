@@ -32,15 +32,15 @@ use xil_defaultlib.Utilities.ALL;
 
 entity CPU is
   Port (
-    clk : IN STD_LOGIC;
-    ioAddr  : out STD_LOGIC_VECTOR (7 downto 0);
-    IORdata    : in STD_LOGIC_VECTOR (31 downto 0);
-    IOWdata   : out STD_LOGIC_VECTOR (31 downto 0);
-    IORena: out STD_LOGIC;
-    IOWena: out std_logic;
-    IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-    interrupt : in STD_LOGIC_VECTOR (31 downto 0);
-    metrics : out METRICSTYPE;
+    SYS_CLK     : IN STD_LOGIC;
+    IO_ADDR     : out STD_LOGIC_VECTOR (7 downto 0);
+    IOR_DATA    : in STD_LOGIC_VECTOR (31 downto 0);
+    IOW_DATA    : out STD_LOGIC_VECTOR (31 downto 0);
+    IOR_ENA     : out STD_LOGIC;
+    IOW_ENA     : out STD_LOGIC;
+    IO_STATUS   : in STD_LOGIC_VECTOR (7 downto 0);
+    INTERRUPT   : in STD_LOGIC_VECTOR (31 downto 0);
+    METRICS     : out METRICSTYPE;
     MEM_ENA     : out STD_LOGIC := '1';
     MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
     MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
@@ -57,37 +57,8 @@ end CPU;
 
 architecture Behavioral of CPU is
 
--- COMPONENT cpumemory
---   PORT (
---     clka : IN STD_LOGIC;
---     ena : IN STD_LOGIC;
---     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
---     addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
---     dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
---     douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
---     clkb : IN STD_LOGIC;
---     enb : IN STD_LOGIC;
---     web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
---     addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
---     dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
---     doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) 
---   );
--- END COMPONENT;
-
     signal ProgCounter : unsigned(11 downto 0) := X"000";
     signal cycle : CYCLETYPE := ADDRESS;
-
-    -- Memory Information
-    -- signal MEM_ENA : STD_LOGIC := '1';
-    -- signal MEM_WEA : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-    -- signal MEM_ADDRA : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    -- signal MEM_DINA : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    -- signal MEM_DOUTA : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    -- signal MEM_ENB : STD_LOGIC := '1';
-    -- signal MEM_WEB : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-    -- signal MEM_ADDRB : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    -- signal MEM_DINB : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    -- signal MEM_DOUTB : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
 
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
@@ -139,24 +110,6 @@ architecture Behavioral of CPU is
     
 begin
 
--- memory : cpumemory
---   PORT MAP (
---     clka => clk,
---     ena => MEM_ENA,
---     wea => MEM_WEA,
---     addra => MEM_ADDRA,
---     dina => MEM_DINA,
---     douta => MEM_DOUTA,
---     clkb => clk,
---     enb => MEM_ENB,
---     web => MEM_WEB,
---     addrb => MEM_ADDRB,
---     dinb => MEM_DINB,
---     doutb => MEM_DOUTB
---   );
-
-
-
     opcode <= MEM_DOUTA(31 downto 27);
     flag <= MEM_DOUTA(26);
     memop <= MEM_DOUTA(25 downto 24); 
@@ -166,49 +119,46 @@ begin
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
 
-    
     interNum <= 
-        0 when interrupt = RESET else
-        1 when interrupt = X"00000002" else
-        2 when interrupt = X"00000004" else
-        3 when interrupt = X"00000008" else
-        4 when interrupt = X"00000010" else
-        5 when interrupt = X"00000020" else
-        6 when interrupt = X"00000040" else
-        7 when interrupt = X"00000080" else
-        8 when interrupt = X"00000100" else
-        9 when interrupt = X"00000200" else
-        10 when interrupt = X"00000400" else
-        11 when interrupt = X"00000800" else
-        12 when interrupt = X"00001000" else
-        13 when interrupt = X"00002000" else
-        14 when interrupt = X"00004000" else
-        15 when interrupt = X"00008000" else
-        16 when interrupt = X"00000001" else
-        17 when interrupt = X"00000002" else
-        18 when interrupt = X"00040000" else
-        19 when interrupt = X"00080000" else
-        20 when interrupt = X"00100000" else
-        21 when interrupt = X"00200000" else
-        22 when interrupt = X"00400000" else
-        23 when interrupt = X"00800000" else
-        24 when interrupt = X"01000000" else
-        25 when interrupt = X"02000000" else
-        26 when interrupt = X"04000000" else
-        27 when interrupt = X"08000000" else
-        28 when interrupt = X"10000000" else
-        29 when interrupt = X"20000000" else
-        30 when interrupt = X"40000000" else
-        31 when interrupt = X"80000000" else
+        0 when INTERRUPT = RESET else
+        1 when INTERRUPT = X"00000002" else
+        2 when INTERRUPT = X"00000004" else
+        3 when INTERRUPT = X"00000008" else
+        4 when INTERRUPT = X"00000010" else
+        5 when INTERRUPT = X"00000020" else
+        6 when INTERRUPT = X"00000040" else
+        7 when INTERRUPT = X"00000080" else
+        8 when INTERRUPT = X"00000100" else
+        9 when INTERRUPT = X"00000200" else
+        10 when INTERRUPT = X"00000400" else
+        11 when INTERRUPT = X"00000800" else
+        12 when INTERRUPT = X"00001000" else
+        13 when INTERRUPT = X"00002000" else
+        14 when INTERRUPT = X"00004000" else
+        15 when INTERRUPT = X"00008000" else
+        16 when INTERRUPT = X"00000001" else
+        17 when INTERRUPT = X"00000002" else
+        18 when INTERRUPT = X"00040000" else
+        19 when INTERRUPT = X"00080000" else
+        20 when INTERRUPT = X"00100000" else
+        21 when INTERRUPT = X"00200000" else
+        22 when INTERRUPT = X"00400000" else
+        23 when INTERRUPT = X"00800000" else
+        24 when INTERRUPT = X"01000000" else
+        25 when INTERRUPT = X"02000000" else
+        26 when INTERRUPT = X"04000000" else
+        27 when INTERRUPT = X"08000000" else
+        28 when INTERRUPT = X"10000000" else
+        29 when INTERRUPT = X"20000000" else
+        30 when INTERRUPT = X"40000000" else
+        31 when INTERRUPT = X"80000000" else
         31;
-    
 
-
-    Reg_Proc: process (clk)
+    Reg_Proc: process (SYS_CLK)
     begin
     
-    if rising_edge  (clk) then
-        if interrupt = RESET then
+    if rising_edge  (SYS_CLK) then
+        if INTERRUPT = RESET then
             ProgCounter <= X"000";
             MEM_ENA <= '1';
             MEM_WEA <= "0";
@@ -220,22 +170,22 @@ begin
             regist <= (others => (others =>'0'));
             ireg1value <= (others => '0');
             ireg2value <= (others => '0');
-            IOWdata <= (others => '0');
-            ioAddr <= (others => '0');
-            IORena <= '0';
-            IOWena <= '0';
+            IOW_DATA <= (others => '0');
+            IO_ADDR <= (others => '0');
+            IOR_ENA <= '0';
+            IOW_ENA <= '0';
             isInterrupt <= '1';
             interruptNum <= interNum;
             cycle <= JMPADDR;
             cycleCount <= (others => '0');
-            metrics.cycleCount <= (others => '0');
+            METRICS.cycleCount <= (others => '0');
             timerReg <= 0;
             waitReg <= 0;
             timerEna <= '0';
             waitEna <= '0';
         else
             cycleCount <= cycleCount + 1;
-            metrics.cycleCount <= cycleCount;
+            METRICS.cycleCount <= cycleCount;
             case cycle is
 
                 ----------------------------------------------------------------
@@ -257,17 +207,24 @@ begin
                 when INSTFETCH2 =>
                     cycle <= DECODE;
 
-                -- Decoding is complete
+                ----------------------------------------------------------------
+                -- Decoding is completed in the combinatorial logic and should only be used in this cycle.
+                --       (opcode, memop, flag, iregop1, iregop2, and immop)
                 -- Set up memory address for ABSOLUTE and INDEX
                 when DECODE =>
-                    ireg1value <= regist(iregop1);
-                    ireg2value <= regist(iregop2);
+
+                    -- Maintain Flip-Flop (Memory) protions of the instruction.
+                    -- This removes the timing violations and make the processor faster.
+                    -- Might remove the combinatorial logic which should not be used after this cycle.
                     ffopcode <= opcode;
                     ffmemop <= memop;
                     ffflag <= flag;
                     ffiregop1 <= iregop1;
                     ffiregop2 <= iregop2;
                     ffimmop <= immop;
+                    -- Save the values of the Register Data.  Again this ifor timing operations.
+                    ireg1value <= regist(iregop1);
+                    ireg2value <= regist(iregop2);
 
                     case memop is
                         when REGREG =>
@@ -288,12 +245,12 @@ begin
                                     cycle <= MEMFETCH1;
                                 when oRWIO =>
                                     if flag = '0' then
-                                        IOAddr <= regist(iregop2)(7 downto 0);
-                                        IORena <= '1';
+                                        IO_ADDR <= regist(iregop2)(7 downto 0);
+                                        IOR_ENA <= '1';
                                         cycle <= MEMFETCH2;
                                     else
-                                        IOAddr <= regist(iregop2)(7 downto 0);
-                                        IOWena <= '1';
+                                        IO_ADDR <= regist(iregop2)(7 downto 0);
+                                        IOW_ENA <= '1';
                                         cycle <= MEMFETCH2;
                                     end if;
                                 when oPUSHPOP =>
@@ -329,12 +286,12 @@ begin
                                     cycle <= EXECUTE;
                                 when oRWIO =>
                                     if flag = '0' then
-                                        IOAddr <= immop(7 downto 0);
-                                        IORena <= '1';
+                                        IO_ADDR <= immop(7 downto 0);
+                                        IOR_ENA <= '1';
                                         cycle <= MEMFETCH2;
                                     else
-                                        IOAddr <= immop(7 downto 0);
-                                        IOWena <= '1';
+                                        IO_ADDR <= immop(7 downto 0);
+                                        IOW_ENA <= '1';
                                         cycle <= MEMFETCH2;
                                     end if;
                                 when oPUSHPOP =>
@@ -362,18 +319,18 @@ begin
                                     cycle <= MEMFETCH1;
                                 when oRWIO =>
                                     if flag = '0' then
-                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        IO_ADDR <= regist(iregop2)(7 downto 0);
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= immop(11 downto 0);
-                                        IORena <= '1';
+                                        IOR_ENA <= '1';
                                         cycle <= MEMFETCH1;
                                     else
-                                        IOAddr <= regist(iregop2)(7 downto 0);
+                                        IO_ADDR <= regist(iregop2)(7 downto 0);
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= immop(11 downto 0);
-                                        IOWena <= '1';
+                                        IOW_ENA <= '1';
                                         cycle <= MEMFETCH1;
                                     end if;
                                 when others =>
@@ -395,20 +352,20 @@ begin
                                     cycle <= MEMFETCH1;
                                 when oRWIO =>
                                     if flag = '0' then
-                                        IOAddr <= regist(iregop1)(7 downto 0);
+                                        IO_ADDR <= regist(iregop1)(7 downto 0);
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
-                                        IORena <= '1';
+                                        IOR_ENA <= '1';
                                         cycle <= MEMFETCH1;
                                     else
-                                        IOAddr <= regist(iregop1)(7 downto 0);
+                                        IO_ADDR <= regist(iregop1)(7 downto 0);
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
-                                        IOWena <= '1';
+                                        IOW_ENA <= '1';
                                         cycle <= MEMFETCH1;
                                     end if;
                                 when others =>
@@ -510,11 +467,11 @@ begin
                                     ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        regist(ffiregop1) <= IORdata;
-                                        regist(0) <= x"000000" & IOStatus;
+                                        regist(ffiregop1) <= IOR_DATA;
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     else
-                                        IOWdata <= regist(ffiregop1);
-                                        regist(0) <= x"000000" & IOStatus;
+                                        IOW_DATA <= regist(ffiregop1);
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     end if;
                                 when oPUSHPOP =>
                                     if ffflag = '0' then
@@ -666,11 +623,11 @@ begin
                                     ProgCounter <= unsigned(ffimmop(11 downto 0));
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        regist(ffiregop1) <= IORdata;
-                                        regist(0) <= x"000000" & IOStatus;
+                                        regist(ffiregop1) <= IOR_DATA;
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     else
-                                        IOWdata <= regist(ffiregop1);
-                                        regist(0) <= x"000000" & IOStatus;
+                                        IOW_DATA <= regist(ffiregop1);
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     end if;
                                 when oPUSHPOP =>
                                     if ffflag = '0' then
@@ -798,11 +755,11 @@ begin
                                     end if;
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        MEM_DINB <= IORdata;
-                                        regist(0) <= x"000000" & IOStatus;
+                                        MEM_DINB <= IOR_DATA;
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     else
-                                        IOWdata <= MEM_DOUTB;
-                                        regist(0) <= x"000000" & IOStatus;
+                                        IOW_DATA <= MEM_DOUTB;
+                                        regist(0) <= x"000000" & IO_STATUS;
                                     end if;
                                 when oSWI =>
                                     if interruptMask(to_integer(unsigned(MEM_DOUTB(4 downto 0)))) = '1' then
@@ -840,7 +797,7 @@ begin
                     elsif ffopcode = oSWI then
                         MEM_ADDRB <= regist(interruptSP)(11 downto 0);
                         cycle <= SAVEENA;
-                    elsif unsigned(interrupt and interruptMask) /= 0 then
+                    elsif unsigned(INTERRUPT and interruptMask) /= 0 then
                         MEM_ADDRB <= regist(interruptSP)(11 downto 0);
                         isInterrupt <= '1';
                         interruptNum <= interNum;
@@ -872,9 +829,9 @@ begin
                             case ffopcode is
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        IORena <= '0';
+                                        IOR_ENA <= '0';
                                     else
-                                        IOWena <= '0';
+                                        IOW_ENA <= '0';
                                     end if;
                                 when oRTI =>
                                     interruptMask <= MEM_DOUTB;
@@ -884,9 +841,9 @@ begin
                             case ffopcode is
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        IORena <= '0';
+                                        IOR_ENA <= '0';
                                     else
-                                        IOWena <= '0';
+                                        IOW_ENA <= '0';
                                     end if;
                                 when others =>
                             end case;
@@ -894,9 +851,9 @@ begin
                             case ffopcode is
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        IORena <= '0';
+                                        IOR_ENA <= '0';
                                     else
-                                        IOWena <= '0';
+                                        IOW_ENA <= '0';
                                     end if;
                                 when others =>
                             end case;
