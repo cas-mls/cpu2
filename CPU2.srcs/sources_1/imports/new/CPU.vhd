@@ -40,44 +40,54 @@ entity CPU is
     IOWena: out std_logic;
     IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
     interrupt : in STD_LOGIC_VECTOR (31 downto 0);
-    metrics : out METRICSTYPE
+    metrics : out METRICSTYPE;
+    MEM_ENA     : out STD_LOGIC := '1';
+    MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
+    MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    MEM_DINA    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    MEM_DOUTA   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    MEM_ENB     : out STD_LOGIC := '1';
+    MEM_WEB     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+    MEM_ADDRB   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    MEM_DINB    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    MEM_DOUTB   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000"
     );
 
 end CPU;
 
 architecture Behavioral of CPU is
 
-COMPONENT cpumemory
-  PORT (
-    clka : IN STD_LOGIC;
-    ena : IN STD_LOGIC;
-    wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-    dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-    douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-    clkb : IN STD_LOGIC;
-    enb : IN STD_LOGIC;
-    web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-    addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-    dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-    doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) 
-  );
-END COMPONENT;
+-- COMPONENT cpumemory
+--   PORT (
+--     clka : IN STD_LOGIC;
+--     ena : IN STD_LOGIC;
+--     wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--     addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+--     dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--     douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+--     clkb : IN STD_LOGIC;
+--     enb : IN STD_LOGIC;
+--     web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+--     addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+--     dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+--     doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0) 
+--   );
+-- END COMPONENT;
 
     signal ProgCounter : unsigned(11 downto 0) := X"000";
     signal cycle : CYCLETYPE := ADDRESS;
 
     -- Memory Information
-    signal ena : STD_LOGIC := '1';
-    signal wea : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-    signal addra : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    signal dina : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal douta : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal enb : STD_LOGIC := '1';
-    signal web : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-    signal addrb : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    signal dinb : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal doutb : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    -- signal MEM_ENA : STD_LOGIC := '1';
+    -- signal MEM_WEA : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+    -- signal MEM_ADDRA : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    -- signal MEM_DINA : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    -- signal MEM_DOUTA : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    -- signal MEM_ENB : STD_LOGIC := '1';
+    -- signal MEM_WEB : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+    -- signal MEM_ADDRB : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    -- signal MEM_DINB : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    -- signal MEM_DOUTB : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
 
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
@@ -129,30 +139,30 @@ END COMPONENT;
     
 begin
 
-memory : cpumemory
-  PORT MAP (
-    clka => clk,
-    ena => ena,
-    wea => wea,
-    addra => addra,
-    dina => dina,
-    douta => douta,
-    clkb => clk,
-    enb => enb,
-    web => web,
-    addrb => addrb,
-    dinb => dinb,
-    doutb => doutb
-  );
+-- memory : cpumemory
+--   PORT MAP (
+--     clka => clk,
+--     ena => MEM_ENA,
+--     wea => MEM_WEA,
+--     addra => MEM_ADDRA,
+--     dina => MEM_DINA,
+--     douta => MEM_DOUTA,
+--     clkb => clk,
+--     enb => MEM_ENB,
+--     web => MEM_WEB,
+--     addrb => MEM_ADDRB,
+--     dinb => MEM_DINB,
+--     doutb => MEM_DOUTB
+--   );
 
 
 
-    opcode <= douta(31 downto 27);
-    flag <= douta(26);
-    memop <= douta(25 downto 24); 
-    regop1 <= douta(23 downto 20);
-    regop2 <= douta(19 downto 16);
-    immop <= douta(15 downto 0);
+    opcode <= MEM_DOUTA(31 downto 27);
+    flag <= MEM_DOUTA(26);
+    memop <= MEM_DOUTA(25 downto 24); 
+    regop1 <= MEM_DOUTA(23 downto 20);
+    regop2 <= MEM_DOUTA(19 downto 16);
+    immop <= MEM_DOUTA(15 downto 0);
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
 
@@ -200,13 +210,13 @@ memory : cpumemory
     if rising_edge  (clk) then
         if interrupt = RESET then
             ProgCounter <= X"000";
-            ena <= '1';
-            wea <= "0";
-            addra <= X"000";
-            enb <= '1';
-            web <= "0";
-            addrb <= X"000";
-            dinb <= X"00000000";
+            MEM_ENA <= '1';
+            MEM_WEA <= "0";
+            MEM_ADDRA <= X"000";
+            MEM_ENB <= '1';
+            MEM_WEB <= "0";
+            MEM_ADDRB <= X"000";
+            MEM_DINB <= X"00000000";
             regist <= (others => (others =>'0'));
             ireg1value <= (others => '0');
             ireg2value <= (others => '0');
@@ -231,9 +241,9 @@ memory : cpumemory
                 ----------------------------------------------------------------
                 -- This sets up the instruction address to read.
                 when ADDRESS =>
-                    ena <= '1';
-                    wea <= "0";
-                    addra <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
+                    MEM_ENA <= '1';
+                    MEM_WEA <= "0";
+                    MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
                     cycle <= INSTFETCH1;
 
                 ----------------------------------------------------------------
@@ -263,15 +273,15 @@ memory : cpumemory
                         when REGREG =>
                             case opcode is
                                 when oJSR =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrB <= regist(iregop1)(11 downto 0);
-                                    dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "1";
+                                    MEM_ADDRB <= regist(iregop1)(11 downto 0);
+                                    MEM_DINB <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
                                     cycle <= EXECUTE;
                                 when oRTN =>
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <= std_logic_vector(to_unsigned(
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "0";
+                                    MEM_ADDRB <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(iregop1))) + 1,12));
                                     regist(iregop1) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(iregop1))) + 1,32));
@@ -288,22 +298,22 @@ memory : cpumemory
                                     end if;
                                 when oPUSHPOP =>
                                     if flag = '0' then
-                                        enb <= '1';
-                                        web <= "1";
-                                        addrb <= regist(iregop1)(11 downto 0);
-                                        dinb <= regist(iregop2);
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "1";
+                                        MEM_ADDRB <= regist(iregop1)(11 downto 0);
+                                        MEM_DINB <= regist(iregop2);
                                         cycle <= EXECUTE;
                                     else
-                                        enb <= '1';
-                                        web <= "0";
-                                        addrb <= std_logic_vector(to_unsigned(
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "0";
+                                        MEM_ADDRB <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(iregop1))) + 1,12));
                                         regist(iregop1) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(regist(iregop1))) + 1,32));
                                         cycle <= MEMFETCH1;
                                     end if;
                                 when oRTI =>
-                                    addrb <= std_logic_vector(to_unsigned(
+                                    MEM_ADDRB <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 1,12));
                                     cycle <= MEMFETCH1;
                                 when others =>
@@ -312,10 +322,10 @@ memory : cpumemory
                         when IMMEDIATE =>
                             case opcode is
                                 when oJSR =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= regist(iregop1)(11 downto 0);
-                                    dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "1";
+                                    MEM_ADDRB <= regist(iregop1)(11 downto 0);
+                                    MEM_DINB <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter + 1));
                                     cycle <= EXECUTE;
                                 when oRWIO =>
                                     if flag = '0' then
@@ -329,10 +339,10 @@ memory : cpumemory
                                     end if;
                                 when oPUSHPOP =>
                                     if flag = '0' then
-                                        enb <= '1';
-                                        web <= "1";
-                                        addrb <= regist(iregop1)(11 downto 0);
-                                        dinb <= X"0000" & immop;
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "1";
+                                        MEM_ADDRB <= regist(iregop1)(11 downto 0);
+                                        MEM_DINB <= X"0000" & immop;
                                         cycle <= EXECUTE;
                                     end if;
                                 when others =>
@@ -341,28 +351,28 @@ memory : cpumemory
                         when ABSOLUTE =>
                             case opcode is
                                 when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA =>
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <= immop(11 downto 0);
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "0";
+                                    MEM_ADDRB <= immop(11 downto 0);
                                     cycle <= MEMFETCH1;
                                 when oSTR =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <= immop(11 downto 0);
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "1";
+                                    MEM_ADDRB <= immop(11 downto 0);
                                     cycle <= MEMFETCH1;
                                 when oRWIO =>
                                     if flag = '0' then
                                         IOAddr <= regist(iregop2)(7 downto 0);
-                                        enb <= '1';
-                                        web <= "1";
-                                        addrb <= immop(11 downto 0);
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "1";
+                                        MEM_ADDRB <= immop(11 downto 0);
                                         IORena <= '1';
                                         cycle <= MEMFETCH1;
                                     else
                                         IOAddr <= regist(iregop2)(7 downto 0);
-                                        enb <= '1';
-                                        web <= "0";
-                                        addrb <= immop(11 downto 0);
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "0";
+                                        MEM_ADDRB <= immop(11 downto 0);
                                         IOWena <= '1';
                                         cycle <= MEMFETCH1;
                                     end if;
@@ -372,31 +382,31 @@ memory : cpumemory
                         when INDEX =>
                             case opcode is
                                 when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP =>
-                                    enb <= '1';
-                                    web <= "0";
-                                    addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "0";
+                                    MEM_ADDRB <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                 to_integer(unsigned(regist(iregop2))),12));
                                     cycle <= MEMFETCH1;
                                 when oSTR  =>
-                                    enb <= '1';
-                                    web <= "1";
-                                    addrb <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                    MEM_ENB <= '1';
+                                    MEM_WEB <= "1";
+                                    MEM_ADDRB <=    std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                 to_integer(unsigned(regist(iregop2))),12));
                                     cycle <= MEMFETCH1;
                                 when oRWIO =>
                                     if flag = '0' then
                                         IOAddr <= regist(iregop1)(7 downto 0);
-                                        enb <= '1';
-                                        web <= "1";
-                                        addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "1";
+                                        MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
                                         IORena <= '1';
                                         cycle <= MEMFETCH1;
                                     else
                                         IOAddr <= regist(iregop1)(7 downto 0);
-                                        enb <= '1';
-                                        web <= "0";
-                                        addrb <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "0";
+                                        MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) + 
                                                     to_integer(unsigned(regist(iregop2))),12));
                                         IOWena <= '1';
                                         cycle <= MEMFETCH1;
@@ -415,7 +425,7 @@ memory : cpumemory
                         and opcode /= oRTN 
                         and opcode /= oRTI 
                         then -- ignore all Jump operations.
-                            addra <= STD_LOGIC_VECTOR(unsigned(ProgCounter+1));
+                            MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounter+1));
                     end if;
 
 
@@ -427,18 +437,18 @@ memory : cpumemory
                         when REGREG =>
                             case ffopcode is
                                 when oRTI =>
-                                    addrb <= std_logic_vector(to_unsigned(
+                                    MEM_ADDRB <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 2,12));
                                     regist(interruptSP) <= std_logic_vector(to_unsigned(
                                             to_integer(unsigned(regist(interruptSP))) + 2,32));
                                     cycle <= MEMFETCH2;
+                                    -- cycle <= EXECUTE;
                                 when others =>
                                     cycle <= MEMFETCH2;
                             end case;
-                            when others =>
-                                cycle <= MEMFETCH2;
-                        end case;
-                    cycle <= MEMFETCH2;
+                        when others =>
+                            cycle <= MEMFETCH2;
+                    end case;
 
                 ----------------------------------------------------------------
                 -- Second Cycle to wait for memory to be read.
@@ -495,9 +505,9 @@ memory : cpumemory
                                             to_integer(unsigned(ireg1value)) - 1,32));
                                     ProgCounter <= unsigned(ireg2value(11 downto 0));
                                 when oRTN =>
-                                    ProgCounter <= unsigned(doutb(11 downto 0));
+                                    ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                 when oRTI =>
-                                    ProgCounter <= unsigned(doutb(11 downto 0));
+                                    ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                 when oRWIO =>
                                     if ffflag = '0' then
                                         regist(ffiregop1) <= IORdata;
@@ -511,7 +521,7 @@ memory : cpumemory
                                         regist(ffiregop1) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(ireg1value)) - 1,32));
                                     else
-                                        regist(iregop2) <= doutb;
+                                        regist(iregop2) <= MEM_DOUTB;
                                     end if;
                                 when oSWI =>
                                     if interruptMask(ffiregop1) = '1' then
@@ -709,54 +719,54 @@ memory : cpumemory
                         when ABSOLUTE  | INDEX =>
                             case ffopcode is
                                 when oLD =>
-                                    regist(ffiregop1) <= doutb;
+                                    regist(ffiregop1) <= MEM_DOUTB;
                                 when oSTR =>
-                                    dinb <= ireg1value;
+                                    MEM_DINB <= ireg1value;
                                 when oADD =>
                                     regist(ffiregop1) <= 
                                         std_logic_vector(to_signed(
                                             to_integer(signed(ireg1value)) + 
-                                            to_integer(signed(doutb)),32));
+                                            to_integer(signed(MEM_DOUTB)),32));
                                 when oSUB =>
                                     regist(ffiregop1) <= 
                                         std_logic_vector(to_signed(
                                             to_integer(signed(ireg1value)) - 
-                                            to_integer(signed(doutb)),32));
+                                            to_integer(signed(MEM_DOUTB)),32));
                                 when oAND =>
                                     if ffflag = '0' then
-                                        regist(ffiregop1) <= ireg1value and doutb;
+                                        regist(ffiregop1) <= ireg1value and MEM_DOUTB;
                                     else
-                                        regist(ffiregop1) <= ireg1value nand doutb;
+                                        regist(ffiregop1) <= ireg1value nand MEM_DOUTB;
                                     end if;
                                 when oOR =>
                                     if ffflag = '0' then
-                                        regist(ffiregop1) <= ireg1value or doutb;
+                                        regist(ffiregop1) <= ireg1value or MEM_DOUTB;
                                     else
-                                        regist(ffiregop1) <= ireg1value nor doutb;
+                                        regist(ffiregop1) <= ireg1value nor MEM_DOUTB;
                                     end if;
                                 when oXOR =>
                                     if ffflag = '0' then
-                                        regist(ffiregop1) <= ireg1value xor doutb;
+                                        regist(ffiregop1) <= ireg1value xor MEM_DOUTB;
                                     else
-                                        regist(ffiregop1) <= ireg1value xnor doutb;
+                                        regist(ffiregop1) <= ireg1value xnor MEM_DOUTB;
                                     end if;
                                 when oSHL =>
                                     regist(ffiregop1) <= std_logic_vector(unsigned(ireg1value) 
-                                        sll to_integer(unsigned(doutb(4 downto 0))));
+                                        sll to_integer(unsigned(MEM_DOUTB(4 downto 0))));
                                 when oSHR =>
                                     regist(ffiregop1) <= std_logic_vector(unsigned(ireg1value) 
-                                        srl to_integer(unsigned(doutb(4 downto 0))));
+                                        srl to_integer(unsigned(MEM_DOUTB(4 downto 0))));
                                 when oJMP =>
-                                    ProgCounter <= unsigned(doutb(11 downto 0));
+                                    ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                 when oBE =>
                                     if  iregop2 /= 0 
                                         and  ((ffflag = '0' and ireg1value = ireg2value)
                                         or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     elsif iregop2 = 0 
                                         and  ((ffflag = '0' and signed(ireg1value) = 0)
                                         or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
@@ -765,12 +775,12 @@ memory : cpumemory
                                         and ((ffflag = '0' and ireg1value < ireg2value) 
                                          or (ffflag = '1' and ireg1value >= ireg2value)) 
                                          then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     elsif iregop2 = 0 
                                         and ((ffflag = '0' and signed(ireg1value) < 0) 
                                          or (ffflag = '1' and signed(ireg1value) >= 0))
                                          then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
@@ -778,30 +788,30 @@ memory : cpumemory
                                     if iregop2 /= 0 
                                         and  ((ffflag = '0' and ireg1value > ireg2value) 
                                         or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     elsif iregop2 = 0 
                                         and  ((ffflag = '0' and signed(ireg1value) > 0) 
                                         or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                            ProgCounter <= unsigned(doutb(11 downto 0));
+                                            ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                                     else
                                         ProgCounter <= ProgCounter + 1;
                                     end if;
                                 when oRWIO =>
                                     if ffflag = '0' then
-                                        dinb <= IORdata;
+                                        MEM_DINB <= IORdata;
                                         regist(0) <= x"000000" & IOStatus;
                                     else
-                                        IOWdata <= doutb;
+                                        IOWdata <= MEM_DOUTB;
                                         regist(0) <= x"000000" & IOStatus;
                                     end if;
                                 when oSWI =>
-                                    if interruptMask(to_integer(unsigned(doutb(4 downto 0)))) = '1' then
+                                    if interruptMask(to_integer(unsigned(MEM_DOUTB(4 downto 0)))) = '1' then
                                         isInterrupt <= '1';
-                                        interruptNum <= to_integer(unsigned(doutb(4 downto 0)));
+                                        interruptNum <= to_integer(unsigned(MEM_DOUTB(4 downto 0)));
                                     end if;
                                 when oIENA =>
                                     interruptSP <= ffiregop1;
-                                    interruptMask <= doutb;
+                                    interruptMask <= MEM_DOUTB;
                                 when others =>
                             end case;
                         when others =>
@@ -828,10 +838,10 @@ memory : cpumemory
                             and ffiregop2 = 0 then -- Specific requirement for only WAIT
                         cycle <= WAITS;
                     elsif ffopcode = oSWI then
-                        addrB <= regist(interruptSP)(11 downto 0);
+                        MEM_ADDRB <= regist(interruptSP)(11 downto 0);
                         cycle <= SAVEENA;
                     elsif unsigned(interrupt and interruptMask) /= 0 then
-                        addrB <= regist(interruptSP)(11 downto 0);
+                        MEM_ADDRB <= regist(interruptSP)(11 downto 0);
                         isInterrupt <= '1';
                         interruptNum <= interNum;
                         cycle <= SAVEENA;
@@ -867,7 +877,7 @@ memory : cpumemory
                                         IOWena <= '0';
                                     end if;
                                 when oRTI =>
-                                    interruptMask <= doutb;
+                                    interruptMask <= MEM_DOUTB;
                                 when others =>
                             end case;
                         when IMMEDIATE =>
@@ -900,9 +910,9 @@ memory : cpumemory
 
             when SAVEENA =>
                 if isInterrupt = '1' then
-                    weB <= "1";
-                    addrB <= regist(interruptSP)(11 downto 0);
-                    dinB <= interruptMask;
+                    MEM_WEB <= "1";
+                    MEM_ADDRB <= regist(interruptSP)(11 downto 0);
+                    MEM_DINB <= interruptMask;
                     regist(interruptSP) <= std_logic_vector(to_unsigned(
                             to_integer(unsigned(regist(interruptSP))) - 1,32));
                      cycle <= DISABLEINT;
@@ -911,22 +921,22 @@ memory : cpumemory
                 end if;
             when DISABLEINT =>
                 interruptMask <= (others => '0');
-                weB <= "1";
-                addrb <= regist(interruptSP)(11 downto 0);
-                dinb <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter));
+                MEM_WEB <= "1";
+                MEM_ADDRB <= regist(interruptSP)(11 downto 0);
+                MEM_DINB <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter));
                 cycle <= JMPADDR;
             when JMPADDR =>
                 regist(interruptSP) <= std_logic_vector(to_unsigned(
                         to_integer(unsigned(regist(interruptSP))) - 1,32));
-                weB <= "0";
-                addrB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
+                MEM_WEB <= "0";
+                MEM_ADDRB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
                 cycle <= JMPFETCH1;
             when JMPFETCH1 =>
                 cycle <= JMPFETCH2;
             when JMPFETCH2 =>
                 cycle <= jump;
             when JUMP =>
-                ProgCounter <= unsigned(doutB(11 downto 0));
+                ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
                 isInterrupt <= '0';
                 cycle <= ADDRESS;
             when WAITS =>

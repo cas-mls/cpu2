@@ -41,7 +41,7 @@ end Computer;
 
 architecture Behavioral of Computer is
 
-component CPU
+    component CPU
     Port ( 
         clk : IN STD_LOGIC;
         ioAddr : out STD_LOGIC_VECTOR (7 downto 0);
@@ -50,9 +50,37 @@ component CPU
         IORena: out STD_LOGIC;
         IOWena: out std_logic;
         IOStatus: in STD_LOGIC_VECTOR (7 downto 0);
-        Interrupt : in STD_LOGIC_VECTOR (31 downto 0)
+        Interrupt : in STD_LOGIC_VECTOR (31 downto 0);
+        MEM_ENA     : out STD_LOGIC := '1';
+        MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+        MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+        MEM_DINA    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+        MEM_DOUTA   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+        MEM_ENB     : out STD_LOGIC := '1';
+        MEM_WEB     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
+        MEM_ADDRB   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+        MEM_DINB    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+        MEM_DOUTB   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000"
         );
-end component;
+    end component;
+
+    COMPONENT cpumemory
+    PORT (
+        clka : IN STD_LOGIC;
+        ena : IN STD_LOGIC;
+        wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+        dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+        clkb : IN STD_LOGIC;
+        enb : IN STD_LOGIC;
+        web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
+        addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
+        dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
+    );
+    END COMPONENT;
+
 
     signal ioAddr : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
     signal IORdata : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
@@ -64,8 +92,38 @@ end component;
     
     signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
+    -- Memory Information
+    signal MEM_CLK      : STD_LOGIC                     := '1';
+    signal MEM_ENA      : STD_LOGIC                     := '1';
+    signal MEM_WEA      : STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
+    signal MEM_ADDRA    : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    signal MEM_DINA     : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal MEM_DOUTA    : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal MEM_ENB      : STD_LOGIC                     := '1';
+    signal MEM_WEB      : STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
+    signal MEM_ADDRB    : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
+    signal MEM_DINB     : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal MEM_DOUTB    : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+
 
 begin
+
+    memory : cpumemory
+    PORT MAP (
+        clka    => MEM_CLK,
+        ena     => MEM_ENA,
+        wea     => MEM_WEA,
+        addra   => MEM_ADDRA,
+        dina    => MEM_DINA,
+        douta   => MEM_DOUTA,
+        clkb    => MEM_CLK,
+        enb     => MEM_ENB,
+        web     => MEM_WEB,
+        addrb   => MEM_ADDRB,
+        dinb    => MEM_DINB,
+        doutb   => MEM_DOUTB
+    );
+
 
     cpu1 : CPU
     port map
@@ -77,10 +135,26 @@ begin
         IORena => IORena,
         IOWena => IOWena,
         IOStatus => IOStatus,
-        interrupt => interrupt    
+        interrupt => interrupt,
+        -- MEM_ENA     => RUN_ENA  ,
+        -- MEM_WEA     => RUN_WEA  ,
+        -- MEM_ADDRA   => RUN_ADDRA,
+        -- MEM_DINA    => RUN_DINA ,
+        -- MEM_DOUTA   => RUN_DOUTA,
+        MEM_ENA     => MEM_ENA  ,
+        MEM_WEA     => MEM_WEA  ,
+        MEM_ADDRA   => MEM_ADDRA,
+        MEM_DINA    => MEM_DINA ,
+        MEM_DOUTA   => MEM_DOUTA,
+        MEM_ENB     => MEM_ENB  ,
+        MEM_WEB     => MEM_WEB  ,
+        MEM_ADDRB   => MEM_ADDRB,
+        MEM_DINB    => MEM_DINB ,
+        MEM_DOUTB   => MEM_DOUTB    
         );
 
     interrupt(0) <= rst;
+    MEM_CLK <= CLK;
 
     Comp : process (clk)
     begin

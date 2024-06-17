@@ -174,7 +174,8 @@ LOOP:
     jsr r SP1, BRTEST2
     jsr r SP1, BRTEST
     jsr r SP1, JMPTEST
-    wio r ER, 0x03    
+    ; wio r ER, 0x03    
+    wio r tr, 0x03    
     jmp LOOP
 
 SWINT:
