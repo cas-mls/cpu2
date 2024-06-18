@@ -196,7 +196,7 @@ TIMERHANDLER:
 WAITTEST:
     ldl r tr, 0x130
     ld r1, 10
-    wait r1, 10         ; test wait
+    wait r1, 10         ; test wait (10 res * 10 Wait Cycles 100 System Cycles)
     add r tr, 1
     ld r1, 4
     ld r2, 10

@@ -33,6 +33,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 package Utilities is
 
     type CYCLETYPE is (
+        RESET_STATE,
         ADDRESS, 
         INSTFETCH1, 
         INSTFETCH2, 
