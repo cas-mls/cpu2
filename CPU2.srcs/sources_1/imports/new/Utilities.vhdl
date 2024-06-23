@@ -32,25 +32,37 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 package Utilities is
 
-    type CYCLETYPE is (
+    type INST_CYCLE_TYPE is (
         RESET_STATE,
-        ADDRESS, 
-        INSTFETCH1, 
-        INSTFETCH2, 
-        DECODE, 
-        MEMFETCH1, 
-        MEMFETCH2, 
-        EXECUTE, 
-        CLEANUP,
-        SAVEENA, 
-        DISABLEINT, 
-        JMPADDR, 
-        JMPFETCH1, 
-        JMPFETCH2, 
-        JUMP,
+        ADDRESS_STATE, 
+        INSTFETCH1_STATE, 
+        INSTFETCH2_STATE, 
+        DECODE_STATE, 
+        MEMFETCH1_STATE, 
+        MEMFETCH2_STATE, 
+        EXECUTE_STATE, 
+        CLEANUP_STATE,
+        INTERRUPT_STATE,
+        -- SAVEENA, 
+        -- DISABLEINT, 
+        -- JMPADDR, 
+        -- JMPFETCH1, 
+        -- JMPFETCH2, 
+        -- JUMP,
         WAITS
         );
     
+    type INTERRUPT_CYCLE is (
+        INTERRUPT_RESET,
+        NO_INTERRUPT,
+        SAVEENA_I, 
+        DISABLEINT_I, 
+        JMPADDR_I, 
+        JMPFETCH1_I, 
+        JMPFETCH2_I, 
+        JUMP_I
+    );
+
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
     subtype REGTYPE is  STD_LOGIC_VECTOR (3 downto 0);

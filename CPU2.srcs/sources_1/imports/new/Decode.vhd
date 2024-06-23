@@ -48,9 +48,9 @@ entity Decode is
     immop : out IMMTYPE
     );
   
-end Decode;
+end DECODE_STATE;
 
-architecture Behavioral of Decode is
+architecture Behavioral of DECODE_STATE is
 
 --component Registers 
 --    Port ( clk : in STD_LOGIC;
