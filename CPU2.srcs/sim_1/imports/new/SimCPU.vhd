@@ -240,7 +240,7 @@ begin
         else
 
             interrupt(0) <= '1';
-            for j in 1 to 4 loop
+            for j in 1 to 10 loop
                 wait until rising_edge (clk);
             end loop;
             interrupt(0) <= '0';

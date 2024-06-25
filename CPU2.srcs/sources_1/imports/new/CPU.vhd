@@ -61,9 +61,6 @@ architecture Behavioral of CPU is
     signal fsm_inst_cycle_p : INST_CYCLE_TYPE := RESET_STATE;
     signal fsm_inst_cycle_n : INST_CYCLE_TYPE := RESET_STATE;
 
-    signal fsm_interrupt_cycle_p : INTERRUPT_CYCLE := NO_INTERRUPT;
-    signal fsm_interrupt_cycle_n : INTERRUPT_CYCLE := NO_INTERRUPT;
-
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
     signal ffopcode : OPCODETYPE := "00000";
@@ -92,13 +89,17 @@ architecture Behavioral of CPU is
     signal regist : reg_type := (others => (others => '0'));
     
     -- interrupts
+    signal fsm_interrupt_cycle_p : INTERRUPT_CYCLE := NO_INTERRUPT;
+    signal fsm_interrupt_cycle_n : INTERRUPT_CYCLE := NO_INTERRUPT;
+
     signal interruptNum : integer range 0 to 31 := 0;
     signal interNum : integer := 0;
 --    signal interruptNum : unsigned(4 DOWNTO 0) := "00000";
+    signal interruptStart : STD_LOGIC := '0';
+    signal interruptStartState :  INTERRUPT_CYCLE := SAVEENA_I;
     signal interruptRun : STD_LOGIC := '0';
     signal interruptMask : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal interruptSP : integer range 0 to 31;
-    signal interruptStart : STD_LOGIC := '0';
     signal tmpInterruptSP : integer range 0 to 31;
     signal INTR_MEM_ENB     : STD_LOGIC := '1';
     signal INTR_MEM_WEB     : STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
@@ -220,9 +221,11 @@ begin
                 IO_ADDR <= (others => '0');
                 IOR_ENA <= '0';
                 IOW_ENA <= '0';
+                interruptStart <= '0';
+                interruptSP <= 0; -- Not used for reset interrupt.
                 interruptNum <= interNum;
-                interruptStart <= '1';
                 fsm_inst_cycle_n <= INTERRUPT_STATE;
+                interruptStartState <= JMPADDR_I;
                 cycleCount <= (others => '0');
                 METRICS.cycleCount <= (others => '0');
                 timerReg <= 0;
@@ -524,7 +527,6 @@ begin
                                 end if;
                             when oSWI =>
                                 if interruptMask(ffiregop1) = '1' then
-                                    -- isInterrupt <= '1';
                                     interruptNum <= to_integer(unsigned(ireg1value));
                                 end if;
                             when oIENA =>
@@ -675,7 +677,6 @@ begin
                                 end if;
                             when oSWI =>
                                 if interruptMask(to_integer(unsigned(ffimmop(4 downto 0)))) = '1' then
-                                    -- isInterrupt <= '1';
                                     interruptNum <= to_integer(unsigned(ffimmop(4 downto 0)));
                                 end if;
                             when oIENA =>
@@ -794,7 +795,6 @@ begin
                                 end if;
                             when oSWI =>
                                 if interruptMask(to_integer(unsigned(MEM_DOUTB(4 downto 0)))) = '1' then
-                                    -- isInterrupt <= '1';
                                     interruptNum <= to_integer(unsigned(MEM_DOUTB(4 downto 0)));
                                 end if;
                             when oIENA =>
@@ -829,11 +829,12 @@ begin
                     fsm_inst_cycle_n <= WAITS;
                 elsif ffopcode = oSWI then
                     PROC_MEM_ADDRB <= regist(interruptSP)(11 downto 0);
+                    interruptStartState <= SAVEENA_I;
                     fsm_inst_cycle_n <= INTERRUPT_STATE;
                 elsif unsigned(INTERRUPT and interruptMask) /= 0 then
                     PROC_MEM_ADDRB <= regist(interruptSP)(11 downto 0);
-                    -- isInterrupt <= '1';
                     interruptNum <= interNum;
+                    interruptStartState <= SAVEENA_I;
                     fsm_inst_cycle_n <= INTERRUPT_STATE;
                 elsif ffopcode /= oJMP 
                     and ffopcode /= oBE 
@@ -897,85 +898,82 @@ begin
                 else
                     fsm_inst_cycle_n <= ADDRESS_STATE;
                 end if;
-                -- TODO: This does not work isInterrupt zero when this is first processed.
-        when INTERRUPT_STATE =>
-            if interruptRun = '0' then
-                if interruptStart = '1' then
+
+            when INTERRUPT_STATE =>
+                if interruptStart = '0' 
+                then
+                    interruptStart <= '1';
+                elsif  interruptRun = '0' 
+                    and interruptStart = '1'
+                then
                     interruptStart <= '0';
                     fsm_inst_cycle_n <= ADDRESS_STATE;
                     interruptMask <= (others => '0');
                     regist(interruptSP) <= 
                         std_logic_vector(to_unsigned(tmpInterruptSP, 32));
                     ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
-                else
-                    interruptStart <= '1';
                 end if;
-            end if;
-        -- when SAVEENA =>
-        --     if isInterrupt = '1' then
-        --         MEM_WEB <= "1";
-        --         MEM_ADDRB <= regist(interruptSP)(11 downto 0);
-        --         MEM_DINB <= interruptMask;
-        --         regist(interruptSP) <= std_logic_vector(to_unsigned(
-        --                 to_integer(unsigned(regist(interruptSP))) - 1,32));
-        --             fsm_inst_cycle_n <= DISABLEINT;
-        --     else
-        --         fsm_inst_cycle_n <= ADDRESS_STATE;
-        --     end if;
-        -- when DISABLEINT =>
-        --     interruptMask <= (others => '0');
-        --     MEM_WEB <= "1";
-        --     MEM_ADDRB <= regist(interruptSP)(11 downto 0);
-        --     MEM_DINB <= X"00000" & STD_LOGIC_VECTOR(unsigned(ProgCounter));
-        --     fsm_inst_cycle_n <= JMPADDR;
-        -- when JMPADDR =>
-        --     regist(interruptSP) <= std_logic_vector(to_unsigned(
-        --             to_integer(unsigned(regist(interruptSP))) - 1,32));
-        --     MEM_WEB <= "0";
-        --     MEM_ADDRB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
-        --     fsm_inst_cycle_n <= JMPFETCH1;
-        -- when JMPFETCH1 =>
-        --     fsm_inst_cycle_n <= JMPFETCH2;
-        -- when JMPFETCH2 =>
-        --     fsm_inst_cycle_n <= jump;
-        -- when JUMP =>
-        --     ProgCounter <= unsigned(MEM_DOUTB(11 downto 0));
-        --     isInterrupt <= '0';
-        --     fsm_inst_cycle_n <= ADDRESS_STATE;
-        when WAITS =>
-            if waitRun = '1' then
-                fsm_inst_cycle_n <= WAITS;
-            else
-                waitStart <= '0';
+
+            when WAITS =>
+                if waitRun = '1' then
+                    fsm_inst_cycle_n <= WAITS;
+                else
+                    waitStart <= '0';
+                    fsm_inst_cycle_n <= ADDRESS_STATE;
+                end if;
+
+            when others =>
                 fsm_inst_cycle_n <= ADDRESS_STATE;
-            end if;
-        when others =>
-            fsm_inst_cycle_n <= ADDRESS_STATE;
         end case;
 
         if timerRun = '0' and timerEna = '1' then
             timerEna <= '0';
             timerStart <= '0';
             if interruptMask(to_integer(unsigned(timerInt))) = '1' then
-                -- isInterrupt <= '1';
                 interruptNum <= to_integer(unsigned(timerInt));
+                interruptStartState <= SAVEENA_I;
                 fsm_inst_cycle_n <= INTERRUPT_STATE;
             end if;
         end if;
 
     end process;
 
-
+    -- instrPipline : process (fsm_inst_cycle_p)
+    -- begin
+    --     case fsm_inst_cycle_p is
+    --         when RESET_STATE =>
+    --             MEM_ENA <= '1';
+    --             MEM_WEA <= "0";
+    --             MEM_ADDRA <= X"000";
+    --         when ADDRESS_STATE =>
+    --             MEM_ENA <= '1';
+    --             MEM_WEA <= "0";
+    --             MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounter));
+    --         when DECODE_STATE =>
+    --             if      opcode /= oJMP 
+    --                 and opcode /= oBE 
+    --                 and opcode /= oBLT 
+    --                 and opcode /= oBGT 
+    --                 and opcode /= oJSR 
+    --                 and opcode /= oRTN 
+    --                 and opcode /= oRTI 
+    --                 then -- ignore all Jump operations.
+    --                     MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounter+1));
+    --             end if;
+    --         when others =>
+    --     end case;
+    -- end process instrPipline;
 
 
     fsm_interrupt : process (SYS_CLK)
     begin
         if rising_edge  (SYS_CLK) then
-            -- if (INTERRUPT = RESET) then
-            --     fsm_interrupt_cycle_p <= INTERRUPT_RESET;
-            -- else
+            if  fsm_inst_cycle_p = INTERRUPT_STATE 
+            then
                 fsm_interrupt_cycle_p <= fsm_interrupt_cycle_n;
-            -- end if;
+            else
+                fsm_interrupt_cycle_p <= NO_INTERRUPT;
+            end if;
         end if;
     end process fsm_interrupt;
 
@@ -992,29 +990,27 @@ begin
         end if;
     end process intrCounter_proc;
     
+    -- This processes the interrupt and calls the interrupt hander
+    --  Limitation: This cannot be concurrent with the main intstruction
+    --      cycle becuase of the use of the common memory routines
+    --      (MEM_ADDR, MEM_WE and MEM_DIN).
     interrupt_proc : process (
         fsm_inst_cycle_p, 
-        fsm_interrupt_cycle_p, 
-        interruptStart,
+        fsm_interrupt_cycle_p,
         interruptCounter )
 
 
     begin
 
         case fsm_interrupt_cycle_p is
-                -- CPU RESET
-            when INTERRUPT_RESET =>
             when NO_INTERRUPT =>
-                if fsm_inst_cycle_p = RESET_STATE 
-                    and interruptStart = '1' then -- System Restart
-                    interruptRun <= '1';
-                    fsm_interrupt_cycle_n <= JMPADDR_I;
-                    tmpInterruptSP <= 0;
-                elsif fsm_inst_cycle_p = INTERRUPT_STATE
-                    and interruptStart = '1' then
+                if fsm_inst_cycle_p = INTERRUPT_STATE
+                then
                     interruptRun <= '1';
                     tmpInterruptSP <=  to_integer(unsigned(regist(interruptSP)));
-                    fsm_interrupt_cycle_n <= SAVEENA_I;
+                    fsm_interrupt_cycle_n <= interruptStartState;
+                else
+                    fsm_interrupt_cycle_n <= NO_INTERRUPT;
                 end if;
             when SAVEENA_I =>
                 INTR_MEM_WEB <= "1";
@@ -1029,20 +1025,16 @@ begin
                 tmpInterruptSP <= tmpInterruptSP - 1;
                 fsm_interrupt_cycle_n <= JMPADDR_I;
             when JMPADDR_I =>
-                INTR_MEM_WEB <= "0";
-                INTR_MEM_ADDRB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
-                if interruptCounter = 3 then
-                    interruptRun <= '0';
-                    fsm_interrupt_cycle_n <= JMPFETCH2_I;
-                else
-                    fsm_interrupt_cycle_n <= JMPADDR_I;
+                if fsm_inst_cycle_p = INTERRUPT_STATE then
+                    INTR_MEM_WEB <= "0";
+                    INTR_MEM_ADDRB <= "0000000" & std_logic_vector(to_unsigned(interruptNum,5));
+                    if interruptCounter >= 3 then
+                        interruptRun <= '0';
+                        fsm_interrupt_cycle_n <= NO_INTERRUPT;
+                    else
+                        fsm_interrupt_cycle_n <= JMPADDR_I;
+                    end if;
                 end if;
-            when JMPFETCH1_I =>
-                fsm_interrupt_cycle_n <= JMPFETCH2_I;
-            when JMPFETCH2_I =>
-                -- interruptRun <= '0';
-                fsm_interrupt_cycle_n <= NO_INTERRUPT;
-            when JUMP_I =>
         end case;
 
     end process interrupt_proc;

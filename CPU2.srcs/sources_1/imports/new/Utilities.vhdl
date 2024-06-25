@@ -53,14 +53,10 @@ package Utilities is
         );
     
     type INTERRUPT_CYCLE is (
-        INTERRUPT_RESET,
         NO_INTERRUPT,
         SAVEENA_I, 
         DISABLEINT_I, 
-        JMPADDR_I, 
-        JMPFETCH1_I, 
-        JMPFETCH2_I, 
-        JUMP_I
+        JMPADDR_I
     );
 
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);

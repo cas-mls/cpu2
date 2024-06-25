@@ -12,12 +12,12 @@
    </db_ref_list>
    <zoom_setting>
       <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="21.951 ns"></ZoomEndTime>
-      <Cursor1Time time="45.000 ns"></Cursor1Time>
+      <ZoomEndTime time="2,516.001 ns"></ZoomEndTime>
+      <Cursor1Time time="0.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="93"></ValueColumnWidth>
+      <ValueColumnWidth column_width="88"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="28" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
@@ -137,6 +137,10 @@
       <wvobject fp_name="/SimCPU/cpuCUT/MEM_ADDRB" type="array">
          <obj_property name="ElementShortName">MEM_ADDRB[11:0]</obj_property>
          <obj_property name="ObjectShortName">MEM_ADDRB[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/PROC_MEM_ADDRB" type="array">
+         <obj_property name="ElementShortName">PROC_MEM_ADDRB[11:0]</obj_property>
+         <obj_property name="ObjectShortName">PROC_MEM_ADDRB[11:0]</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/MEM_DINB" type="array">
          <obj_property name="ElementShortName">MEM_DINB[31:0]</obj_property>
