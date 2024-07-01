@@ -33,22 +33,22 @@ use IEEE.STD_LOGIC_1164.ALL;
 package Utilities is
 
     type CYCLETYPE is (
-        RESET_STATE,
-        ADDRESS, 
-        INSTFETCH1, 
-        INSTFETCH2, 
-        DECODE, 
-        MEMFETCH1, 
-        MEMFETCH2, 
-        EXECUTE, 
-        CLEANUP,
-        SAVEENA, 
-        DISABLEINT, 
-        JMPADDR, 
-        JMPFETCH1, 
-        JMPFETCH2, 
-        JUMP,
-        WAITS
+        RESET_STATE,    -- State 0
+        ADDRESS,        -- State 1
+        INSTFETCH1,     -- State 2
+        INSTFETCH2,     -- State 3
+        DECODE,         -- State 4
+        MEMFETCH1,      -- State 5
+        MEMFETCH2,      -- State 6
+        EXECUTE,        -- State 7
+        CLEANUP,        -- State 8
+        SAVEENA,        -- State 9
+        DISABLEINT,     -- State 10
+        JMPADDR,        -- State 11
+        JMPFETCH1,      -- State 12
+        JMPFETCH2,      -- State 13
+        JUMP,           -- State 14
+        WAITS           -- State 15
         );
     
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
@@ -96,6 +96,7 @@ package Utilities is
     
 
     constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
+    constant NOINTERRUPT : STD_LOGIC_VECTOR (31 downto 0) := X"00000000";
     
     type METRICSTYPE is record
         CycleCount : unsigned(63 downto 0);

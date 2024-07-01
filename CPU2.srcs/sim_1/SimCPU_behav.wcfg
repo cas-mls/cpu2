@@ -11,13 +11,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,570.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="2,322.001 ns"></ZoomEndTime>
-      <Cursor1Time time="1,755.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="159.501 ns"></ZoomEndTime>
+      <Cursor1Time time="0.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="93"></ValueColumnWidth>
+      <ValueColumnWidth column_width="83"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="28" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
@@ -46,6 +46,14 @@
    <wvobject fp_name="/SimCPU/cpuCUT/ffopcode" type="array">
       <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
       <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="group105" type="group">
       <obj_property name="label">Instruction</obj_property>
@@ -125,6 +133,7 @@
    <wvobject fp_name="group162" type="group">
       <obj_property name="label">MemB</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/MEM_ENB" type="logic">
          <obj_property name="ElementShortName">MEM_ENB</obj_property>
          <obj_property name="ObjectShortName">MEM_ENB</obj_property>
@@ -171,6 +180,7 @@
    <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
       <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/METRICS.CycleCount" type="array">
       <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
@@ -257,14 +267,6 @@
          <obj_property name="ElementShortName">timerInt[4:0]</obj_property>
          <obj_property name="ObjectShortName">timerInt[4:0]</obj_property>
       </wvobject>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
-      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
-      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/MEM_DINA" type="array">
       <obj_property name="ElementShortName">MEM_DINA[31:0]</obj_property>
