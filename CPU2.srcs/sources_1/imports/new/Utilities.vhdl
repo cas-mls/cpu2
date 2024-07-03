@@ -42,15 +42,21 @@ package Utilities is
         MEMFETCH2,      -- State 6
         EXECUTE,        -- State 7
         CLEANUP,        -- State 8
-        SAVEENA,        -- State 9
-        DISABLEINT,     -- State 10
-        JMPADDR,        -- State 11
-        JMPFETCH1,      -- State 12
-        JMPFETCH2,      -- State 13
-        JUMP,           -- State 14
         WAITS           -- State 15
         );
     
+
+    type INTERRUPT_FSM is (
+        INTRWAIT_S,     -- State 0
+        CYCLEWAIT_S,    -- State 1
+        SAVEENA_S,      -- State 2
+        DISABLEINT_S,   -- State 3
+        JMPADDR_S,      -- State 4
+        JMPFETCH1_S,    -- State 5
+        JMPFETCH2_S,    -- State 6
+        JUMP_S          -- State 7
+    );
+
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
     subtype REGTYPE is  STD_LOGIC_VECTOR (3 downto 0);
