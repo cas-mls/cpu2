@@ -557,7 +557,7 @@ Interrupt Vector:
 
 | interrupt Handler       | Address                                                      |
 | ----------------------- | ------------------------------------------------------------ |
-| 0 (CPU Reset)           | 0 (Address of the first executable instruction after reset.) |
+| 0 (CPU Reset)           | 0 (Address of the first executable instruction after reset and Interrupt 0 (bit 0).) |
 | 1                       | 1 (Address of the interrupt handler for Interrupt 1.)        |
 | ...                     | ...                                                          |
 | 31                      | 31 (Address of the interrupt handler for Interrupt 31.)      |
