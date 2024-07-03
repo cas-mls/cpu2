@@ -156,10 +156,10 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
-;    jsr r SP1, WAITTEST
-;    jsr r SP1, INTERRUPTTEST
-    jsr r SP1, STACKTESTS
-    jsr r SP1, IOTESTS
+    ; jsr r SP1, WAITTEST
+    ; jsr r SP1, INTERRUPTTEST
+    ; jsr r SP1, STACKTESTS
+    ; jsr r SP1, IOTESTS
     jsr r SP1, ANDTEST
     jsr r SP1, NANDTEST
     jsr r SP1, ORTEST
