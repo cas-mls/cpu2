@@ -32,17 +32,17 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 package Utilities is
 
-    type CYCLETYPE is (
-        RESET_STATE,    -- State 0
-        ADDRESS,        -- State 1
-        INSTFETCH1,     -- State 2
-        INSTFETCH2,     -- State 3
-        DECODE,         -- State 4
-        MEMFETCH1,      -- State 5
-        MEMFETCH2,      -- State 6
-        EXECUTE,        -- State 7
-        CLEANUP,        -- State 8
-        WAITS           -- State 15
+    type CYCLETYPE_FSM is (
+        RESET_STATE_S,  -- State 0
+        ADDRESS_S,      -- State 1
+        INSTFETCH1_S,   -- State 2
+        INSTFETCH2_S,   -- State 3
+        DECODE_S,       -- State 4
+        MEMFETCH1_S,    -- State 5
+        MEMFETCH2_S,    -- State 6
+        EXECUTE_S,      -- State 7
+        CLEANUP_S,      -- State 8
+        WAITS_S         -- State 9
         );
     
 
@@ -54,7 +54,8 @@ package Utilities is
         JMPADDR_S,      -- State 4
         JMPFETCH1_S,    -- State 5
         JMPFETCH2_S,    -- State 6
-        JUMP_S          -- State 7
+        JUMP_S,         -- State 7
+        DONE_S          -- State 8
     );
 
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);

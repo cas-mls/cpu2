@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="70.750 ns"></ZoomStartTime>
-      <ZoomEndTime time="123.851 ns"></ZoomEndTime>
-      <Cursor1Time time="115.000 ns"></Cursor1Time>
+      <ZoomStartTime time="3,758.334 ns"></ZoomStartTime>
+      <ZoomEndTime time="3,807.935 ns"></ZoomEndTime>
+      <Cursor1Time time="3,785.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="83"></ValueColumnWidth>
+      <ValueColumnWidth column_width="78"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="28" />
+   <WVObjectSize size="29" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -46,6 +46,10 @@
    <wvobject fp_name="/SimCPU/cpuCUT/ffopcode" type="array">
       <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
       <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/MEM_ENA" type="logic">
+      <obj_property name="ElementShortName">MEM_ENA</obj_property>
+      <obj_property name="ObjectShortName">MEM_ENA</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
       <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
@@ -125,9 +129,34 @@
    <wvobject fp_name="group156" type="group">
       <obj_property name="label">IO</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/echoIO" type="array">
          <obj_property name="ElementShortName">echoIO[31:0]</obj_property>
          <obj_property name="ObjectShortName">echoIO[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/ioAddr" type="array">
+         <obj_property name="ElementShortName">ioAddr[7:0]</obj_property>
+         <obj_property name="ObjectShortName">ioAddr[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/IORdata" type="array">
+         <obj_property name="ElementShortName">IORdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">IORdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/IOWdata" type="array">
+         <obj_property name="ElementShortName">IOWdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">IOWdata[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/IORena" type="logic">
+         <obj_property name="ElementShortName">IORena</obj_property>
+         <obj_property name="ObjectShortName">IORena</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/IOWena" type="logic">
+         <obj_property name="ElementShortName">IOWena</obj_property>
+         <obj_property name="ObjectShortName">IOWena</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/IOStatus" type="array">
+         <obj_property name="ElementShortName">IOStatus[7:0]</obj_property>
+         <obj_property name="ObjectShortName">IOStatus[7:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject fp_name="group162" type="group">
@@ -179,6 +208,10 @@
          <obj_property name="ElementShortName">interruptMask[31:0]</obj_property>
          <obj_property name="ObjectShortName">interruptMask[31:0]</obj_property>
          <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/interBitNum" type="other">
+         <obj_property name="ElementShortName">interBitNum</obj_property>
+         <obj_property name="ObjectShortName">interBitNum</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/interruptNum" type="other">
          <obj_property name="ElementShortName">interruptNum</obj_property>
@@ -235,21 +268,9 @@
       <obj_property name="label">Timer</obj_property>
       <obj_property name="DisplayName">label</obj_property>
       <obj_property name="isExpanded"></obj_property>
-      <wvobject fp_name="/SimCPU/cpuCUT/timerEna" type="logic">
-         <obj_property name="ElementShortName">timerEna</obj_property>
-         <obj_property name="ObjectShortName">timerEna</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/timerStart" type="logic">
-         <obj_property name="ElementShortName">timerStart</obj_property>
-         <obj_property name="ObjectShortName">timerStart</obj_property>
-      </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/timerRun" type="logic">
          <obj_property name="ElementShortName">timerRun</obj_property>
          <obj_property name="ObjectShortName">timerRun</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/timerCancel" type="logic">
-         <obj_property name="ElementShortName">timerCancel</obj_property>
-         <obj_property name="ObjectShortName">timerCancel</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/timerReg" type="other">
          <obj_property name="ElementShortName">timerReg</obj_property>

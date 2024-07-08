@@ -35,44 +35,44 @@
                                 "portIndex": 0,
                                 "nets": [
                                     {
-                                        "name": "memory/addrb",
+                                        "name": "cpu1/ProgCounter",
                                         "isBus": true,
                                         "subnets": [
                                             {
-                                                "name": "memory/addrb[11]"
+                                                "name": "cpu1/ProgCounter[11]"
                                             },
                                             {
-                                                "name": "memory/addrb[10]"
+                                                "name": "cpu1/ProgCounter[10]"
                                             },
                                             {
-                                                "name": "memory/addrb[9]"
+                                                "name": "cpu1/ProgCounter[9]"
                                             },
                                             {
-                                                "name": "memory/addrb[8]"
+                                                "name": "cpu1/ProgCounter[8]"
                                             },
                                             {
-                                                "name": "memory/addrb[7]"
+                                                "name": "cpu1/ProgCounter[7]"
                                             },
                                             {
-                                                "name": "memory/addrb[6]"
+                                                "name": "cpu1/ProgCounter[6]"
                                             },
                                             {
-                                                "name": "memory/addrb[5]"
+                                                "name": "cpu1/ProgCounter[5]"
                                             },
                                             {
-                                                "name": "memory/addrb[4]"
+                                                "name": "cpu1/ProgCounter[4]"
                                             },
                                             {
-                                                "name": "memory/addrb[3]"
+                                                "name": "cpu1/ProgCounter[3]"
                                             },
                                             {
-                                                "name": "memory/addrb[2]"
+                                                "name": "cpu1/ProgCounter[2]"
                                             },
                                             {
-                                                "name": "memory/addrb[1]"
+                                                "name": "cpu1/ProgCounter[1]"
                                             },
                                             {
-                                                "name": "memory/addrb[0]"
+                                                "name": "cpu1/ProgCounter[0]"
                                             }
                                         ]
                                     }
@@ -85,8 +85,98 @@
                                 "direction": "IN",
                                 "isVector": true,
                                 "leftIndex": 0,
-                                "rightIndex": 11,
+                                "rightIndex": 3,
                                 "portIndex": 1,
+                                "nets": [
+                                    {
+                                        "name": "cpu1/fsm_inst_cycle_p",
+                                        "isBus": true,
+                                        "subnets": [
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_p[3]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_p[2]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_p[1]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_p[0]"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "probe2",
+                                "id": 2,
+                                "type": "DATA_TRIGGER",
+                                "direction": "IN",
+                                "isVector": true,
+                                "leftIndex": 0,
+                                "rightIndex": 3,
+                                "portIndex": 2,
+                                "nets": [
+                                    {
+                                        "name": "cpu1/fsm_interrupt_cycle_n",
+                                        "isBus": true,
+                                        "subnets": [
+                                            {
+                                                "name": "cpu1/fsm_interrupt_cycle_n[3]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_interrupt_cycle_n[2]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_interrupt_cycle_n[1]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_interrupt_cycle_n[0]"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "probe3",
+                                "id": 3,
+                                "type": "DATA_TRIGGER",
+                                "direction": "IN",
+                                "isVector": true,
+                                "leftIndex": 0,
+                                "rightIndex": 3,
+                                "portIndex": 3,
+                                "nets": [
+                                    {
+                                        "name": "cpu1/fsm_inst_cycle_n",
+                                        "isBus": true,
+                                        "subnets": [
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_n[3]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_n[2]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_n[1]"
+                                            },
+                                            {
+                                                "name": "cpu1/fsm_inst_cycle_n[0]"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "probe4",
+                                "id": 4,
+                                "type": "DATA_TRIGGER",
+                                "direction": "IN",
+                                "isVector": true,
+                                "leftIndex": 0,
+                                "rightIndex": 11,
+                                "portIndex": 4,
                                 "nets": [
                                     {
                                         "name": "memory/addra",
@@ -133,242 +223,14 @@
                                 ]
                             },
                             {
-                                "name": "probe2",
-                                "id": 2,
+                                "name": "probe5",
+                                "id": 5,
                                 "type": "DATA_TRIGGER",
                                 "direction": "IN",
                                 "isVector": true,
                                 "leftIndex": 0,
                                 "rightIndex": 31,
-                                "portIndex": 2,
-                                "nets": [
-                                    {
-                                        "name": "memory/doutb",
-                                        "isBus": true,
-                                        "subnets": [
-                                            {
-                                                "name": "memory/doutb[31]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[30]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[29]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[28]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[27]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[26]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[25]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[24]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[23]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[22]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[21]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[20]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[19]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[18]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[17]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[16]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[15]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[14]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[13]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[12]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[11]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[10]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[9]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[8]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[7]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[6]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[5]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[4]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[3]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[2]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[1]"
-                                            },
-                                            {
-                                                "name": "memory/doutb[0]"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "probe3",
-                                "id": 3,
-                                "type": "DATA_TRIGGER",
-                                "direction": "IN",
-                                "isVector": true,
-                                "leftIndex": 0,
-                                "rightIndex": 31,
-                                "portIndex": 3,
-                                "nets": [
-                                    {
-                                        "name": "memory/dinb",
-                                        "isBus": true,
-                                        "subnets": [
-                                            {
-                                                "name": "memory/dinb[31]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[30]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[29]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[28]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[27]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[26]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[25]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[24]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[23]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[22]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[21]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[20]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[19]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[18]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[17]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[16]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[15]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[14]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[13]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[12]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[11]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[10]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[9]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[8]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[7]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[6]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[5]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[4]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[3]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[2]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[1]"
-                                            },
-                                            {
-                                                "name": "memory/dinb[0]"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                "name": "probe4",
-                                "id": 4,
-                                "type": "DATA_TRIGGER",
-                                "direction": "IN",
-                                "isVector": true,
-                                "leftIndex": 0,
-                                "rightIndex": 31,
-                                "portIndex": 4,
+                                "portIndex": 5,
                                 "nets": [
                                     {
                                         "name": "memory/douta",
@@ -475,88 +337,114 @@
                                 ]
                             },
                             {
-                                "name": "probe5",
-                                "id": 5,
-                                "type": "DATA_TRIGGER",
-                                "direction": "IN",
-                                "isVector": true,
-                                "leftIndex": 0,
-                                "rightIndex": 3,
-                                "portIndex": 5,
-                                "nets": [
-                                    {
-                                        "name": "cpu1/fsm_inst_cycle_p",
-                                        "isBus": true,
-                                        "subnets": [
-                                            {
-                                                "name": "cpu1/fsm_inst_cycle_p[3]",
-                                                "parentNetId": 120
-                                            },
-                                            {
-                                                "name": "cpu1/fsm_inst_cycle_p[2]",
-                                                "parentNetId": 121
-                                            },
-                                            {
-                                                "name": "cpu1/fsm_inst_cycle_p[1]",
-                                                "parentNetId": 122
-                                            },
-                                            {
-                                                "name": "cpu1/fsm_inst_cycle_p[0]",
-                                                "parentNetId": 123
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
                                 "name": "probe6",
                                 "id": 6,
                                 "type": "DATA_TRIGGER",
                                 "direction": "IN",
                                 "isVector": true,
                                 "leftIndex": 0,
-                                "rightIndex": 11,
+                                "rightIndex": 31,
                                 "portIndex": 6,
                                 "nets": [
                                     {
-                                        "name": "cpu1/ProgCounter",
+                                        "name": "memory/doutb",
                                         "isBus": true,
                                         "subnets": [
                                             {
-                                                "name": "cpu1/ProgCounter[11]"
+                                                "name": "memory/doutb[31]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[10]"
+                                                "name": "memory/doutb[30]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[9]"
+                                                "name": "memory/doutb[29]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[8]"
+                                                "name": "memory/doutb[28]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[7]"
+                                                "name": "memory/doutb[27]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[6]"
+                                                "name": "memory/doutb[26]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[5]"
+                                                "name": "memory/doutb[25]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[4]"
+                                                "name": "memory/doutb[24]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[3]"
+                                                "name": "memory/doutb[23]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[2]"
+                                                "name": "memory/doutb[22]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[1]"
+                                                "name": "memory/doutb[21]"
                                             },
                                             {
-                                                "name": "cpu1/ProgCounter[0]"
+                                                "name": "memory/doutb[20]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[19]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[18]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[17]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[16]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[15]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[14]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[13]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[12]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[11]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[10]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[9]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[8]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[7]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[6]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[5]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[4]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[3]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[2]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[1]"
+                                            },
+                                            {
+                                                "name": "memory/doutb[0]"
                                             }
                                         ]
                                     }
@@ -567,110 +455,17 @@
                                 "id": 7,
                                 "type": "DATA_TRIGGER",
                                 "direction": "IN",
-                                "isVector": true,
+                                "isVector": false,
                                 "leftIndex": 0,
-                                "rightIndex": 31,
+                                "rightIndex": 0,
                                 "portIndex": 7,
                                 "nets": [
                                     {
-                                        "name": "cpu1/regist_reg[15]_0",
+                                        "name": "memory/web",
                                         "isBus": true,
                                         "subnets": [
                                             {
-                                                "name": "cpu1/regist_reg[15]_0[31]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[30]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[29]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[28]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[27]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[26]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[25]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[24]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[23]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[22]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[21]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[20]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[19]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[18]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[17]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[16]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[15]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[14]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[13]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[12]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[11]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[10]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[9]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[8]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[7]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[6]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[5]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[4]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[3]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[2]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[1]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist_reg[15]_0[0]"
+                                                "name": "memory/web[0]"
                                             }
                                         ]
                                     }
@@ -683,108 +478,48 @@
                                 "direction": "IN",
                                 "isVector": true,
                                 "leftIndex": 0,
-                                "rightIndex": 31,
+                                "rightIndex": 11,
                                 "portIndex": 8,
                                 "nets": [
                                     {
-                                        "name": "cpu1/regist[13]_6",
+                                        "name": "memory/addrb",
                                         "isBus": true,
                                         "subnets": [
                                             {
-                                                "name": "cpu1/regist[13]_6[31]"
+                                                "name": "memory/addrb[11]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[30]"
+                                                "name": "memory/addrb[10]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[29]"
+                                                "name": "memory/addrb[9]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[28]"
+                                                "name": "memory/addrb[8]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[27]"
+                                                "name": "memory/addrb[7]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[26]"
+                                                "name": "memory/addrb[6]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[25]"
+                                                "name": "memory/addrb[5]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[24]"
+                                                "name": "memory/addrb[4]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[23]"
+                                                "name": "memory/addrb[3]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[22]"
+                                                "name": "memory/addrb[2]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[21]"
+                                                "name": "memory/addrb[1]"
                                             },
                                             {
-                                                "name": "cpu1/regist[13]_6[20]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[19]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[18]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[17]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[16]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[15]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[14]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[13]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[12]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[11]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[10]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[9]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[8]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[7]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[6]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[5]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[4]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[3]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[2]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[1]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[13]_6[0]"
+                                                "name": "memory/addrb[0]"
                                             }
                                         ]
                                     }
@@ -797,21 +532,108 @@
                                 "direction": "IN",
                                 "isVector": true,
                                 "leftIndex": 0,
-                                "rightIndex": 2,
+                                "rightIndex": 31,
                                 "portIndex": 9,
                                 "nets": [
                                     {
-                                        "name": "cpu1/fsm_interrupt_cycle_n",
+                                        "name": "memory/dinb",
                                         "isBus": true,
                                         "subnets": [
                                             {
-                                                "name": "cpu1/fsm_interrupt_cycle_n[2]"
+                                                "name": "memory/dinb[31]"
                                             },
                                             {
-                                                "name": "cpu1/fsm_interrupt_cycle_n[1]"
+                                                "name": "memory/dinb[30]"
                                             },
                                             {
-                                                "name": "cpu1/fsm_interrupt_cycle_n[0]"
+                                                "name": "memory/dinb[29]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[28]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[27]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[26]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[25]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[24]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[23]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[22]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[21]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[20]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[19]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[18]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[17]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[16]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[15]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[14]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[13]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[12]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[11]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[10]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[9]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[8]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[7]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[6]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[5]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[4]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[3]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[2]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[1]"
+                                            },
+                                            {
+                                                "name": "memory/dinb[0]"
                                             }
                                         ]
                                     }
@@ -822,112 +644,14 @@
                                 "id": 10,
                                 "type": "DATA_TRIGGER",
                                 "direction": "IN",
-                                "isVector": true,
+                                "isVector": false,
                                 "leftIndex": 0,
-                                "rightIndex": 31,
+                                "rightIndex": 0,
                                 "portIndex": 10,
                                 "nets": [
                                     {
-                                        "name": "cpu1/regist[14]_1",
-                                        "isBus": true,
-                                        "subnets": [
-                                            {
-                                                "name": "cpu1/regist[14]_1[31]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[30]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[29]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[28]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[27]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[26]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[25]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[24]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[23]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[22]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[21]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[20]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[19]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[18]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[17]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[16]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[15]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[14]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[13]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[12]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[11]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[10]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[9]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[8]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[7]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[6]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[5]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[4]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[3]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[2]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[1]"
-                                            },
-                                            {
-                                                "name": "cpu1/regist[14]_1[0]"
-                                            }
-                                        ]
+                                        "name": "memory/ena",
+                                        "isBus": false
                                     }
                                 ]
                             },
@@ -942,266 +666,24 @@
                                 "portIndex": 11,
                                 "nets": [
                                     {
+                                        "name": "memory/enb",
+                                        "isBus": false
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "probe12",
+                                "id": 12,
+                                "type": "DATA_TRIGGER",
+                                "direction": "IN",
+                                "isVector": false,
+                                "leftIndex": 0,
+                                "rightIndex": 0,
+                                "portIndex": 12,
+                                "nets": [
+                                    {
                                         "name": "rst_IBUF",
-                                        "isBus": false,
-                                        "parentNetId": 235
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                ],
-                "parent_nets": [
-                    {
-                        "id": 120,
-                        "name": "cpu1/fsm_inst_cycle_p[3]",
-                        "state_reg": [
-                            {
-                                "name": "cpu1/fsm_inst_cycle_p_reg[3]",
-                                "states": [
-                                    {
-                                        "name": "reset_state",
-                                        "val": "0000"
-                                    },
-                                    {
-                                        "name": "address",
-                                        "val": "0001"
-                                    },
-                                    {
-                                        "name": "instfetch1",
-                                        "val": "0010"
-                                    },
-                                    {
-                                        "name": "instfetch2",
-                                        "val": "0011"
-                                    },
-                                    {
-                                        "name": "decode",
-                                        "val": "0100"
-                                    },
-                                    {
-                                        "name": "memfetch1",
-                                        "val": "0101"
-                                    },
-                                    {
-                                        "name": "memfetch2",
-                                        "val": "0110"
-                                    },
-                                    {
-                                        "name": "execute",
-                                        "val": "0111"
-                                    },
-                                    {
-                                        "name": "waits",
-                                        "val": "1001"
-                                    },
-                                    {
-                                        "name": "cleanup",
-                                        "val": "1000"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "id": 121,
-                        "name": "cpu1/fsm_inst_cycle_p[2]",
-                        "state_reg": [
-                            {
-                                "name": "cpu1/fsm_inst_cycle_p_reg[2]",
-                                "states": [
-                                    {
-                                        "name": "reset_state",
-                                        "val": "0000"
-                                    },
-                                    {
-                                        "name": "address",
-                                        "val": "0001"
-                                    },
-                                    {
-                                        "name": "instfetch1",
-                                        "val": "0010"
-                                    },
-                                    {
-                                        "name": "instfetch2",
-                                        "val": "0011"
-                                    },
-                                    {
-                                        "name": "decode",
-                                        "val": "0100"
-                                    },
-                                    {
-                                        "name": "memfetch1",
-                                        "val": "0101"
-                                    },
-                                    {
-                                        "name": "memfetch2",
-                                        "val": "0110"
-                                    },
-                                    {
-                                        "name": "execute",
-                                        "val": "0111"
-                                    },
-                                    {
-                                        "name": "waits",
-                                        "val": "1001"
-                                    },
-                                    {
-                                        "name": "cleanup",
-                                        "val": "1000"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "id": 122,
-                        "name": "cpu1/fsm_inst_cycle_p[1]",
-                        "state_reg": [
-                            {
-                                "name": "cpu1/fsm_inst_cycle_p_reg[1]",
-                                "states": [
-                                    {
-                                        "name": "reset_state",
-                                        "val": "0000"
-                                    },
-                                    {
-                                        "name": "address",
-                                        "val": "0001"
-                                    },
-                                    {
-                                        "name": "instfetch1",
-                                        "val": "0010"
-                                    },
-                                    {
-                                        "name": "instfetch2",
-                                        "val": "0011"
-                                    },
-                                    {
-                                        "name": "decode",
-                                        "val": "0100"
-                                    },
-                                    {
-                                        "name": "memfetch1",
-                                        "val": "0101"
-                                    },
-                                    {
-                                        "name": "memfetch2",
-                                        "val": "0110"
-                                    },
-                                    {
-                                        "name": "execute",
-                                        "val": "0111"
-                                    },
-                                    {
-                                        "name": "waits",
-                                        "val": "1001"
-                                    },
-                                    {
-                                        "name": "cleanup",
-                                        "val": "1000"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "id": 123,
-                        "name": "cpu1/fsm_inst_cycle_p[0]",
-                        "state_reg": [
-                            {
-                                "name": "cpu1/fsm_inst_cycle_p_reg[0]",
-                                "states": [
-                                    {
-                                        "name": "reset_state",
-                                        "val": "0000"
-                                    },
-                                    {
-                                        "name": "address",
-                                        "val": "0001"
-                                    },
-                                    {
-                                        "name": "instfetch1",
-                                        "val": "0010"
-                                    },
-                                    {
-                                        "name": "instfetch2",
-                                        "val": "0011"
-                                    },
-                                    {
-                                        "name": "decode",
-                                        "val": "0100"
-                                    },
-                                    {
-                                        "name": "memfetch1",
-                                        "val": "0101"
-                                    },
-                                    {
-                                        "name": "memfetch2",
-                                        "val": "0110"
-                                    },
-                                    {
-                                        "name": "execute",
-                                        "val": "0111"
-                                    },
-                                    {
-                                        "name": "waits",
-                                        "val": "1001"
-                                    },
-                                    {
-                                        "name": "cleanup",
-                                        "val": "1000"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    {
-                        "id": 235,
-                        "name": "rst_IBUF",
-                        "state_reg": [
-                            {
-                                "name": "cpu1/fsm_inst_cycle_p_reg[0]",
-                                "states": [
-                                    {
-                                        "name": "reset_state",
-                                        "val": "0000"
-                                    },
-                                    {
-                                        "name": "address",
-                                        "val": "0001"
-                                    },
-                                    {
-                                        "name": "instfetch1",
-                                        "val": "0010"
-                                    },
-                                    {
-                                        "name": "instfetch2",
-                                        "val": "0011"
-                                    },
-                                    {
-                                        "name": "decode",
-                                        "val": "0100"
-                                    },
-                                    {
-                                        "name": "memfetch1",
-                                        "val": "0101"
-                                    },
-                                    {
-                                        "name": "memfetch2",
-                                        "val": "0110"
-                                    },
-                                    {
-                                        "name": "execute",
-                                        "val": "0111"
-                                    },
-                                    {
-                                        "name": "waits",
-                                        "val": "1001"
-                                    },
-                                    {
-                                        "name": "cleanup",
-                                        "val": "1000"
+                                        "isBus": false
                                     }
                                 ]
                             }
