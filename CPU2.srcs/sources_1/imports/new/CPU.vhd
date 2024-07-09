@@ -103,7 +103,6 @@ architecture Behavioral of CPU is
     signal waitResolution : unsigned (15 downto 0) := (others => '0');
     signal waitResCounter : unsigned (15 downto 0) := (others => '0');
     signal waitRun : std_logic := '0';
-    signal waitStart : std_logic := '0';
     signal waitAlarm : std_logic := '0';
     signal waitCancel : std_logic := '0';
 
@@ -197,152 +196,159 @@ begin
         )
     begin
     
-            cycleCount <= cycleCount + 1;
-            METRICS.cycleCount <= cycleCount;
-                case fsm_inst_cycle_p is
-                    -- CPU RESET
-                    when RESET_STATE_S =>
-                        fsm_inst_cycle_n <= ADDRESS_S;
-                        cycleCount <= (others => '0');
-                        METRICS.cycleCount <= (others => '0');
+        cycleCount <= cycleCount + 1;
+        METRICS.cycleCount <= cycleCount;
+        case fsm_inst_cycle_p is
+            -- CPU RESET
+            when RESET_STATE_S =>
+                fsm_inst_cycle_n <= ADDRESS_S;
+                cycleCount <= (others => '0');
+                METRICS.cycleCount <= (others => '0');
 
-                    ----------------------------------------------------------------
-                    -- This sets up the instruction address to read.
-                    when ADDRESS_S =>
-                        fsm_inst_cycle_n <= INSTFETCH1_S;
+            ----------------------------------------------------------------
+            -- This sets up the instruction address to read.
+            when ADDRESS_S =>
+                fsm_inst_cycle_n <= INSTFETCH1_S;
 
-                    ----------------------------------------------------------------
-                    -- This is the Cycle to wait for the Fetch Instruction Memory
-                    when INSTFETCH1_S =>
-                        fsm_inst_cycle_n <= INSTFETCH2_S;
+            ----------------------------------------------------------------
+            -- This is the Cycle to wait for the Fetch Instruction Memory
+            when INSTFETCH1_S =>
+                fsm_inst_cycle_n <= INSTFETCH2_S;
 
-                    ----------------------------------------------------------------
-                    -- This is the second Cycle for the Fetch Instruction Memory
-                    when INSTFETCH2_S =>
-                        fsm_inst_cycle_n <= DECODE_S;
+            ----------------------------------------------------------------
+            -- This is the second Cycle for the Fetch Instruction Memory
+            when INSTFETCH2_S =>
+                fsm_inst_cycle_n <= DECODE_S;
 
-                    ----------------------------------------------------------------
-                    -- Decoding is completed in the combinatorial logic and should only be used in this cycle.
-                    --       (opcode, memop, flag, iregop1, iregop2, and immop)
-                    -- Set up memory address for ABSOLUTE and INDEX
-                    when DECODE_S =>
+            ----------------------------------------------------------------
+            -- Decoding is completed in the combinatorial logic and should only be used in this cycle.
+            --       (opcode, memop, flag, iregop1, iregop2, and immop)
+            -- Set up memory address for ABSOLUTE and INDEX
+            when DECODE_S =>
 
-                        case memop is
-                            when REGREG =>
-                                case opcode is
-                                    when oJSR =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    when oRTN | oRTI =>
-                                        fsm_inst_cycle_n <= MEMFETCH1_S;
-                                    when oRWIO =>
-                                        fsm_inst_cycle_n <= MEMFETCH2_S;
-                                    when oPUSHPOP =>
-                                        if flag = '0' then
-                                            fsm_inst_cycle_n <= EXECUTE_S;
-                                        else
-                                            fsm_inst_cycle_n <= MEMFETCH1_S;
-                                        end if;
-                                    when others =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                end case;
-                            when IMMEDIATE =>
-                                case opcode is
-                                    when oJSR =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    when oRWIO =>
-                                        fsm_inst_cycle_n <= MEMFETCH2_S;
-                                    when oPUSHPOP =>
-                                        if flag = '0' then
-                                            fsm_inst_cycle_n <= EXECUTE_S;
-                                        end if;
-                                    when others =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                end case;
-                            when ABSOLUTE =>
-                                case opcode is
-                                    when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
-                                        fsm_inst_cycle_n <= MEMFETCH1_S;
-                                    when others =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                end case;
-                            when INDEX =>
-                                case opcode is
-                                    when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oRWIO =>
-                                        fsm_inst_cycle_n <= MEMFETCH1_S;
-                                    when others =>
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                end case;
+                case memop is
+                    when REGREG =>
+                        case opcode is
+                            when oJSR =>
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                            when oRTN | oRTI =>
+                                fsm_inst_cycle_n <= MEMFETCH1_S;
+                            when oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH2_S;
+                            when oPUSHPOP =>
+                                if flag = '0' then
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                else
+                                    fsm_inst_cycle_n <= MEMFETCH1_S;
+                                end if;
                             when others =>
                                 fsm_inst_cycle_n <= EXECUTE_S;
-                            end case;
-
-
-                    ----------------------------------------------------------------
-                    -- Cycle to wait for memory to be read.
-                    -- ABSOLUTE and INDEX operations.
-                    when MEMFETCH1_S =>
-                        fsm_inst_cycle_n <= MEMFETCH2_S;
-
-                    ----------------------------------------------------------------
-                    -- Second Cycle to wait for memory to be read.
-                    -- ABSOLUTE and INDEX operations.
-                    when MEMFETCH2_S =>
+                        end case;
+                    when IMMEDIATE =>
+                        case opcode is
+                            when oJSR =>
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                            when oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH2_S;
+                            when oPUSHPOP =>
+                                if flag = '0' then
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                            when others =>
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                        end case;
+                    when ABSOLUTE =>
+                        case opcode is
+                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH1_S;
+                            when others =>
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                        end case;
+                    when INDEX =>
+                        case opcode is
+                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH1_S;
+                            when others =>
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                        end case;
+                    when others =>
                         fsm_inst_cycle_n <= EXECUTE_S;
-                        
-                    ----------------------------------------------------------------
-                    -- Execute intruction
-                    when EXECUTE_S =>
+                    end case;
 
-                        -- Find the next cycle state....
-                        if ffopcode = oRWIO 
-                            or ffopcode = oRTI
-                        then -- Need additional step.
-                            fsm_inst_cycle_n <= CLEANUP_S;
 
-                        elsif waitStart = '1' 
+            ----------------------------------------------------------------
+            -- Cycle to wait for memory to be read.
+            -- ABSOLUTE and INDEX operations.
+            when MEMFETCH1_S =>
+                fsm_inst_cycle_n <= MEMFETCH2_S;
+
+            ----------------------------------------------------------------
+            -- Second Cycle to wait for memory to be read.
+            -- ABSOLUTE and INDEX operations.
+            when MEMFETCH2_S =>
+                fsm_inst_cycle_n <= EXECUTE_S;
+                
+            ----------------------------------------------------------------
+            -- Execute intruction
+            when EXECUTE_S =>
+
+                -- Find the next cycle state....
+                if ffopcode = oRWIO 
+                    or ffopcode = oRTI
+                then -- Need additional step.
+                    fsm_inst_cycle_n <= CLEANUP_S;
+
+                elsif ffopcode = oWAIT then
+                    if ffflag =  '0' -- Wait, Not Cancel
+                    then
+                        if ffiregop2 = 0  -- Wait, Not Timer
                         then -- Specific requirement for only WAIT
                             fsm_inst_cycle_n <= WAITS_S;
-
-                        elsif ffopcode /= oJMP 
-                            and ffopcode /= oBE 
-                            and ffopcode /= oBLT 
-                            and ffopcode /= oBGT 
-                            and ffopcode /= oJSR 
-                            and ffopcode /= oRTN 
-                            and ffopcode /= oRTI 
-                            and ffopcode /= oSWI
-                        then
-                            if ffmemop = ABSOLUTE or ffmemop = INDEX then
-                                fsm_inst_cycle_n <= DECODE_S;
-                            else
-                                fsm_inst_cycle_n <= INSTFETCH2_S;
-                            end if;
-                        else 
-                            fsm_inst_cycle_n <= ADDRESS_S;
-                        end if;
-                        
-                    when WAITS_S =>
-                        if waitAlarm = '1' 
-                            or waitCancel= '1'
-                        then
-                            fsm_inst_cycle_n <= ADDRESS_S;
-                            waitRun <= '0';
-                        else
-                            waitRun <= '1';
-                        end if;
-                    ----------------------------------------------------------------
-                    -- Update the program counter.
-                    -- All of these could be included in the Execute cycle and
-                    -- this state could be eliminated.
-                    when CLEANUP_S =>
-                        if opcode = oRTI and waitRun = '1' then
-                            fsm_inst_cycle_n <= WAITS_S;
                         else
                             fsm_inst_cycle_n <= ADDRESS_S;
                         end if;
-                    when others =>
-                end case;
-            -- end if;
+                    else
+                        fsm_inst_cycle_n <= ADDRESS_S;
+                    end if;
+                elsif ffopcode /= oJMP 
+                    and ffopcode /= oBE 
+                    and ffopcode /= oBLT 
+                    and ffopcode /= oBGT 
+                    and ffopcode /= oJSR 
+                    and ffopcode /= oRTN 
+                    and ffopcode /= oRTI 
+                    and ffopcode /= oSWI
+                then
+                    if ffmemop = ABSOLUTE or ffmemop = INDEX then
+                        fsm_inst_cycle_n <= DECODE_S;
+                    else
+                        fsm_inst_cycle_n <= INSTFETCH2_S;
+                    end if;
+                else 
+                    fsm_inst_cycle_n <= ADDRESS_S;
+                end if;
+                
+            when WAITS_S =>
+                if waitAlarm = '1' 
+                    or waitCancel= '1'
+                then
+                    fsm_inst_cycle_n <= ADDRESS_S;
+                    waitRun <= '0';
+                else
+                    waitRun <= '1';
+                end if;
+            ----------------------------------------------------------------
+            -- Update the program counter.
+            -- All of these could be included in the Execute cycle and
+            -- this state could be eliminated.
+            when CLEANUP_S =>
+                if opcode = oRTI and waitRun = '1' then
+                    fsm_inst_cycle_n <= WAITS_S;
+                else
+                    fsm_inst_cycle_n <= ADDRESS_S;
+                end if;
+            when others =>
+        end case;
     end process;
 
     io_proc : process (SYS_CLK) 
@@ -1043,7 +1049,6 @@ begin
                                     waitResCounter <= (others => '0');
                                     waitCount <= (others => '0');
                                     waitAlarm <= '0';
-                                    waitStart <= '1';
                                 end if;
                             else
                                 timerreg <= ffiregop1;
@@ -1063,17 +1068,19 @@ begin
             -- Process the wait loop.
             if waitRun = '1'
             then
-                if timerTime /= 0 then -- Infinite wait when Wait Time = 0
+                if waitTime /= 0 then -- Infinite wait when Wait Time = 0
                     waitResCounter <= waitResCounter + 1;
                     if waitResCounter >= waitResolution-1 then
                         waitCount <= waitCount + 1;
                         waitResCounter <= (others => '0');
-                        if waitCount >= waitTime then
+                        if waitCount >= waitTime-1 then
                             waitCount <= (others => '0');
                             waitAlarm <= '1';
                         end if;
                     end if;
                 end if;
+            else
+                waitAlarm <= '0';
             end if;
 
             -- Process the timer loop
@@ -1087,9 +1094,15 @@ begin
                         if timerCount >= timerTime then
                             timerCount <= (others => '0');
                             timerAlarm <= '1';
+                            timerRun <= '0';
                         end if;
                     end if;
                 end if;
+            else
+                -- if interruptRun = '1'
+                -- then
+                    timerAlarm <= '0';
+                -- end if;
             end if;
         end if;
     end process wait_p;
@@ -1153,14 +1166,22 @@ begin
                         fsm_interrupt_cycle_p <= SAVEENA_S;
                         interruptRun <= '1';
 
-                    elsif timerAlarm = '1' 
-                        and interruptMask(to_integer(unsigned(timerInt))) = '1' 
-                    then
-                        interruptNum <= to_integer(unsigned(timerInt));
-                        fsm_interrupt_cycle_p <= SAVEENA_S;
-                        interruptRun <= '1';
+                    -- elsif timerAlarm = '1' 
+                    --     and interruptMask(to_integer(unsigned(timerInt))) = '1' 
+                    -- then
+                    --     interruptNum <= to_integer(unsigned(timerInt));
+                    --     fsm_interrupt_cycle_p <= SAVEENA_S;
+                    --     interruptRun <= '1';
                     end if;
     
+                elsif (fsm_inst_cycle_p = EXECUTE_S
+                    or fsm_inst_cycle_p = WAITS_S)
+                    and (timerAlarm = '1'
+                    and interruptMask(to_integer(unsigned(timerInt))) = '1' )
+                then
+                    interruptNum <= to_integer(unsigned(timerInt));
+                    fsm_interrupt_cycle_p <= SAVEENA_S;
+                    interruptRun <= '1';
                 elsif fsm_inst_cycle_p = CLEANUP_S then
                     interruptMask <= MEM_DOUTB;
                 end if;

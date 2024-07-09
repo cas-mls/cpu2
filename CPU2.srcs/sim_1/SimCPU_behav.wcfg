@@ -11,15 +11,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="3,758.334 ns"></ZoomStartTime>
-      <ZoomEndTime time="3,807.935 ns"></ZoomEndTime>
-      <Cursor1Time time="3,785.000 ns"></Cursor1Time>
+      <ZoomStartTime time="19,905.833 ns"></ZoomStartTime>
+      <ZoomEndTime time="20,018.834 ns"></ZoomEndTime>
+      <Cursor1Time time="20,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="190"></NameColumnWidth>
-      <ValueColumnWidth column_width="78"></ValueColumnWidth>
+      <ValueColumnWidth column_width="73"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="29" />
+   <WVObjectSize size="27" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -47,17 +47,21 @@
       <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
       <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
    </wvobject>
-   <wvobject fp_name="/SimCPU/MEM_ENA" type="logic">
-      <obj_property name="ElementShortName">MEM_ENA</obj_property>
-      <obj_property name="ObjectShortName">MEM_ENA</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
-      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
-      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
-      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   <wvobject fp_name="group949" type="group">
+      <obj_property name="label">Mem A</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/SimCPU/MEM_ENA" type="logic">
+         <obj_property name="ElementShortName">MEM_ENA</obj_property>
+         <obj_property name="ObjectShortName">MEM_ENA</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
+         <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
+         <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject fp_name="group105" type="group">
       <obj_property name="label">Instruction</obj_property>
@@ -129,7 +133,6 @@
    <wvobject fp_name="group156" type="group">
       <obj_property name="label">IO</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/echoIO" type="array">
          <obj_property name="ElementShortName">echoIO[31:0]</obj_property>
          <obj_property name="ObjectShortName">echoIO[31:0]</obj_property>
@@ -162,7 +165,6 @@
    <wvobject fp_name="group162" type="group">
       <obj_property name="label">MemB</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/MEM_ENB" type="logic">
          <obj_property name="ElementShortName">MEM_ENB</obj_property>
          <obj_property name="ObjectShortName">MEM_ENB</obj_property>
@@ -183,6 +185,15 @@
          <obj_property name="ElementShortName">MEM_DOUTB[31:0]</obj_property>
          <obj_property name="ObjectShortName">MEM_DOUTB[31:0]</obj_property>
       </wvobject>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
+      <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
+      <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/METRICS.CycleCount" type="array">
+      <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
+      <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="group161" type="group">
       <obj_property name="label">Interrupt</obj_property>
@@ -218,30 +229,21 @@
          <obj_property name="ObjectShortName">interruptNum</obj_property>
       </wvobject>
    </wvobject>
-   <wvobject fp_name="/SimCPU/cpuCUT/regist" type="array">
-      <obj_property name="ElementShortName">regist[15:0][31:0]</obj_property>
-      <obj_property name="ObjectShortName">regist[15:0][31:0]</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/cpuCUT/METRICS.CycleCount" type="array">
-      <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
-      <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
-      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
-   </wvobject>
    <wvobject fp_name="group335" type="group">
       <obj_property name="label">Wait</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/waitReg" type="other">
          <obj_property name="ElementShortName">waitReg</obj_property>
          <obj_property name="ObjectShortName">waitReg</obj_property>
       </wvobject>
-      <wvobject fp_name="/SimCPU/cpuCUT/waitStart" type="logic">
-         <obj_property name="ElementShortName">waitStart</obj_property>
-         <obj_property name="ObjectShortName">waitStart</obj_property>
-      </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/waitRun" type="logic">
          <obj_property name="ElementShortName">waitRun</obj_property>
          <obj_property name="ObjectShortName">waitRun</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/waitAlarm" type="logic">
+         <obj_property name="ElementShortName">waitAlarm</obj_property>
+         <obj_property name="ObjectShortName">waitAlarm</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/waitCancel" type="logic">
          <obj_property name="ElementShortName">waitCancel</obj_property>
@@ -271,6 +273,10 @@
       <wvobject fp_name="/SimCPU/cpuCUT/timerRun" type="logic">
          <obj_property name="ElementShortName">timerRun</obj_property>
          <obj_property name="ObjectShortName">timerRun</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/timerAlarm" type="logic">
+         <obj_property name="ElementShortName">timerAlarm</obj_property>
+         <obj_property name="ObjectShortName">timerAlarm</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/timerReg" type="other">
          <obj_property name="ElementShortName">timerReg</obj_property>
