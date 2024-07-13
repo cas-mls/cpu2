@@ -105,6 +105,12 @@ architecture Behavioral of Computer is
     signal MEM_DINB     : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal MEM_DOUTB    : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
 
+    -- attribute keep : string;
+    -- attribute keep of ioAddr : signal is "TRUE";
+    -- attribute keep of IORdata : signal is "TRUE";
+    -- attribute keep of IOWdata : signal is "TRUE";
+    -- attribute keep of echoIO : signal is "TRUE";
+
 
 begin
 
@@ -164,11 +170,8 @@ begin
             IORdata <= (others => '0');
             interrupt(31 downto 1) <= (others => '0');
             IOStatus <= (others => '0');
-        end if;
-        if IORena = '1' then
-        end if;
-        if IOWena = '1' then
-            if ioAddr = X"03" then
+        else
+            if ioAddr = X"03"  and IOWena = '1'then
                 led <= IOWdata(3 downto 0);
             elsif ioaddr = X"01" and IORena = '1' then
                 IORdata <= echoIO;
@@ -178,6 +181,8 @@ begin
                 IOStatus <= X"00";
             elsif ioaddr = X"02" and IOWena = '1' then
                 IOStatus <= X"10";
+            elsif ioaddr = X"05" and IOWena = '1' then
+                interrupt(2) <= IOWdata(0);
             else
                 IOStatus <= X"00";
             end if;

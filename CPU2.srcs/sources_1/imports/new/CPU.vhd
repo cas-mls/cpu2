@@ -107,20 +107,34 @@ architecture Behavioral of CPU is
     signal waitCancel : std_logic := '0';
 
     signal timerAlarm : std_logic := '0';
+    signal timerRun : std_logic := '0';
     signal timerReg : integer range 0 to 15 := 0;
     signal timerTime : unsigned (31 downto 0) := (others => '0');
     signal timerCount : unsigned (31 downto 0) := (others => '0');
     signal timerInt : unsigned (4 downto 0) := "00000";
     signal timerResolution : unsigned (15 downto 0) := (others => '0');
     signal timerResCounter : unsigned (15 downto 0) := (others => '0');
-    signal timerRun : std_logic := '0';
     
-    -- attribute KEEP_HIERARCHY : string;
-    -- attribute KEEP_HIERARCHY of Reg_Proc : label is "TRUE";
+    -- Help with ILA debugging by flattening the Wires.
     attribute keep : string;
-    -- attribute keep of ProgCounter : signal is "TRUE";
+    attribute keep of ProgCounter : signal is "TRUE";
+    attribute keep of regist : signal is "TRUE";
+    attribute keep of fsm_inst_cycle_p : signal is "TRUE";
+
+    -- attribute keep of timerAlarm : signal is "TRUE";
+    -- attribute keep of timerRun : signal is "TRUE";
+    -- attribute keep of timerInt : signal is "TRUE";
+
+    -- attribute keep of waitRun : signal is "TRUE";
+    -- attribute keep of waitAlarm : signal is "TRUE";
+    -- attribute keep of waitCancel : signal is "TRUE";
+    -- -- attribute keep of fsm_inst_cycle_n : signal is "TRUE";
+
+    -- attribute keep of interruptNum : signal is "TRUE";
+    -- attribute keep of interruptMask : signal is "TRUE";
+    -- attribute keep of interruptRun : signal is "TRUE";
     
-    
+
 begin
 
     opcode <= MEM_DOUTA(31 downto 27);
@@ -172,8 +186,12 @@ begin
     begin
         if rising_edge  (SYS_CLK) then
             if (INTERRUPT = RESET) then
+                cycleCount <= (others => '0');
+                METRICS.cycleCount <= (others => '0');
                 fsm_inst_cycle_p <= RESET_STATE_S;
             else
+                cycleCount <= cycleCount + 1;
+                METRICS.cycleCount <= cycleCount;
                 if interruptRun = '1' then
                     fsm_inst_cycle_p <= ADDRESS_S;
                 else
@@ -187,6 +205,8 @@ begin
     instruction_Proc: process (
         fsm_inst_cycle_p, 
         opcode,
+        ffopcode,
+        ffflag,
         flag,
         memop, 
         waitAlarm,
@@ -196,14 +216,10 @@ begin
         )
     begin
     
-        cycleCount <= cycleCount + 1;
-        METRICS.cycleCount <= cycleCount;
         case fsm_inst_cycle_p is
             -- CPU RESET
             when RESET_STATE_S =>
                 fsm_inst_cycle_n <= ADDRESS_S;
-                cycleCount <= (others => '0');
-                METRICS.cycleCount <= (others => '0');
 
             ----------------------------------------------------------------
             -- This sets up the instruction address to read.
@@ -333,9 +349,8 @@ begin
                     or waitCancel= '1'
                 then
                     fsm_inst_cycle_n <= ADDRESS_S;
-                    waitRun <= '0';
                 else
-                    waitRun <= '1';
+                    fsm_inst_cycle_n <= WAITS_S;
                 end if;
             ----------------------------------------------------------------
             -- Update the program counter.
@@ -348,6 +363,7 @@ begin
                     fsm_inst_cycle_n <= ADDRESS_S;
                 end if;
             when others =>
+                fsm_inst_cycle_n <= ADDRESS_S;
         end case;
     end process;
 
@@ -392,6 +408,8 @@ begin
                                     IOW_DATA <= MEM_DOUTB;
                                 when others =>
                             end case;
+                        else
+                            IOR_ENA <= '1';
                         end if;
                     end if;
                 when CLEANUP_S =>
@@ -418,9 +436,12 @@ begin
                     MEM_ADDRB <= X"000";
                     MEM_DINB <= X"00000000";
                 when ADDRESS_S =>
-                    MEM_ENB <= '0';
-                    MEM_WEB <= "0";
-                    when DECODE_S     =>
+                    if interruptRun = '0'
+                    then
+                        MEM_ENB <= '0';
+                        MEM_WEB <= "0";
+                    end if;
+                when DECODE_S     =>
                     case memop is
                         when REGREG =>
                             case opcode is
@@ -515,9 +536,9 @@ begin
                             end case;
                         when others =>
                     end case;
-                when MEMFETCH1_S  =>
 
-                when MEMFETCH2_S  =>
+                    when MEMFETCH2_S  => -- XXX This only works on SIM hardware.  Comment out next line to work on SIM.
+                    when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
                     case ffmemop is
                         when REGREG =>
                             case ffopcode is
@@ -816,11 +837,9 @@ begin
                                 when oRWIO =>
                                     if ffflag = '0' then
                                         regist(ffiregop1) <= IOR_DATA;
-                                        regist(0) <= x"000000" & IO_STATUS;
-                                    else
-                                        regist(0) <= x"000000" & IO_STATUS;
                                     end if;
-                                when oPUSHPOP =>
+                                    regist(0) <= x"000000" & IO_STATUS;
+                                    when oPUSHPOP =>
                                     if ffflag = '0' then    -- Push
                                         regist(ffiregop1) <= std_logic_vector(to_unsigned(
                                                 to_integer(unsigned(ireg1value)) - 1,32));
@@ -1032,6 +1051,7 @@ begin
                             if ffiregop1 = waitReg then
                                 waitReg <= 0;
                                 waitCancel <= '1';
+                                waitRun <= '0';
                             elsif ffiregop1 = timerReg then
                                 timerReg  <= 0;
                                 timerAlarm <= '0';
@@ -1049,6 +1069,7 @@ begin
                                     waitResCounter <= (others => '0');
                                     waitCount <= (others => '0');
                                     waitAlarm <= '0';
+                                    waitRun <= '1';
                                 end if;
                             else
                                 timerreg <= ffiregop1;
@@ -1076,6 +1097,7 @@ begin
                         if waitCount >= waitTime-1 then
                             waitCount <= (others => '0');
                             waitAlarm <= '1';
+                            waitRun <= '0';
                         end if;
                     end if;
                 end if;
@@ -1165,13 +1187,6 @@ begin
                         interruptNum <= interBitNum;
                         fsm_interrupt_cycle_p <= SAVEENA_S;
                         interruptRun <= '1';
-
-                    -- elsif timerAlarm = '1' 
-                    --     and interruptMask(to_integer(unsigned(timerInt))) = '1' 
-                    -- then
-                    --     interruptNum <= to_integer(unsigned(timerInt));
-                    --     fsm_interrupt_cycle_p <= SAVEENA_S;
-                    --     interruptRun <= '1';
                     end if;
     
                 elsif (fsm_inst_cycle_p = EXECUTE_S
@@ -1182,7 +1197,9 @@ begin
                     interruptNum <= to_integer(unsigned(timerInt));
                     fsm_interrupt_cycle_p <= SAVEENA_S;
                     interruptRun <= '1';
-                elsif fsm_inst_cycle_p = CLEANUP_S then
+                elsif fsm_inst_cycle_p = CLEANUP_S 
+                    and ffopcode = oRTI
+                then
                     interruptMask <= MEM_DOUTB;
                 end if;
 
