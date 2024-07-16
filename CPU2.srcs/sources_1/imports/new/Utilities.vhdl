@@ -58,9 +58,15 @@ package Utilities is
         DONE_S          -- State 8
     );
 
+    -- Register Information
+    constant regOpSizeBits : integer := 4;
+    constant regOpMax  : integer := 2**regOpSizeBits-1;
+    type reg_type is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
+
+    -- Instruction Decode Types
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
-    subtype REGTYPE is  STD_LOGIC_VECTOR (3 downto 0);
+    subtype REGTYPE is  STD_LOGIC_VECTOR (regOpSizeBits-1 downto 0);
     subtype IMMTYPE is  STD_LOGIC_VECTOR (15 downto 0);
 
     -- Opcodes
@@ -99,11 +105,10 @@ package Utilities is
     constant OIBusy : integer := 0;
     constant OIError : integer := 1;
 
-    type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
-    
-
-    constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
-    constant NOINTERRUPT : STD_LOGIC_VECTOR (31 downto 0) := X"00000000";
+    -- Interrupt Constants
+    constant interruptNums : integer := 31;
+    constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
+    constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
     type METRICSTYPE is record
         CycleCount : unsigned(63 downto 0);

@@ -25,14 +25,14 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 - Arty-S7 Rev-E with AMD XC7S50-1CSGA324C FPGA
 
-  | Description  | Specification    |
-  | ------------ | ---------------- |
-  | Logic Slices | 8,150            |
-  | 6-Input LUT  | 32,200           |
-  | Flip-Flops   | 65,200           |
-  | Block RAM    | 337.5 KB         |
-  | DPS          | 120              |
-  | Clock        | 100 MHz / 12 MHz |
+  | Description  | Specification                  |
+  | ------------ | ------------------------------ |
+  | Logic Slices | 8,150                          |
+  | 6-Input LUT  | 32,200                         |
+  | Flip-Flops   | 65,200                         |
+  | Block RAM    | 337.5 KB                       |
+  | DPS          | 120                            |
+  | Clock        | 100 MHz / 12 MHz (Max 450 MHz) |
 
 
 * Connectivity and IO
