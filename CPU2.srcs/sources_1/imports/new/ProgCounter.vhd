@@ -96,6 +96,9 @@ architecture Behavioral of ProgCounter is
 begin
 
     opcode <= INSTRUCTION(31 downto 27);
+
+    -- Output Values
+    ProgramCounter <= ProgCounterLocal;
   
     procCounter_proc : process (SYS_CLK)
     begin
@@ -255,8 +258,6 @@ begin
                     ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
                 when others =>
             end case;
-
-            ProgramCounter <= ProgCounterLocal;
 
         end if;
     end process procCounter_proc;
