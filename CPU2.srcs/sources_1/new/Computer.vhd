@@ -18,9 +18,8 @@
 -- 
 ----------------------------------------------------------------------------------
 
-
 library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_1164.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -32,78 +31,78 @@ use IEEE.STD_LOGIC_1164.ALL;
 --use UNISIM.VComponents.all;
 
 entity Computer is
-    Port ( rst : in STD_LOGIC;
-           SYS_CLK : in STD_LOGIC;
-           led : out STD_LOGIC_VECTOR (3 downto 0)
---           rgb : out STD_LOGIC_VECTOR (5 downto 0)
-           );
+    port (
+        rst : in std_logic;
+        SYS_CLK : in std_logic;
+        led : out std_logic_vector (3 downto 0)
+        --           rgb : out STD_LOGIC_VECTOR (5 downto 0)
+    );
 end Computer;
 
 architecture Behavioral of Computer is
 
     component CPU
-    Port ( 
-        SYS_CLK     : IN STD_LOGIC;
-        IO_ADDR     : out STD_LOGIC_VECTOR (7 downto 0);
-        IOR_DATA    : in STD_LOGIC_VECTOR (31 downto 0);
-        IOW_DATA    : out STD_LOGIC_VECTOR (31 downto 0);
-        IOR_ENA     : out STD_LOGIC;
-        IOW_ENA     : out STD_LOGIC;
-        IO_STATUS   : in STD_LOGIC_VECTOR (7 downto 0);
-        INTERRUPT   : in STD_LOGIC_VECTOR (31 downto 0);
-        MEM_ENA     : out STD_LOGIC := '1';
-        MEM_WEA     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-        MEM_ADDRA   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-        MEM_DINA    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-        MEM_DOUTA   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-        MEM_ENB     : out STD_LOGIC := '1';
-        MEM_WEB     : out STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-        MEM_ADDRB   : out STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-        MEM_DINB    : out STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-        MEM_DOUTB   : in STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000"
+        port (
+            SYS_CLK : in std_logic;
+            IO_ADDR : out std_logic_vector (7 downto 0);
+            IOR_DATA : in std_logic_vector (31 downto 0);
+            IOW_DATA : out std_logic_vector (31 downto 0);
+            IOR_ENA : out std_logic;
+            IOW_ENA : out std_logic;
+            IO_STATUS : in std_logic_vector (7 downto 0);
+            INTERRUPT : in std_logic_vector (31 downto 0);
+            MEM_ENA : out std_logic := '1';
+            MEM_WEA : out std_logic_vector(0 downto 0) := "0";
+            MEM_ADDRA : out std_logic_vector(11 downto 0) := X"000";
+            MEM_DINA : out std_logic_vector(31 downto 0) := X"00000000";
+            MEM_DOUTA : in std_logic_vector(31 downto 0) := X"00000000";
+            MEM_ENB : out std_logic := '1';
+            MEM_WEB : out std_logic_vector(0 downto 0) := "0";
+            MEM_ADDRB : out std_logic_vector(11 downto 0) := X"000";
+            MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
+            MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000"
         );
     end component;
 
-    COMPONENT cpumemory
-    PORT (
-        clka : IN STD_LOGIC;
-        ena : IN STD_LOGIC;
-        wea : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-        addra : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-        dina : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-        douta : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-        clkb : IN STD_LOGIC;
-        enb : IN STD_LOGIC;
-        web : IN STD_LOGIC_VECTOR(0 DOWNTO 0);
-        addrb : IN STD_LOGIC_VECTOR(11 DOWNTO 0);
-        dinb : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-        doutb : OUT STD_LOGIC_VECTOR(31 DOWNTO 0)
-    );
-    END COMPONENT;
+    component cpumemory
+        port (
+            clka : in std_logic;
+            ena : in std_logic;
+            wea : in std_logic_vector(0 downto 0);
+            addra : in std_logic_vector(11 downto 0);
+            dina : in std_logic_vector(31 downto 0);
+            douta : out std_logic_vector(31 downto 0);
+            clkb : in std_logic;
+            enb : in std_logic;
+            web : in std_logic_vector(0 downto 0);
+            addrb : in std_logic_vector(11 downto 0);
+            dinb : in std_logic_vector(31 downto 0);
+            doutb : out std_logic_vector(31 downto 0)
+        );
+    end component;
 
+    signal ioAddr : std_logic_vector (7 downto 0) := (others => '0');
+    signal IORdata : std_logic_vector (31 downto 0) := (others => '0');
+    signal IOWdata : std_logic_vector (31 downto 0) := (others => '0');
+    signal interrupt : std_logic_vector (31 downto 0) := (others => '0');
+    signal IOWena : std_logic := '0';
+    signal IORena : std_logic := '0';
+    signal IOStatus : std_logic_vector (7 downto 0) := (others => '0');
 
-    signal ioAddr : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-    signal IORdata : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal IOWdata : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal interrupt : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-    signal IOWena : STD_LOGIC := '0';
-    signal IORena : STD_LOGIC := '0';
-    signal IOStatus : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-    
-    signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
+    signal echoIO : std_logic_vector (31 downto 0) := (others => '0');
 
     -- Memory Information
-    signal MEM_CLK      : STD_LOGIC                     := '1';
-    signal MEM_ENA      : STD_LOGIC                     := '1';
-    signal MEM_WEA      : STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
-    signal MEM_ADDRA    : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    signal MEM_DINA     : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal MEM_DOUTA    : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal MEM_ENB      : STD_LOGIC                     := '1';
-    signal MEM_WEB      : STD_LOGIC_VECTOR(0 DOWNTO 0)  := "0";
-    signal MEM_ADDRB    : STD_LOGIC_VECTOR(11 DOWNTO 0) := X"000";
-    signal MEM_DINB     : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
-    signal MEM_DOUTB    : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
+    signal MEM_CLK : std_logic := '1';
+    signal MEM_ENA : std_logic := '1';
+    signal MEM_WEA : std_logic_vector(0 downto 0) := "0";
+    signal MEM_ADDRA : std_logic_vector(11 downto 0) := X"000";
+    signal MEM_DINA : std_logic_vector(31 downto 0) := X"00000000";
+    signal MEM_DOUTA : std_logic_vector(31 downto 0) := X"00000000";
+    signal MEM_ENB : std_logic := '1';
+    signal MEM_WEB : std_logic_vector(0 downto 0) := "0";
+    signal MEM_ADDRB : std_logic_vector(11 downto 0) := X"000";
+    signal MEM_DINB : std_logic_vector(31 downto 0) := X"00000000";
+    signal MEM_DOUTB : std_logic_vector(31 downto 0) := X"00000000";
 
     -- attribute keep : string;
     -- attribute keep of ioAddr : signal is "TRUE";
@@ -111,25 +110,23 @@ architecture Behavioral of Computer is
     -- attribute keep of IOWdata : signal is "TRUE";
     -- attribute keep of echoIO : signal is "TRUE";
 
-
 begin
 
     memory : cpumemory
-    PORT MAP (
-        clka    => MEM_CLK,
-        ena     => MEM_ENA,
-        wea     => MEM_WEA,
-        addra   => MEM_ADDRA,
-        dina    => MEM_DINA,
-        douta   => MEM_DOUTA,
-        clkb    => MEM_CLK,
-        enb     => MEM_ENB,
-        web     => MEM_WEB,
-        addrb   => MEM_ADDRB,
-        dinb    => MEM_DINB,
-        doutb   => MEM_DOUTB
+    port map(
+        clka => MEM_CLK,
+        ena => MEM_ENA,
+        wea => MEM_WEA,
+        addra => MEM_ADDRA,
+        dina => MEM_DINA,
+        douta => MEM_DOUTA,
+        clkb => MEM_CLK,
+        enb => MEM_ENB,
+        web => MEM_WEB,
+        addrb => MEM_ADDRB,
+        dinb => MEM_DINB,
+        doutb => MEM_DOUTB
     );
-
 
     cpu1 : CPU
     port map
@@ -147,49 +144,48 @@ begin
         -- MEM_ADDRA   => RUN_ADDRA,
         -- MEM_DINA    => RUN_DINA ,
         -- MEM_DOUTA   => RUN_DOUTA,
-        MEM_ENA     => MEM_ENA  ,
-        MEM_WEA     => MEM_WEA  ,
-        MEM_ADDRA   => MEM_ADDRA,
-        MEM_DINA    => MEM_DINA ,
-        MEM_DOUTA   => MEM_DOUTA,
-        MEM_ENB     => MEM_ENB  ,
-        MEM_WEB     => MEM_WEB  ,
-        MEM_ADDRB   => MEM_ADDRB,
-        MEM_DINB    => MEM_DINB ,
-        MEM_DOUTB   => MEM_DOUTB    
-        );
+        MEM_ENA => MEM_ENA,
+        MEM_WEA => MEM_WEA,
+        MEM_ADDRA => MEM_ADDRA,
+        MEM_DINA => MEM_DINA,
+        MEM_DOUTA => MEM_DOUTA,
+        MEM_ENB => MEM_ENB,
+        MEM_WEB => MEM_WEB,
+        MEM_ADDRB => MEM_ADDRB,
+        MEM_DINB => MEM_DINB,
+        MEM_DOUTB => MEM_DOUTB
+    );
 
     interrupt(0) <= rst;
     MEM_CLK <= SYS_CLK;
 
     Comp : process (SYS_CLK)
     begin
-    
-    if rising_edge  (SYS_CLK) then
-        if rst = '1' then
-            IORdata <= (others => '0');
-            interrupt(31 downto 1) <= (others => '0');
-            IOStatus <= (others => '0');
-        else
-            if ioAddr = X"03"  and IOWena = '1'then
-                led <= IOWdata(3 downto 0);
-            elsif ioaddr = X"01" and IORena = '1' then
-                IORdata <= echoIO;
-                IOStatus <= X"00";
-            elsif ioaddr = X"01" and IOWena = '1' then
-                echoIO <= IOWdata;
-                IOStatus <= X"00";
-            elsif ioaddr = X"02" and IOWena = '1' then
-                IOStatus <= X"10";
-            elsif ioaddr = X"05" and IOWena = '1' then
-                interrupt(2) <= IOWdata(0);
+
+        if rising_edge (SYS_CLK) then
+            if rst = '1' then
+                IORdata <= (others => '0');
+                interrupt(31 downto 1) <= (others => '0');
+                IOStatus <= (others => '0');
             else
-                IOStatus <= X"00";
+                if ioAddr = X"03" and IOWena = '1'then
+                    led <= IOWdata(3 downto 0);
+                elsif ioaddr = X"01" and IORena = '1' then
+                    IORdata <= echoIO;
+                    IOStatus <= X"00";
+                elsif ioaddr = X"01" and IOWena = '1' then
+                    echoIO <= IOWdata;
+                    IOStatus <= X"00";
+                elsif ioaddr = X"02" and IOWena = '1' then
+                    IOStatus <= X"10";
+                elsif ioaddr = X"05" and IOWena = '1' then
+                    interrupt(2) <= IOWdata(0);
+                else
+                    IOStatus <= X"00";
+                end if;
             end if;
         end if;
-    end if;
-    
-    end process;
 
+    end process;
 
 end Behavioral;
