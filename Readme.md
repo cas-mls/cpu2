@@ -25,14 +25,14 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 - Arty-S7 Rev-E with AMD XC7S50-1CSGA324C FPGA
 
-  | Description  | Specification    |
-  | ------------ | ---------------- |
-  | Logic Slices | 8,150            |
-  | 6-Input LUT  | 32,200           |
-  | Flip-Flops   | 65,200           |
-  | Block RAM    | 337.5 KB         |
-  | DPS          | 120              |
-  | Clock        | 100 MHz / 12 MHz |
+  | Description  | Specification                  |
+  | ------------ | ------------------------------ |
+  | Logic Slices | 8,150                          |
+  | 6-Input LUT  | 32,200                         |
+  | Flip-Flops   | 65,200                         |
+  | Block RAM    | 337.5 KB                       |
+  | DPS          | 120                            |
+  | Clock        | 100 MHz / 12 MHz (Max 450 MHz) |
 
 
 * Connectivity and IO
@@ -156,13 +156,74 @@ The Second Register is the source or index.  For Operations (Add, Subtract, Add,
 
 ### Immediate
 
-The immediate part of the instruction is limited to 16 bits. It can only load the lower have of the word.  Setting the flag will cause the load to work on the higher bits.  The Immediate is currently a unsigned integer.
+The immediate part of the instruction is limited to 16 bits. It can only load the lower half of the word.  Setting the flag will cause the load to work on the higher bits.  The Immediate is currently an unsigned integer.
 
 ## Architecture / Design
 
-The operation cycles in the order: ADDRESS, INSTFETCH1, INSTFETCH2, DECODE, MEMFETCH1, MEMFETCH2, EXECUTE, and CLEANUP.  Some instructions do not use all of the cycles.  Example: the MEMFETCH1only is used during Read / Write IO operations, other operations completely skipped this cycle.  Another exception MEMFETCH1 and MEMFETCH2 cycle are skipped when the operation is not a Memory read (Access / Memory operations 2 and 3).
+The CPU  contains the Finite State Model for the instruction cycle.  All of the processes are located in other modules.  The Program Counter module includes the process to update the program counter and instruction address.  The Memory Access module includes updating the instruction's memory argument (data).  The Arithmetic Logic Unit (ALU) updates the register with the instruction operation. The IO Processing performs operations which sets the address, read/write enable, and writes data to the computer.  The Wait / Timer module the wait pauses the instructions from executing and sleep will allow the processor to continue, and call an interrupt when the time expires.  The Interrupt process will start when an interrupt happens then it stores the program counter and mask to the stack and calls the interrupt.
+
+The Memory IP is maintained external to the CPU (currently inside the test Computer Module).   Nothing prevents Port A and Port B from being different Memory Module.
+
+### CPU
+
+The operation cycles are in the following order: ADDRESS, INSTFETCH1, INSTFETCH2, DECODE, MEMFETCH1, MEMFETCH2, EXECUTE, and CLEANUP.  Some instructions do not use all of the cycles.  Example: the MEMFETCH1only is used during Read / Write IO operations, other operations completely skipped this cycle.  Another exception MEMFETCH1 and MEMFETCH2 cycles are skipped when the operation is not a Memory read (Access / Memory operations 2 and 3).
 
 During each cycle, the Access (Memory) value is selected (Case statement) and then the Opcode is selected (Case).  This is opposite to the normal method of CPU operation (Opcode first, Memory second).
+
+#### Wire Assignments (outputs)
+
+| Signal    | Description                                                  |
+| --------- | ------------------------------------------------------------ |
+| IO_ADDR   | Address of the IO peripheral.                                |
+| IOW_DATA  | Data to be written to the peripheral.                        |
+| IOW_ENA   | Flag indicating the transfer of data from CPU to peripheral. |
+| IOR_ENA   | Flag indicating the data needs to be transferred from peripheral to CPU. |
+| MEM_ENA   | Enable at Address and disable during the Decode for branches. |
+| MEM_WEA   | Always 0 (Read Only)                                         |
+| MEM_ADDRA | The address to Read or Write memory.                         |
+| MEM_ENB   | The Instruction Memory enabled.                              |
+| MEM_WEB   | The Instruction Memory Read/Write.                           |
+| MEM_ADDRB | The Instruction address to Read or Write memory.             |
+| MEM_DINB  | The Instruction input data.                                  |
+
+#### Used Wires (inputs):
+
+| Signal    | Description                               |
+| --------- | ----------------------------------------- |
+| IOR_DATA  | Data from the peripheral device.          |
+| IO_STATUS | The IO status from the peripheral device. |
+| INTERRUPT | The Interrupt vector                      |
+| MEM_DINB  | Instruction operation.                    |
+| MEM_DINB  | The Instruction input data.               |
+
+#### Internal Wires:
+
+| Signal                              | Description                                                  |
+| ----------------------------------- | ------------------------------------------------------------ |
+| Program Counter                     | Program counter (address) of the current executed statement. |
+| fsm_inst_cycle_p / fsm_inst_cycle_n | Instruction finite state model (See below)                   |
+| flag/ffflag                         | Multiple use flag (e.g., negative logic)                     |
+| opcode/ffopcode                     | Instruction operation                                        |
+| memop/ffmemop                       | Memory access operation.                                     |
+| regop1/iregop1/ffiregop1            | Instruction identified first register.                       |
+| ireg1value                          | Value of the Register pointed to by instruction.             |
+| regop2/iregop2/ffiregop2            | Instruction identified second register.                      |
+| ireg2value                          | Value of the Register pointed to by instruction.             |
+| immop/ffimmop                       | Immediate value from the instruction.                        |
+| cpuRegs                             | The fast CPU registers.                                      |
+| fsm_interrupt_cycle_p               | Interrupt finite state model                                 |
+| interruptRun                        | Flag indicating that the interrupt is running.               |
+| interruptNum                        | Interrupt number being processed (1-31)                      |
+| interruptMask                       | The Interrupt enable mask (1 is enabled).                    |
+| interruptSpNum                      | The stack pointer register.                                  |
+| interruptSpAddrValue                | The value of the stack pointer at the starting of the interrupt. |
+| waitRun                             | This is active when it is in a wait state.                   |
+| waitAlarm                           | The alarm happens when the wait timer is completed.          |
+| waitCancel                          | This cancels the wait state.                                 |
+| timerAlarm                          | This alarm happens when the timer is completed.              |
+| timerInt                            | The interrupt number is to be processed when the timer alarm goes off. |
+
+#### Instruction State Diagram
 
 | Cycle      | Description                                                  |
 | ---------- | ------------------------------------------------------------ |
@@ -174,6 +235,370 @@ During each cycle, the Access (Memory) value is selected (Case statement) and th
 | MEMFETCH2  | Wait for Read for Access (Memory) types 2 and 3.             |
 | EXECUTE    | Perform the operations.                                      |
 | CLEANUP    | Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state to reset the enable flag. |
+
+
+
+
+```mermaid
+stateDiagram
+    [*] --> ADDRESS_S : Reset
+    ADDRESS_S --> INSTFETCH1_S
+    INSTFETCH1_S --> INSTFETCH2_S
+    INSTFETCH2_S --> DECODE_S
+    DECODE_S --> MEMFETCH1_S : addr modes 2 & 3
+    MEMFETCH1_S --> MEMFETCH2_S
+    MEMFETCH2_S --> EXECUTE_S
+    DECODE_S --> EXECUTE_S : addr modes 0 & 1
+    EXECUTE_S --> ADDRESS_S : jumps & branches
+    EXECUTE_S --> CLEANUP_S : rio & wio
+    EXECUTE_S --> DECODE_S : addr modes 2 & 3
+    EXECUTE_S --> INSTFETCH2_S : addr modes 0 & 1
+    CLEANUP_S --> ADDRESS_S
+    
+```
+
+------
+### Program Counter
+
+This handles the program counter (PC) and memory access for obtaining the instruction.  This sets the address of the next instruction (Port A memory access).   This is the fetch.
+
+#### Instructions
+* oJMP - Unconditional Jump
+* oJSR - Jump and store PC (Jump to Subroutine)
+* oRTN - Return from JSR (Return from Subroutine)
+* oRTI - Return from Interrupt
+* oBE - Branch Equal, Zero, Not Equal, or Not Zero
+* oBLT - Branch Less Than, Negative, Greater than  and Equal, Not Negative
+* oBGT - Branch Greater Than, Positive, Less than  and Equal, Not Positive
+
+#### Wire Assignments (outputs)
+
+| Signal          | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| MEM_ADDRA       | The address to Read or Write memory.                         |
+| MEM_ENA         | Enable at Address and disable during the Decode for branches. |
+| MEM_WEA         | Always 0 (Read Only)                                         |
+| Program Counter | Program counter (address) of the current executed statement. |
+
+Note:  Actually setting MEM_DOUTA (writting memory) is not part of this process.
+Note: The Program Counter is a Combinational output of the internal ProgCounterLocal.
+
+#### Used Wires (inputs):
+
+| Signal                | Description                                                  |
+| --------------------- | ------------------------------------------------------------ |
+| INSTRUCTION           | Current Fetched Instruction                                  |
+| cpuRegs               | CPU Fast Registers                                           |
+| fsm_inst_cycle_p      | Process States:                                              |
+|                       | RESET_STATE_S  - Reset the CPU.                              |
+|                       | ADDRESS_S    - Setting the address from the program counter.  This sets the clears the memory enable. |
+|                       | DECODE_S     - Instruction Decode and identify operands.  Sets up the Memory addresses and write data. |
+|                       | EXECUTE_S    - Execute the instruction.  To process interrupts, store registers/data. |
+| fsm_interrupt_cycle_p | Process States:                                              |
+|                       | JUMP_S      - Changes the program counter to address from the interrupt vector. |
+
+#### Internal Wires:
+
+| Signal           | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| opcode/ffopcode  | Instruction operation                                        |
+| ffflag           | Multiple use flag to modify the instruction operation (e.g., negative logic) |
+| ffmemop          | Memory access operation (Reg/Reg, Immediate, absolute and indexed). |
+| ffiregop1        | Instruction identified first register.                       |
+| ffiregop2        | Instruction identified second register.                      |
+| ireg1value       | Register value of the first instruction register.            |
+| ireg2value       | Register value of the second instruction register.           |
+| ffimmop          | Immediate value from the instruction.                        |
+| ProgCounterLocal | Local Program Counter used for calculations.                 |
+
+Note: During the Decode state, the MEM_DOUTA is separated into opcode, flag, memop, regop1, regop2, and immop combinational wires.  The ff* are clocked flip-flop registers that store the values to be used in other states.
+
+------
+### Memory Access
+
+This handles the memory access for the operand, stack, and etc. memory.  This used the Port B memory access.
+
+#### Instructions
+
+ * oSTR - Store memory to register
+ * oRWIO - Read and store memory.
+
+#### Wire Assignments (outputs)
+
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| MEM_ENB           | The Instruction Memory enabled. |
+| MEM_WEB           | The Instruction Memory Read/Write. |
+| MEM_ADDRB         | The Instruction address to Read or Write memory. |
+| MEM_DINB          | The Instruction input data. |
+
+Note:   Actually setting MEM_DOUTB (writting memory) is not part of this process.
+            But setting the address to write memory is being set.
+            This does not used 3-state addresses, could make use of it in the future.
+
+
+#### Used Wires (Inputs)
+
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| INSTRUCTION       | Instruction operation|
+| cpuRegs           | The fast CPU registers.|
+| fsm_inst_cycle_p| Process States: |
+| | RESET_STATE_S - Reset the CPU. |
+| | ADDRESS_S - Setting the address from the program counter.  This sets clears the memory enable. |
+| | DECODE_S - Instruction Decode and identify operands.  Sets up the Memory addresses and writes data. |
+| | MEMFETCH1_S - Waits to read (MEM_DOUTB) because of the memory legacy and latches. This is  use to pop interrupt PC and mask. |
+| | MEMFETCH2_S - Waits to read (MEM_DOUTB) because of the memory legacy and latches |
+| | EXECUTE_S - Execute the instruction. To process interrupts, and store registers/data. |
+| | CLEANUP_S - Clean up data after execute state. |
+| fsm_interrupt_cycle_p|Process States:|
+| |SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.|
+| |DISABLEINT_S (State 3)  - Disable all Interrupts.|
+| |JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.|
+| |JMPFETCH2_S (State 6)   - Memory Read Latency|
+| interruptRun           | Flag indicating that the interrupt is running.|
+| interruptNum           | Interrupt number being processed (1-31)|
+| interruptMask          | The Interrupt enable mask (1 is enabled).|
+| interruptSpAddrValue   | The value of the stack pointer at the starting of the interrupt.|
+| ProgramCounter         | Program counter (address) of the current executed statement.|
+
+#### Internal Wires:
+
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+|  flag/ffflag             | Multiple use flag (e.g., negative logic)|
+|  opcode/ffopcode         | Instruction operation|
+|  memop/ffmemop           | Memory access operation.|
+|  regop1/iregop1/ffiregop1| Instruction identified first register.|
+|  ireg1value              | Value of the Register pointed to by instruction.|
+|  regop2/iregop2/ffiregop2| Instruction identified second register.|
+|  ireg2value              | Value of the Register pointed to by instruction.|
+|  immop/ffimmop           | Immediate value from the instruction.|
+
+------
+
+### Arithmetic Logic Unit (ALU)
+
+This handles the updating and operating on the register and is also known as the Arithmetic Logic Unit (ALU).
+
+#### Instructions
+
+ * oLD - Move Register contents, load memory to register
+ * oRTN - Return from JSR (Return from Subroutine)
+ * oRTI - Return from InterruptoRTN
+ * oADD - Add registers, immediate, or memory 
+ * oSUB - Subtract registers, immediate, or memory 
+ * oAND - And or Nand registers, immediate, or memory
+ * oOR - Or or Nor registers, immediate, or memory
+ * oXOR - Xor or Xnor registers, immediate, or memory
+ * oSHL - Shift left registers, immediate, or memory
+ * oSHR - Shift right registers, immediate, or memory
+ * oJSR - Jump and store PC (Jump to Subroutine)
+ * oRWIO - Load and write to IO.
+ * oPUSHPOP - Push or Pop from memory
+
+#### Wire Assignments (outputs)
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| cpuRegs         | The fast CPU registers.
+
+#### Used Wires (Inputs)
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+|INSTRUCTION     | Instruction operation
+|MEM_ARG         | The current memory argument from decode.
+|fsm_inst_cycle_p | Process States:
+| |       RESET_STATE_S           - Reset the CPU.
+| |       EXECUTE_S               - Execute the instruction.  To process interrupts, store registers/data.
+|  |      CLEANUP_S               - Clean up data after execute.
+|fsm_interrupt_cycle_p | Process States:
+|  |      SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.
+|  |      JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.
+|interruptSPNum
+|IOR_DATA           | Data from the peripheral device.
+|IO_STATUS          | The IO status from the peripheral device.
+|ireg1value         | Value of the Register pointed to by instruction.
+|ffiregop2          | Instruction identified second register.
+|ireg2value         | Value of the Register pointed to by instruction.
+|interruptSpAddrValue    
+
+#### Internal Wires:
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| ffopcode          | Instruction operation
+| ffflag            | Multiple use flag (e.g., negative logic)
+| ffmemop           | Memory access operation.
+| ffiregop1         | Instruction identified first register.
+| ffiregop2         | Instruction identified second register.
+| ffimmop           | Immediate value from the instruction.
+
+----
+
+### IO Processing
+
+ This handles the address, data, and statuses for IO.
+
+#### Instructions
+
+ * oRWIO - Interface with the IO signals.
+
+#### Wire Assignments (outputs)
+
+| Signal   | Description                                                  |
+| -------- | ------------------------------------------------------------ |
+| IO_ADDR  | Address of the IO peripheral.                                |
+| IOW_DATA | Data to be written to the peripheral.                        |
+| IOW_ENA  | Flag indicating the transfer of data from CPU to peripheral. |
+| IOR_ENA  | Flag indicating the data needs to be transferred from peripheral to CPU. |
+
+Note:  Interrupt driven peripheral should use the Interrupts Processing (No special purpose IO interrupts).
+Note:  Reading the IO (IOR_DATA) is not performed in this process. it is used by other processes.
+
+#### Used Wires (Inputs)
+
+| Signal           | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| INSTRUCTION      | Instruction operation                                        |
+| MEM_ARG          | The current memory argument from decode.                     |
+| fsm_inst_cycle_p | Process States:                                              |
+|                  | RESET_STATE_S           - Reset the CPU.                     |
+|                  | DECODE_S                    - Instruction Decode and identify operands. |
+|                  | EXECUTE_S               - Execute the instruction.  To process interrupts, store registers/data. |
+|                  | CLEANUP_S               - Clean up data after execute.       |
+| cpuRegs          | The fast CPU registers.                                      |
+
+#### Internal Wires:
+
+| Signal                   | Description                                      |
+| ------------------------ | ------------------------------------------------ |
+| flag/ffflag              | Multiple use flag (e.g., negative logic)         |
+| opcode/ffopcode          | Instruction operation                            |
+| memop/ffmemop            | Memory access operation.                         |
+| regop1/iregop1/ffiregop1 | Instruction identified first register.           |
+| ireg1value               | Value of the Register pointed to by instruction. |
+| regop2/iregop2/ffiregop2 | Instruction identified second register.          |
+| ireg2value               | Value of the Register pointed to by instruction. |
+| immop/ffimmop            | Immediate value from the instruction.            |
+
+### Wait / Timer
+
+#### Instructions
+
+ * oWAIT - Wait, Timer or Cancel.
+
+This processes the wait instruction which pauses execution and sleep which continues the execution, but when the alarm happens it will call a interrupt.  The wait and sleep timers count the clock.
+
+#### Wire Assignments (outputs)
+
+| Signal     | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
+| waitAlarm  | The alarm happens when the wait timer is completed.          |
+| waitRun    | This is active when it is in a wait state.                   |
+| waitCancel | This cancels the wait state.                                 |
+| timerAlarm | This alarm happens when the timer is completed.              |
+| timerInt   | The interrupt number is to be processed when the timer alarm goes off. |
+
+Note:  Interrupt driven peripheral should use the Interrupts Processing (No special purpose IO interrupts).
+Note:  Reading the IO (IOR_DATA) is not performed in this process. it is used by other processes.
+
+#### Used Wires (Inputs)
+
+| Signal           | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| INSTRUCTION      | Instruction operation                                        |
+| fsm_inst_cycle_p | Process States:                                              |
+|                  | RESET_STATE_S           - Reset the CPU.                     |
+|                  | DECODE_S                    - Instruction Decode and identify operands. |
+|                  | EXECUTE_S               - Execute the instruction.  To process interrupts, store registers/data. |
+| cpuRegs          | The fast CPU registers.                                      |
+
+#### Internal Wires:
+
+| Signal                   | Description                                              |
+| ------------------------ | -------------------------------------------------------- |
+| flag/ffflag              | Multiple use flag (e.g., negative logic)                 |
+| opcode/ffopcode          | Instruction operation                                    |
+| memop/ffmemop            | Memory access operation.                                 |
+| regop1/iregop1/ffiregop1 | Instruction identified first register.                   |
+| ireg1value               | Value of the Register pointed to by instruction.         |
+| regop2/iregop2/ffiregop2 | Instruction identified second register.                  |
+| ireg2value               | Value of the Register pointed to by instruction.         |
+| immop/ffimmop            | Immediate value from the instruction.                    |
+| waitReg                  | This is the wait register.                               |
+| waitTime                 | This is the wait timer.                                  |
+| waitCount                | This is the counter for the timer.                       |
+| waitResolution           | This is the resolution of the wait timer.                |
+| waitResCounter           | This counter will count the number of resolution values. |
+| waitRunLocal             | This is the local value of the wait run.                 |
+| waitCancelLocal          | This is the local value of the cancel.                   |
+| timerRun                 | This is active when the timer is running.                |
+| timerReg                 | This is the timer register number.                       |
+| timerTime                | This is the wait timer.                                  |
+| timerCount               | This is the counter for the timer.                       |
+| timerResolution          | This is the resolution of the wait timer.                |
+| timerResCounter          | This counter will count the number of resolution values. |
+
+-----
+### Interrupts
+This handles the interrupt put the Mask and program counter
+             on the stack and calls the interrupt handler.
+            The maintains it own finite state machine (FSM).
+#### Wire Assignments (outputs)
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+|fsm_interrupt_cycle_p |
+|  |  INTRWAIT_S (State 0)    - Wait for Interrupt
+|  |  CYCLEWAIT_S (State 1)   - Wait for Instruction Cycle to complete.
+|  |  SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.
+|  |  DISABLEINT_S (State 3)  - Disable all Interrupts.
+|  |  JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.
+|  |  JMPFETCH1_S (State 5)   - Memory Read Latency 
+|  |  JMPFETCH2_S (State 6)   - Memory Read Latency 
+|  |  JUMP_S (State 7)        - Start the Instruction Cycle with Interrupt Handler.
+|  |  DONE_S (State 8)        - Complete the Interrupt processing.
+|interruptRun            | Flag indicating that the interrupt is running.
+|interruptNum            | Interrupt number being processed (1-31)
+|interruptMask           | The Interrupt enable mask (1 is enabled).
+|interruptSpNum          | The stack pointer register.
+|interruptSpAddrValue    | The value of the stack pointer at the starting of the interrupt.
+
+Note:   Limitations 1) The interrupt is read when instruction in execute state.
+
+#### Used Wires (Inputs)
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| INSTRUCTION         | Current Fetched Instruction
+| cpuRegs             | CPU Registers
+| fsm_inst_cycle_p | Process States:
+|  |       RESET_STATE_S   - Reset the CPU.
+|  |       DECODE_S        - Instruction Decode and identify operands.
+|  |       EXECUTE_S       - Execute the instruction.
+|  |       CLEANUP_S       - Clean up data after execute.
+| MEM_ARG             | The current memory argument from decode.
+| INTERRUPT           | The Interrupt vector
+| timerAlarm          | Completion of the timer alarm.
+| timerInt            | The interrupt number (1-31)
+#### Internal Wires:
+| Signal            | Description                                                  |
+| ----------------- | ------------------------------------------------------------ |
+| opcode/ffopcode         | Instruction operation
+| ffflag                  | Multiple use flag (e.g., negative logic)
+| memop/ffmemop           | Memory access operation.
+| ffiregop1               | Instruction identified first register.
+| ireg1value              | Value of the Register pointed to by instruction.
+| ireg2value              | Value of the Register pointed to by instruction.
+| ffimmop                 | Immediate value from the instruction.
+| fsm_interrupt_cycle_p_local
+|                         | Local value of the current state (set and used).
+| fsm_interrupt_cycle_n   | Next interrupt state.
+| interBitNum             | Interrupt bit number (interrupt number)
+| interruptMaskLocal      | Local value of the Mask (set and used).
+| interruptSpNumLocal     | Local value of the interrupt stack register number (set and used).
+
+#### Interrupt State Diagram
+
+| Cycle      | Description                                                  |
+| ---------- | ------------------------------------------------------------ |
 |            | Interrupt Processing                                         |
 | SAVEENA    | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1         |
 | DISABLEINT | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
@@ -182,33 +607,23 @@ During each cycle, the Access (Memory) value is selected (Case statement) and th
 | JMPFETCH2  | Wait                                                         |
 | JUMP       | DoutB → PC                                                   |
 
-
-
-
 ```mermaid
 stateDiagram
-    [*] --> ADDRESS
-    ADDRESS --> INSTFETCH1
-    INSTFETCH1 --> INSTFETCH2
-    INSTFETCH2 --> DECODE
-    DECODE --> MEMFETCH1 : addr modes 2 & 3
-    MEMFETCH1 --> MEMFETCH2
-    MEMFETCH2 --> EXECUTE
-    DECODE --> EXECUTE : addr modes 0 & 1
-    EXECUTE --> ADDRESS : jumps & branches
-    EXECUTE --> CLEANUP : rio & wio
-    EXECUTE --> DECODE : addr modes 2 & 3
-    EXECUTE --> INSTFETCH2 : addr modes 0 & 1
-    EXECUTE --> SAVEENA : interrupt
-    SAVEENA --> DISABLEINT
-    DISABLEINT --> JMPADDR
-    JMPADDR --> JMPFETCH1
-    JMPFETCH1 --> JMPFETCH2
-    JMPFETCH2 --> JUMP
-    JUMP --> ADDRESS
-    CLEANUP --> ADDRESS
+
+    [*] --> INTRWAIT_S 
+    INTRWAIT_S --> INTRWAIT_S
+    INTRWAIT_S --> CYCLEWAIT_S : interrupt, SWI
+    CYCLEWAIT_S --> CYCLEWAIT_S : Wait for Execute State
+    CYCLEWAIT_S --> SAVEENA_S : Execute State
+    SAVEENA_S --> DISABLEINT_S
+    DISABLEINT_S --> JMPADDR_S
+    JMPADDR_S --> JMPFETCH1_S
+    JMPFETCH1_S --> JMPFETCH2_S
+    JMPFETCH2_S --> JUMP_S
+    JUMP_S --> [*]
     
 ```
+---------------------------------------------------------------------------
 
 
 ## Instructions
@@ -226,9 +641,9 @@ stateDiagram
 | `bg`<br />`ble` (not flag)[^6]<br />`bp` (R2=0)[^7]          | `10000` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                                   | NA                                                        |
 | `push`[^1]                                                   | `10010` | 0                 | $R2 → mem(R1)\\R1-1 → R1$                                    | $imm → mem(R1)\\R1-1 → R1$                                   | NA[^8]                                            | NA[^8]                                                    |
 | `pop`[^1]                                                    | `10010` | 1                 | $R1+1 → R1\\mem(R1) → R2$                                    | NA                                                           | NA[^8]                                            | NA[^8]                                                    |
-| `wait`[^13]                                                  | `10011` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                                   |                                                           |
-| `timer`[^14]                                                 | `10011` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                                   |                                                           |
-| cancel                                                       | 10011   | 1                 | $if (R1 is Wait Register) then\\'0' → waitFlag\\if (R1 is Timer Register) then\\'0' → timerFlag$ |                                                              |                                                   |                                                           |
+| `wait`[^13]                                                  | `10101` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                                   |                                                           |
+| `timer`[^14]                                                 | `10101` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                                   |                                                           |
+| cancel                                                       | 10101   | 1                 | $if (R1 is Wait Register) then\\'0' → waitFlag\\if (R1 is Timer Register) then\\'0' → timerFlag$ |                                                              |                                                   |                                                           |
 | `rio` (Read IO)                                              | `10110` | 0                 | $R2 → IOAddr,\\IOData →  R1\\Status → R0$[^9]                | $imm → IOAddr\\IOData → R1\\Status → R0$[^9]                 | $R2 → IOAddr\\IOData → mem(imm)\\Status → R0$[^9] | ~~$R1 → IOAddr\\IOData → mem(r2+imm)\\Status → R0$~~[^10] |
 | `wio` (Write IO)                                             | `10110` | 1                 | $R2 → IOAddr\\R1 → IOData\\ Status → R0$[^9]                 | $imm → IOAddr\\R1 → IOData\\Status → R0$[^9]                 | $R2 → IOAddr\\mem(imm) → IOData\\Status → R0$[^9] | ~~$R1 → IOAddr\\mem(r2+imm) → IOData\\Status → R0$~~[^10] |
 | `rti` (Return from Interrupt)[^11]                           | `11010` | NA                | NA                                                           | NA                                                           | NA                                                | NA                                                        |
@@ -557,7 +972,7 @@ Interrupt Vector:
 
 | interrupt Handler       | Address                                                      |
 | ----------------------- | ------------------------------------------------------------ |
-| 0 (CPU Reset)           | 0 (Address of the first executable instruction after reset.) |
+| 0 (CPU Reset)           | 0 (Address of the first executable instruction after reset and Interrupt 0 (bit 0).) |
 | 1                       | 1 (Address of the interrupt handler for Interrupt 1.)        |
 | ...                     | ...                                                          |
 | 31                      | 31 (Address of the interrupt handler for Interrupt 31.)      |

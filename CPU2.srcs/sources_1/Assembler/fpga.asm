@@ -157,9 +157,9 @@ START:
 LOOP:
     ldl r ER, 0
     jsr r SP1, WAITTEST
+    jsr r SP1, IOTESTS
     jsr r SP1, INTERRUPTTEST
     jsr r SP1, STACKTESTS
-    jsr r SP1, IOTESTS
     jsr r SP1, ANDTEST
     jsr r SP1, NANDTEST
     jsr r SP1, ORTEST
@@ -196,7 +196,7 @@ TIMERHANDLER:
 WAITTEST:
     ldl r tr, 0x130
     ld r1, 10
-    wait r1, 10         ; test wait
+    wait r1, 10         ; test wait (10 res * 10 Wait Cycles 100 System Cycles)
     add r tr, 1
     ld r1, 4
     ld r2, 10

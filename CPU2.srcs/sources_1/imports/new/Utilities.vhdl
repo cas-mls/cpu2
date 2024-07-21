@@ -32,27 +32,41 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 package Utilities is
 
-    type CYCLETYPE is (
-        ADDRESS, 
-        INSTFETCH1, 
-        INSTFETCH2, 
-        DECODE, 
-        MEMFETCH1, 
-        MEMFETCH2, 
-        EXECUTE, 
-        CLEANUP,
-        SAVEENA, 
-        DISABLEINT, 
-        JMPADDR, 
-        JMPFETCH1, 
-        JMPFETCH2, 
-        JUMP,
-        WAITS
+    type CYCLETYPE_FSM is (
+        RESET_STATE_S,  -- State 0
+        ADDRESS_S,      -- State 1
+        INSTFETCH1_S,   -- State 2
+        INSTFETCH2_S,   -- State 3
+        DECODE_S,       -- State 4
+        MEMFETCH1_S,    -- State 5
+        MEMFETCH2_S,    -- State 6
+        EXECUTE_S,      -- State 7
+        CLEANUP_S,      -- State 8
+        WAITS_S         -- State 9
         );
     
+
+    type INTERRUPT_FSM is (
+        INTRWAIT_S,     -- State 0
+        CYCLEWAIT_S,    -- State 1
+        SAVEENA_S,      -- State 2
+        DISABLEINT_S,   -- State 3
+        JMPADDR_S,      -- State 4
+        JMPFETCH1_S,    -- State 5
+        JMPFETCH2_S,    -- State 6
+        JUMP_S,         -- State 7
+        DONE_S          -- State 8
+    );
+
+    -- Register Information
+    constant regOpSizeBits : integer := 4;
+    constant regOpMax  : integer := 2**regOpSizeBits-1;
+    type reg_type is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
+
+    -- Instruction Decode Types
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
-    subtype REGTYPE is  STD_LOGIC_VECTOR (3 downto 0);
+    subtype REGTYPE is  STD_LOGIC_VECTOR (regOpSizeBits-1 downto 0);
     subtype IMMTYPE is  STD_LOGIC_VECTOR (15 downto 0);
 
     -- Opcodes
@@ -91,10 +105,10 @@ package Utilities is
     constant OIBusy : integer := 0;
     constant OIError : integer := 1;
 
-    type reg_type is array (15 downto 0) of std_logic_vector(31 downto 0);
-    
-
-    constant RESET : STD_LOGIC_VECTOR (31 downto 0) := X"00000001";
+    -- Interrupt Constants
+    constant interruptNums : integer := 31;
+    constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
+    constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
     type METRICSTYPE is record
         CycleCount : unsigned(63 downto 0);
