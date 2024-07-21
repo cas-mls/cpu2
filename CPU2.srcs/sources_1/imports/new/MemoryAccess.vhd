@@ -26,50 +26,66 @@ use ieee.numeric_std.all;
 use xil_defaultlib.Utilities.all;
 
 ---------------------------------------------------------------------------
---  Process (Clocked) : memoryAccess_proc
---  Description:    This handles the memory access for the operand, stack, and etc. memory.  
---                  This used the Port B memory access.
---  Wire Assignments
---      ffopcode        - Instruction operation
---      ffmemop         - Reg/Reg, Immediate, Absolute, and Index
---      ffiregop1       -
---      ffiregop2       -
---      ffimmop         -
---      ireg1value      - The current value read from the first instruction register.
---      ireg2value      - The current value read from the second instruction register.
---      MEM_ADDRB       - The address to Read or Write memory.
---      MEM_DINB        - The data 
---      MEM_ENB         - 
---      MEM_WEB         - 
---      Note:   Actually setting MEM_DOUTB (writting memory) is not part of this process.
---              But setting the address to write memory is being set.
---              This does not used 3-state addresses, could make use of it in the future.
---  Used Clocked Wires:
---      interruptSP
---      ProgCounter
---      interruptNum
---      fsm_inst_cycle_p
---          Process States:
---              RESET_STATE_S   - Reset the CPU.
---              ADDRESS_S       - Setting the address from the program counter.  This sets the clears the memory enable.
---              DECODE_S        - Instruction Decode and identify operands.  Sets up the Memory addresses and write data.
---              MEMFETCH1_S     - Waits to read (MEM_DOUTB) because of the memory legacy and latches. This use to pop interrupt PC and mask.
---              MEMFETCH2_S     - Waits to read (MEM_DOUTB) because of the memory legacy and latches.
---              EXECUTE_S       - Execute the instruction.  To process interrupts, store registers/data.
---              CLEANUP_S       - Clean up data after execute.
---      fsm_interrupt_cycle_p
---          Process States:
---              SAVEENA_S       -
---              DISABLEINT_S    - 
---              JMPADDR_S       -
---              JMPFETCH2_S     -
---  Used Combinational Wires:
---      opcode          Instruction operation
---      memop           Reg/Reg, Immediate, Absolute, and Index
---      flag            - 
---      iregop1         - 
---      iregop2         - 
---      immop           - 
+-- ### Memory Access
+
+-- This handles the memory access for the operand, stack, and etc. memory.  This used the Port B memory access.
+
+-- #### Instructions
+
+--  * oSTR - Store memory to register
+--  * oRWIO - Read and store memory.
+
+-- #### Wire Assignments (outputs)
+
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | MEM_ENB           | The Instruction Memory enabled. |
+-- | MEM_WEB           | The Instruction Memory Read/Write. |
+-- | MEM_ADDRB         | The Instruction address to Read or Write memory. |
+-- | MEM_DINB          | The Instruction input data. |
+
+-- Note:   Actually setting MEM_DOUTB (writting memory) is not part of this process.
+--             But setting the address to write memory is being set.
+--             This does not used 3-state addresses, could make use of it in the future.
+
+
+-- #### Used Wires (Inputs)
+
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | INSTRUCTION       | Instruction operation|
+-- | cpuRegs           | The fast CPU registers.|
+-- | fsm_inst_cycle_p| Process States: |
+-- | | RESET_STATE_S - Reset the CPU. |
+-- | | ADDRESS_S - Setting the address from the program counter.  This sets clears the memory enable. |
+-- | | DECODE_S - Instruction Decode and identify operands.  Sets up the Memory addresses and writes data. |
+-- | | MEMFETCH1_S - Waits to read (MEM_DOUTB) because of the memory legacy and latches. This is  use to pop interrupt PC and mask. |
+-- | | MEMFETCH2_S - Waits to read (MEM_DOUTB) because of the memory legacy and latches |
+-- | | EXECUTE_S - Execute the instruction. To process interrupts, and store registers/data. |
+-- | | CLEANUP_S - Clean up data after execute state. |
+-- | fsm_interrupt_cycle_p|Process States:|
+-- | |SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.|
+-- | |DISABLEINT_S (State 3)  - Disable all Interrupts.|
+-- | |JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.|
+-- | |JMPFETCH2_S (State 6)   - Memory Read Latency|
+-- | interruptRun           | Flag indicating that the interrupt is running.|
+-- | interruptNum           | Interrupt number being processed (1-31)|
+-- | interruptMask          | The Interrupt enable mask (1 is enabled).|
+-- | interruptSpAddrValue   | The value of the stack pointer at the starting of the interrupt.|
+-- | ProgramCounter         | Program counter (address) of the current executed statement.|
+
+-- #### Internal Wires:
+
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- |  flag/ffflag             | Multiple use flag (e.g., negative logic)|
+-- |  opcode/ffopcode         | Instruction operation|
+-- |  memop/ffmemop           | Memory access operation.|
+-- |  regop1/iregop1/ffiregop1| Instruction identified first register.|
+-- |  ireg1value              | Value of the Register pointed to by instruction.|
+-- |  regop2/iregop2/ffiregop2| Instruction identified second register.|
+-- |  ireg2value              | Value of the Register pointed to by instruction.|
+-- |  immop/ffimmop           | Immediate value from the instruction.|
 ---------------------------------------------------------------------------
 
 entity MemoryAccess is
@@ -225,8 +241,8 @@ begin
                         when others =>
                     end case;
 
-                when MEMFETCH2_S => -- XXX This only works on SIM hardware.  Comment out next line to work on SIM.
-                    --   when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
+                    when MEMFETCH2_S => -- XXX This only works on SIM hardware.  Comment out next line to work on SIM.
+                    when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
                     case ffmemop is
                         when REGREG =>
                             case ffopcode is

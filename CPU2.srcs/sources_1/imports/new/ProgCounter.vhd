@@ -25,34 +25,63 @@ use ieee.numeric_std.all;
 
 use xil_defaultlib.Utilities.ALL;
 
+
 ---------------------------------------------------------------------------
---  Process (Clocked) : procCounter_proc
---  Description:    This handles the program counter (PC) and memory access for obtaining the instruction.  
---                  This used the Port A memory access.
---  Wire Assignments
---      MEM_ADDRA       - The address to Read or Write memory.
---      MEM_ENA         - Enable at Address and disable during the Decode for branches.
---      MEM_WEA         - Always 0 (Read Only)
---      Note:   Actually setting MEM_DOUTA (writting memory) is not part of this process.
---              During the Decode state the MEM_DOUTA is seperated into opcode, flag, memop, regop1, regop2, and immop combinational wires.
---              The iregop1 and iregop2 are integers of rht regop1 and reop2 also are combinational wires.
---  Used Clocked Wires:
---      ffopcode        - Instruction operation
---      ffmemop         - Reg/Reg, Immediate, Absolute, and Index
---      ffiregop2
---      ffimmop
---      interruptSP
---      fsm_inst_cycle_p
---          Process States:
---              RESET_STATE_S   - Reset the CPU.
---              ADDRESS_S       - Setting the address from the program counter.  This sets the clears the memory enable.
---              DECODE_S        - Instruction Decode and identify operands.  Sets up the Memory addresses and write data.
---              EXECUTE_S       - Execute the instruction.  To process interrupts, store registers/data.
---      fsm_interrupt_cycle_p
---          Process States:
---              JUMP_S          -
---  Used Combinational Wires:
---      opcode          Instruction operation
+-- ### Program Counter
+
+-- This handles the program counter (PC) and memory access for obtaining the instruction.  This sets the address of the next instruction (Port A memory access).   This is the fetch.
+
+-- #### Instructions
+
+-- 	* oJMP - Unconditional Jump
+-- 	* oJSR - Jump and store PC (Jump to Subroutine)
+-- 	* oRTN - Return from JSR (Return from Subroutine)
+-- 	* oRTI - Return from Interrupt
+-- 	* oBE - Branch Equal, Zero, Not Equal, or Not Zero
+-- 	* oBLT - Branch Less Than, Negative, Greater than  and Equal, Not Negative
+-- 	* oBGT - Branch Greater Than, Positive, Less than  and Equal, Not Positive
+
+-- #### Wire Assignments (outputs)
+
+-- | Signal          | Description                                                  |
+-- | --------------- | ------------------------------------------------------------ |
+-- | MEM_ADDRA       | The address to Read or Write memory.                         |
+-- | MEM_ENA         | Enable at Address and disable during the Decode for branches. |
+-- | MEM_WEA         | Always 0 (Read Only)                                         |
+-- | Program Counter | Program counter (address) of the current executed statement. |
+
+-- Note:  Actually setting MEM_DOUTA (writting memory) is not part of this process.
+-- Note: The Program Counter is a Combinational output of the internal ProgCounterLocal.
+
+-- #### Used Wires (inputs):
+
+-- | Signal                | Description                                                  |
+-- | --------------------- | ------------------------------------------------------------ |
+-- | INSTRUCTION           | Current Fetched Instruction                                  |
+-- | cpuRegs               | CPU Fast Registers                                           |
+-- | fsm_inst_cycle_p      | Process States:                                              |
+-- |                       | RESET_STATE_S  - Reset the CPU.                              |
+-- |                       | ADDRESS_S    - Setting the address from the program counter.  This sets the clears the memory enable. |
+-- |                       | DECODE_S     - Instruction Decode and identify operands.  Sets up the Memory addresses and write data. |
+-- |                       | EXECUTE_S    - Execute the instruction.  To process interrupts, store registers/data. |
+-- | fsm_interrupt_cycle_p | Process States:                                              |
+-- |                       | JUMP_S      - Changes the program counter to address from the interrupt vector. |
+
+-- #### Internal Wires:
+
+-- | Signal           | Description                                                  |
+-- | ---------------- | ------------------------------------------------------------ |
+-- | opcode/ffopcode  | Instruction operation                                        |
+-- | ffflag           | Multiple use flag to modify the instruction operation (e.g., negative logic) |
+-- | ffmemop          | Memory access operation (Reg/Reg, Immediate, absolute and indexed). |
+-- | ffiregop1        | Instruction identified first register.                       |
+-- | ffiregop2        | Instruction identified second register.                      |
+-- | ireg1value       | Register value of the first instruction register.            |
+-- | ireg2value       | Register value of the second instruction register.           |
+-- | ffimmop          | Immediate value from the instruction.                        |
+-- | ProgCounterLocal | Local Program Counter used for calculations.                 |
+
+-- Note: During the Decode state, the MEM_DOUTA is separated into opcode, flag, memop, regop1, regop2, and immop combinational wires.  The ff* are clocked flip-flop registers that store the values to be used in other states.
 ---------------------------------------------------------------------------
 
 entity ProgCounter is
@@ -87,10 +116,10 @@ architecture Behavioral of ProgCounter is
 
     signal ProgCounterLocal : unsigned(11 downto 0);
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
-    attribute keep of ProgCounterLocal : signal is "TRUE";
-    attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
+    -- attribute keep of ProgCounterLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
 
 
 begin

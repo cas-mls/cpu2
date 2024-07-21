@@ -1,3 +1,23 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 12/03/2023 09:47:49 PM
+-- Design Name: 
+-- Module Name: Registers - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
 library IEEE;
 library xil_defaultlib;
 use ieee.numeric_std.all;
@@ -6,32 +26,60 @@ use IEEE.STD_LOGIC_1164.all;
 use xil_defaultlib.Utilities.all;
 
 ---------------------------------------------------------------------------
---  Process (Clocked) : alu_proc
---  Description:    This handles the updating of the register and is also known as the Arithmatic Logic Unit (ALU).
---  Wire Assignments
---      cpuRegs    - The fast CPU registers.
---  Used Clocked Wires:
---      ffopcode        - Instruction operation
---      ffmemop         - Reg/Reg, Immediate, Absolute, and Index
---      ffiregop1       -
---      ffiregop2       -
---      ffimmop         -
---      ireg1value      - The current value read from the first instruction register.
---      ireg2value      - The current value read from the second instruction register.
---      MEM_DOUTB
---      IOR_DATA
---      IO_STATUS
---      interruptSP
---      fsm_inst_cycle_p
---          Process States:
---              RESET_STATE_S   - Reset the CPU.
---              EXECUTE_S       - Execute the instruction.  To process interrupts, store registers/data.
---              CLEANUP_S       - Clean up data after execute.
---      fsm_interrupt_cycle_p
---          Process States:
---              SAVEENA_S       -
---              JMPADDR_S       -
---  Used Combinational Wires:
+-- ### Arithmetic Logic Unit (ALU)
+
+-- This handles the updating and operating on the register and is also known as the Arithmetic Logic Unit (ALU).
+
+-- #### Instructions
+
+--  * oLD - Move Register contents, load memory to register
+--  * oRTN - Return from JSR (Return from Subroutine)
+--  * oRTI - Return from InterruptoRTN
+--  * oADD - Add registers, immediate, or memory 
+--  * oSUB - Subtract registers, immediate, or memory 
+--  * oAND - And or Nand registers, immediate, or memory
+--  * oOR - Or or Nor registers, immediate, or memory
+--  * oXOR - Xor or Xnor registers, immediate, or memory
+--  * oSHL - Shift left registers, immediate, or memory
+--  * oSHR - Shift right registers, immediate, or memory
+--  * oJSR - Jump and store PC (Jump to Subroutine)
+--  * oRWIO - Load and write to IO.
+--  * oPUSHPOP - Push or Pop from memory
+
+-- #### Wire Assignments (outputs)
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | cpuRegs         | The fast CPU registers.
+
+-- #### Used Wires (Inputs)
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- |INSTRUCTION     | Instruction operation
+-- |MEM_ARG         | The current memory argument from decode.
+-- |fsm_inst_cycle_p | Process States:
+-- | |       RESET_STATE_S           - Reset the CPU.
+-- | |       EXECUTE_S               - Execute the instruction.  To process interrupts, store registers/data.
+-- |  |      CLEANUP_S               - Clean up data after execute.
+-- |fsm_interrupt_cycle_p | Process States:
+-- |  |      SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.
+-- |  |      JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.
+-- |interruptSPNum
+-- |IOR_DATA           | Data from the peripheral device.
+-- |IO_STATUS          | The IO status from the peripheral device.
+-- |ireg1value         | Value of the Register pointed to by instruction.
+-- |ffiregop2          | Instruction identified second register.
+-- |ireg2value         | Value of the Register pointed to by instruction.
+-- |interruptSpAddrValue    
+
+-- #### Internal Wires:
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | ffopcode          | Instruction operation
+-- | ffflag            | Multiple use flag (e.g., negative logic)
+-- | ffmemop           | Memory access operation.
+-- | ffiregop1         | Instruction identified first register.
+-- | ffiregop2         | Instruction identified second register.
+-- | ffimmop           | Immediate value from the instruction.
 ---------------------------------------------------------------------------
 
 entity ALU is

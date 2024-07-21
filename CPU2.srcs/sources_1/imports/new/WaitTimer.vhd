@@ -26,29 +26,63 @@ use ieee.numeric_std.all;
 use xil_defaultlib.Utilities.all;
 
 ---------------------------------------------------------------------------
---  Process (Clocked) : io_proc
---  Description: This handles the address, data and statuses for IO.
---  Wire Assignments
---      IO_ADDR     - Address of the IO peripheral.
---      IOW_DATA    - Data to be written to the peripheral.
---      IOW_ENA     - Flag indicating the transfer of data from CPU to peripheral.
---      IOR_ENA     - Flag indicating the data needs to be transferred from peripheral to CPU.
---      Note:   Interrupt driven peripheral should use the Interrupts Processing (No special purpose IO interrupts).
---      Note:   Reading the IO (IOR_DATA) is not performed in this process. it is used by other processes.
---  Used Clocked Wires:
---      ffopcode        - oRWIO / Read Write IO
---      ffflag          - 0 = Read (RIO) / 1 = Write (WIO)
---      ffmemop         - Reg/Reg, Immediate, Absolute, and Index
---      fsm_inst_cycle_p
---          Process States:
---              RESET_STATE_S   - Reset the CPU.
---              DECODE_S        - Instruction Decode and identify operands.
---              EXECUTE_S       - Execute the instruction.
---              CLEANUP_S       - Clean up data after execute.
---  Used Combinational Wires:
---      opcode          oRWIO / Read Write IO
---      flag            0 = Read (RIO) / 1 = Write (WIO)
---      memop           Reg/Reg, Immediate, Absolute, and Index
+-- ### Wait / Timer
+
+-- #### Instructions
+
+--  * oWAIT - Wait, Timer or Cancel.
+
+-- This processes the wait instruction which pauses execution and sleep which continues the execution, but when the alarm happens it will call a interrupt.  The wait and sleep timers count the clock.
+
+-- #### Wire Assignments (outputs)
+
+-- | Signal     | Description                                                  |
+-- | ---------- | ------------------------------------------------------------ |
+-- | waitAlarm  | The alarm happens when the wait timer is completed.          |
+-- | waitRun    | This is active when it is in a wait state.                   |
+-- | waitCancel | This cancels the wait state.                                 |
+-- | timerAlarm | This alarm happens when the timer is completed.              |
+-- | timerInt   | The interrupt number is to be processed when the timer alarm goes off. |
+
+-- Note:  Interrupt driven peripheral should use the Interrupts Processing (No special purpose IO interrupts).
+-- Note:  Reading the IO (IOR_DATA) is not performed in this process. it is used by other processes.
+
+-- #### Used Wires (Inputs)
+
+-- | Signal           | Description                                                  |
+-- | ---------------- | ------------------------------------------------------------ |
+-- | INSTRUCTION      | Instruction operation                                        |
+-- | fsm_inst_cycle_p | Process States:                                              |
+-- |                  | RESET_STATE_S           - Reset the CPU.                     |
+-- |                  | DECODE_S                    - Instruction Decode and identify operands. |
+-- |                  | EXECUTE_S               - Execute the instruction.  To process interrupts, store registers/data. |
+-- | cpuRegs          | The fast CPU registers.                                      |
+
+-- #### Internal Wires:
+
+-- | Signal                   | Description                                              |
+-- | ------------------------ | -------------------------------------------------------- |
+-- | flag/ffflag              | Multiple use flag (e.g., negative logic)                 |
+-- | opcode/ffopcode          | Instruction operation                                    |
+-- | memop/ffmemop            | Memory access operation.                                 |
+-- | regop1/iregop1/ffiregop1 | Instruction identified first register.                   |
+-- | ireg1value               | Value of the Register pointed to by instruction.         |
+-- | regop2/iregop2/ffiregop2 | Instruction identified second register.                  |
+-- | ireg2value               | Value of the Register pointed to by instruction.         |
+-- | immop/ffimmop            | Immediate value from the instruction.                    |
+-- | waitReg                  | This is the wait register.                               |
+-- | waitTime                 | This is the wait timer.                                  |
+-- | waitCount                | This is the counter for the timer.                       |
+-- | waitResolution           | This is the resolution of the wait timer.                |
+-- | waitResCounter           | This counter will count the number of resolution values. |
+-- | waitRunLocal             | This is the local value of the wait run.                 |
+-- | waitCancelLocal          | This is the local value of the cancel.                   |
+-- | timerRun                 | This is active when the timer is running.                |
+-- | timerReg                 | This is the timer register number.                       |
+-- | timerTime                | This is the wait timer.                                  |
+-- | timerCount               | This is the counter for the timer.                       |
+-- | timerResolution          | This is the resolution of the wait timer.                |
+-- | timerResCounter          | This counter will count the number of resolution values. |
 ---------------------------------------------------------------------------
 
 entity WaitTimer is

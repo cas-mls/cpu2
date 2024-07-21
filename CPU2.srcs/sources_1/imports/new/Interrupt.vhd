@@ -26,30 +26,92 @@ use ieee.numeric_std.all;
 use xil_defaultlib.Utilities.all;
 
 ---------------------------------------------------------------------------
---  Process (Clocked) : io_proc
---  Description: This handles the address, data and statuses for IO.
---  Wire Assignments
---      IO_ADDR     - Address of the IO peripheral.
---      IOW_DATA    - Data to be written to the peripheral.
---      IOW_ENA     - Flag indicating the transfer of data from CPU to peripheral.
---      IOR_ENA     - Flag indicating the data needs to be transferred from peripheral to CPU.
---      Note:   Interrupt driven peripheral should use the Interrupts Processing (No special purpose IO interrupts).
---      Note:   Reading the IO (IOR_DATA) is not performed in this process. it is used by other processes.
---  Used Clocked Wires:
---      ffopcode        - oRWIO / Read Write IO
---      ffflag          - 0 = Read (RIO) / 1 = Write (WIO)
---      ffmemop         - Reg/Reg, Immediate, Absolute, and Index
---      fsm_inst_cycle_p
---          Process States:
---              RESET_STATE_S   - Reset the CPU.
---              DECODE_S        - Instruction Decode and identify operands.
---              EXECUTE_S       - Execute the instruction.
---              CLEANUP_S       - Clean up data after execute.
---  Used Combinational Wires:
---      opcode          oRWIO / Read Write IO
---      flag            0 = Read (RIO) / 1 = Write (WIO)
---      memop           Reg/Reg, Immediate, Absolute, and Index
+-- ### Interrupts
+-- This handles the interrupt put the Mask and program counter
+--              on the stack and calls the interrupt handler.
+--             The maintains it own finite state machine (FSM).
+-- #### Wire Assignments (outputs)
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- |fsm_interrupt_cycle_p |
+-- |  |  INTRWAIT_S (State 0)    - Wait for Interrupt
+-- |  |  CYCLEWAIT_S (State 1)   - Wait for Instruction Cycle to complete.
+-- |  |  SAVEENA_S (State 2)     - Saves the Interrupt Enable Mask.
+-- |  |  DISABLEINT_S (State 3)  - Disable all Interrupts.
+-- |  |  JMPADDR_S (State 4)     - Get the Interrupt Handler from address vector.
+-- |  |  JMPFETCH1_S (State 5)   - Memory Read Latency 
+-- |  |  JMPFETCH2_S (State 6)   - Memory Read Latency 
+-- |  |  JUMP_S (State 7)        - Start the Instruction Cycle with Interrupt Handler.
+-- |  |  DONE_S (State 8)        - Complete the Interrupt processing.
+-- |interruptRun            | Flag indicating that the interrupt is running.
+-- |interruptNum            | Interrupt number being processed (1-31)
+-- |interruptMask           | The Interrupt enable mask (1 is enabled).
+-- |interruptSpNum          | The stack pointer register.
+-- |interruptSpAddrValue    | The value of the stack pointer at the starting of the interrupt.
+
+-- Note:   Limitations 1) The interrupt is read when instruction in execute state.
+
+-- #### Used Wires (Inputs)
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | INSTRUCTION         | Current Fetched Instruction
+-- | cpuRegs             | CPU Registers
+-- | fsm_inst_cycle_p | Process States:
+-- |  |       RESET_STATE_S   - Reset the CPU.
+-- |  |       DECODE_S        - Instruction Decode and identify operands.
+-- |  |       EXECUTE_S       - Execute the instruction.
+-- |  |       CLEANUP_S       - Clean up data after execute.
+-- | MEM_ARG             | The current memory argument from decode.
+-- | INTERRUPT           | The Interrupt vector
+-- | timerAlarm          | Completion of the timer alarm.
+-- | timerInt            | The interrupt number (1-31)
+-- #### Internal Wires:
+-- | Signal            | Description                                                  |
+-- | ----------------- | ------------------------------------------------------------ |
+-- | opcode/ffopcode         | Instruction operation
+-- | ffflag                  | Multiple use flag (e.g., negative logic)
+-- | memop/ffmemop           | Memory access operation.
+-- | ffiregop1               | Instruction identified first register.
+-- | ireg1value              | Value of the Register pointed to by instruction.
+-- | ireg2value              | Value of the Register pointed to by instruction.
+-- | ffimmop                 | Immediate value from the instruction.
+-- | fsm_interrupt_cycle_p_local
+-- |                         | Local value of the current state (set and used).
+-- | fsm_interrupt_cycle_n   | Next interrupt state.
+-- | interBitNum             | Interrupt bit number (interrupt number)
+-- | interruptMaskLocal      | Local value of the Mask (set and used).
+-- | interruptSpNumLocal     | Local value of the interrupt stack register number (set and used).
+
+-- #### Interrupt State Diagram
+
+-- | Cycle      | Description                                                  |
+-- | ---------- | ------------------------------------------------------------ |
+-- |            | Interrupt Processing                                         |
+-- | SAVEENA    | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1         |
+-- | DISABLEINT | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
+-- | JMPADDR    | reg(InterSP) → reg(InterSP) – 1 <br />InterNum → addrB       |
+-- | JMPFETCH1  | Wait                                                         |
+-- | JMPFETCH2  | Wait                                                         |
+-- | JUMP       | DoutB → PC                                                   |
+
+-- ```mermaid
+-- stateDiagram
+
+--     [*] --> INTRWAIT_S 
+--     INTRWAIT_S --> INTRWAIT_S
+--     INTRWAIT_S --> CYCLEWAIT_S : interrupt, SWI
+--     CYCLEWAIT_S --> CYCLEWAIT_S : Wait for Execute State
+--     CYCLEWAIT_S --> SAVEENA_S : Execute State
+--     SAVEENA_S --> DISABLEINT_S
+--     DISABLEINT_S --> JMPADDR_S
+--     JMPADDR_S --> JMPFETCH1_S
+--     JMPFETCH1_S --> JMPFETCH2_S
+--     JMPFETCH2_S --> JUMP_S
+--     JUMP_S --> [*]
+    
+-- ```
 ---------------------------------------------------------------------------
+
 
 entity Interrupt_Entity is
     port (
