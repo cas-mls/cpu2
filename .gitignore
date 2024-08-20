@@ -30,6 +30,8 @@
 *.lst
 *.sym
 *.hex
+*.rpt
+*.vdb
 
 # [dir]
 *.cache
@@ -40,6 +42,7 @@
 *.sdk
 *.hw
 *.ip_user_files
+xsim.dir
 
 ### IP synth
 *_synth_*
