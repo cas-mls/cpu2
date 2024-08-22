@@ -91,7 +91,7 @@ entity ALU is
         fsm_interrupt_cycle_p : in INTERRUPT_FSM;
         interruptSPNum : in integer range 0 to 31;
         IOR_DATA : in std_logic_vector(31 downto 0);
-        IO_STATUS : in std_logic_vector(7 downto 0);
+        IO_STATUS : in std_logic_vector(31 downto 0);
         ireg1value : in std_logic_vector(31 downto 0);
         ireg2value : in std_logic_vector(31 downto 0);
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
@@ -349,22 +349,19 @@ begin
                                     if ffflag = '0' then
                                         cpuRegs(ffiregop1) <= IOR_DATA;
                                     end if;
-                                    cpuRegs(0) <= x"000000" & IO_STATUS;
                                 when IMMEDIATE =>
                                     if ffflag = '0' then
                                         cpuRegs(ffiregop1) <= IOR_DATA;
-                                        cpuRegs(0) <= x"000000" & IO_STATUS;
-                                    else
-                                        cpuRegs(0) <= x"000000" & IO_STATUS;
-                                    end if;
-                                when ABSOLUTE | INDEX =>
-                                    if ffflag = '0' then
-                                        cpuRegs(0) <= x"000000" & IO_STATUS;
-                                    else
-                                        cpuRegs(0) <= x"000000" & IO_STATUS;
                                     end if;
                                 when others =>
                             end case;
+
+                        when  oIOST =>
+                            if ffmemop = REGREG then
+                                cpuRegs(ffiregop1) <= IO_STATUS;
+                            elsif ffmemop = IMMEDIATE then
+                                cpuRegs(ffiregop1) <= IO_STATUS;
+                            end if;
 
                         when oPUSHPOP =>
                             case ffmemop is
@@ -388,10 +385,6 @@ begin
                         when others =>
                     end case;
 
-                when CLEANUP_S =>
-                    if ffopcode = oRWIO then
-                        cpuRegs(0) <= x"000000" & IO_STATUS;
-                    end if;
                 when others =>
             end case;
 

@@ -2,6 +2,13 @@
 2020.2
 Oct 13 2023
 20:47:58
-D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.gen/sources_1/ip/SerialDevice115k/sim/SerialDevice115k.vhd,1722736293,vhdl,,,,serialdevice115k,,,,,,,,
-D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sim_1/computer/SimUartDevice.vhd,1724102381,vhdl2008,,,,simuartdevice,,,,,,,,
-D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/computer/UartDevice.vhd,1724100454,vhdl2008,,,,uartdevice,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.gen/sources_1/ip/cpumemory/cpumemory_sim_netlist.vhdl,1724347769,vhdl,,,,\cpumemory_blk_mem_gen_prim_width__parameterized0\;\cpumemory_blk_mem_gen_prim_width__parameterized1\;\cpumemory_blk_mem_gen_prim_width__parameterized2\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized0\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized1\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized2\;cpumemory;cpumemory_blk_mem_gen_generic_cstr;cpumemory_blk_mem_gen_prim_width;cpumemory_blk_mem_gen_prim_wrapper_init;cpumemory_blk_mem_gen_top;cpumemory_blk_mem_gen_v8_4_7;cpumemory_blk_mem_gen_v8_4_7_synth,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sim_1/computer/SimCPU.vhd,1724211812,vhdl2008,,,,simcpu,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/ALU.vhd,1724256176,vhdl2008,,,,alu,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/CPU.vhd,1724255178,vhdl2008,,,,cpu,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/Interrupt.vhd,1721513616,vhdl2008,,,,interrupt_entity,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/IoProcess.vhd,1724254564,vhdl2008,,,,ioprocess,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/MemoryAccess.vhd,1724349133,vhdl2008,,,,memoryaccess,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/ProgCounter.vhd,1721514351,vhdl2008,,,,progcounter,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/Utilities.vhdl,1724211440,vhdl2008,D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/ALU.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/CPU.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/Interrupt.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/IoProcess.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/MemoryAccess.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/ProgCounter.vhd;D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/WaitTimer.vhd,,,utilities,,,,,,,,
+D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/cpu/WaitTimer.vhd,1721513524,vhdl2008,,,,waittimer,,,,,,,,

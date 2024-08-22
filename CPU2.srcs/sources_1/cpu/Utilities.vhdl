@@ -82,7 +82,8 @@ package Utilities is
                     : OPCODETYPE  := "10010"; -- x12
     constant oWAIT  : OPCODETYPE  := "10100"; -- x14
     constant oRWIO  : OPCODETYPE  := "10110"; -- x16
-    constant oEMPTY1: OPCODETYPE  := "11000"; -- x18
+
+    constant oIOST  : OPCODETYPE  := "11000"; -- x18
     constant oRTI   : OPCODETYPE  := "11010"; -- x1A
     constant oSWI   : OPCODETYPE  := "11100"; -- x1C
     constant oIENA  : OPCODETYPE  := "11110"; -- x1E

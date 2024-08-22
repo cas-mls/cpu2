@@ -93,12 +93,16 @@
     rio r{r2: u4}, mem[{address: u16}]              => 22`5  @ 0`1 @ 2`2 @ 0x0 @ r2 @ address
     rio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 0`1 @ 3`2 @ r1 @ r2 @ address
 
-
     wio r{r1: u4}, r{r2: u4}                        => 22`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
     wio r{r1: u4}, {imm: u16}                       => 22`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
     wio r{r2: u4}, mem[{address: u16}]              => 22`5  @ 1`1 @ 2`2 @ 0x0 @ r2 @ address
     wio r{r1: u4}, r{r2: u4}, mem[{address: u16}]   => 22`5  @ 1`1 @ 3`2 @ r1 @ r2 @ address
     
+    rsio r{r1: u4}, r{r2: u4}                       => 24`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    rsio r{r1: u4}, {imm: u16}                      => 24`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    wsio r{r1: u4}, r{r2: u4}                       => 24`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    wsio r{r1: u4}, {imm: u16}                      => 24`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
+
     ; Stack Operations
     push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
     push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm

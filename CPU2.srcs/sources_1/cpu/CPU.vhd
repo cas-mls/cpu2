@@ -129,7 +129,7 @@ entity CPU is
         IOW_DATA : out std_logic_vector (31 downto 0);
         IOR_ENA : out std_logic;
         IOW_ENA : out std_logic;
-        IO_STATUS : in std_logic_vector (7 downto 0);
+        IO_STATUS : in std_logic_vector (31 downto 0);
         INTERRUPT : in std_logic_vector (31 downto 0);
         -- METRICS     : out METRICSTYPE;
         MEM_ENA : out std_logic := '1';
@@ -157,7 +157,7 @@ architecture Behavioral of CPU is
             fsm_interrupt_cycle_p : in INTERRUPT_FSM;
             interruptSpNum : in integer range 0 to 31;
             IOR_DATA : in std_logic_vector(31 downto 0);
-            IO_STATUS : in std_logic_vector(7 downto 0);
+            IO_STATUS : in std_logic_vector(31 downto 0);
             ireg1value : in std_logic_vector(31 downto 0);
             ireg2value : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
@@ -176,7 +176,7 @@ architecture Behavioral of CPU is
             fsm_interrupt_cycle_p : in INTERRUPT_FSM;
             interruptSPNum : in integer range 0 to 31;
             IOR_DATA : in std_logic_vector(31 downto 0);
-            IO_STATUS : in std_logic_vector(7 downto 0);
+            IO_STATUS : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             interruptRun : in std_logic;
             interruptNum : in integer range 0 to interruptNums := 0;
@@ -495,7 +495,7 @@ begin
                                 fsm_inst_cycle_n <= EXECUTE_S;
                             when oRTN | oRTI =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
-                            when oRWIO =>
+                            when oRWIO | oIOST =>
                                 fsm_inst_cycle_n <= MEMFETCH2_S;
                             when oPUSHPOP =>
                                 if flag = '0' then
@@ -510,7 +510,7 @@ begin
                         case opcode is
                             when oJSR =>
                                 fsm_inst_cycle_n <= EXECUTE_S;
-                            when oRWIO =>
+                            when oRWIO | oIOST=>
                                 fsm_inst_cycle_n <= MEMFETCH2_S;
                             when oPUSHPOP =>
                                 if flag = '0' then
@@ -558,6 +558,7 @@ begin
                 -- Find the next cycle state....
                 if ffopcode = oRWIO
                     or ffopcode = oRTI
+                    or ffopcode = oIOST
                 then -- Need additional step.
                     fsm_inst_cycle_n <= CLEANUP_S;
 

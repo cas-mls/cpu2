@@ -49,7 +49,7 @@ architecture Behavioral of SimCPU is
             IOW_DATA : out std_logic_vector (31 downto 0);
             IOR_ENA : out std_logic;
             IOW_ENA : out std_logic;
-            IO_STATUS : in std_logic_vector (7 downto 0);
+            IO_STATUS : in std_logic_vector (31 downto 0);
             interrupt : in std_logic_vector (31 downto 0);
             MEM_ENA : out std_logic := '1';
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
@@ -92,7 +92,7 @@ architecture Behavioral of SimCPU is
     signal IOWdata : std_logic_vector (31 downto 0) := (others => '0');
     signal IORena : std_logic := '0';
     signal IOWena : std_logic := '0';
-    signal IOStatus : std_logic_vector (7 downto 0) := (others => '0');
+    signal IOStatus : std_logic_vector (31 downto 0) := (others => '0');
     signal interrupt : std_logic_vector (31 downto 0) := (others => '0');
 
     signal echoIO : std_logic_vector (31 downto 0) := (others => '0');
@@ -254,16 +254,16 @@ begin
             wait until rising_edge (clk);
             if ioaddr = X"01" and IORena = '1' then
                 IORdata <= echoIO;
-                IOStatus <= X"00";
+                IOStatus <= X"00000000";
             elsif ioaddr = X"01" and IOWena = '1' then
                 echoIO <= IOWdata;
-                IOStatus <= X"00";
+                IOStatus <= X"00000000";
             elsif ioaddr = X"02" and IOWena = '1' then
-                IOStatus <= X"10";
+                IOStatus <= X"00000010";
             elsif ioaddr = X"05" and IOWena = '1' then
                 interrupt(2) <= IOWdata(0);
             else
-                IOStatus <= X"00";
+                IOStatus <= X"00000000";
             end if;
         end loop;
     end if;

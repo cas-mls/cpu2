@@ -11,13 +11,13 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="76,704.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="76,784.701 ns"></ZoomEndTime>
-      <Cursor1Time time="76,955.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="151.001 ns"></ZoomEndTime>
+      <Cursor1Time time="15.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="266"></NameColumnWidth>
-      <ValueColumnWidth column_width="97"></ValueColumnWidth>
+      <ValueColumnWidth column_width="92"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="18" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
@@ -58,6 +58,8 @@
       <obj_property name="ElementShortName">[13][31:0]</obj_property>
       <obj_property name="ObjectShortName">[13][31:0]</obj_property>
       <obj_property name="label">ErrorRegister[13][31:0]</obj_property>
+      <obj_property name="CustomSignalColor">#FF0000</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs" type="array">
       <obj_property name="ElementShortName">cpuRegs[15:0][31:0]</obj_property>
@@ -175,6 +177,7 @@
    <wvobject fp_name="group156" type="group">
       <obj_property name="label">IO</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/echoIO" type="array">
          <obj_property name="ElementShortName">echoIO[31:0]</obj_property>
          <obj_property name="ObjectShortName">echoIO[31:0]</obj_property>
@@ -200,8 +203,8 @@
          <obj_property name="ObjectShortName">IOWena</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/IOStatus" type="array">
-         <obj_property name="ElementShortName">IOStatus[7:0]</obj_property>
-         <obj_property name="ObjectShortName">IOStatus[7:0]</obj_property>
+         <obj_property name="ElementShortName">IOStatus[31:0]</obj_property>
+         <obj_property name="ObjectShortName">IOStatus[31:0]</obj_property>
       </wvobject>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/METRICS.CycleCount" type="array">
@@ -212,7 +215,6 @@
    <wvobject fp_name="group161" type="group">
       <obj_property name="label">Interrupt</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/fsm_interrupt_cycle_p" type="other">
          <obj_property name="ElementShortName">fsm_interrupt_cycle_p</obj_property>
          <obj_property name="ObjectShortName">fsm_interrupt_cycle_p</obj_property>

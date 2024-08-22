@@ -98,7 +98,7 @@ entity MemoryAccess is
         fsm_interrupt_cycle_p : in INTERRUPT_FSM;
         interruptSPNum : in integer range 0 to 31;
         IOR_DATA : in std_logic_vector(31 downto 0);
-        IO_STATUS : in std_logic_vector(7 downto 0);
+        IO_STATUS : in std_logic_vector(31 downto 0);
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
         interruptRun : in std_logic;
         interruptNum : in integer range 0 to interruptNums := 0;
@@ -222,7 +222,7 @@ begin
                             end case;
                         when ABSOLUTE =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA =>
+                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= immop(11 downto 0);
@@ -231,7 +231,7 @@ begin
 
                         when INDEX =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP =>
+                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
@@ -262,13 +262,13 @@ begin
                                 when oSTR =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "1";
-                                    MEM_ADDRB <= immop(11 downto 0);
+                                    MEM_ADDRB <= ffimmop(11 downto 0);
                                     MEM_DINB <= ireg1value;
                                 when oRWIO =>
                                     if ffflag = '0' then
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
-                                        MEM_ADDRB <= immop(11 downto 0);
+                                        MEM_ADDRB <= ffimmop(11 downto 0);
                                         MEM_DINB <= IOR_DATA;
                                     end if;
                                 when others =>

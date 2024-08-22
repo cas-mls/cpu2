@@ -32,6 +32,7 @@
 *.hex
 *.rpt
 *.vdb
+*.addr
 
 # [dir]
 *.cache

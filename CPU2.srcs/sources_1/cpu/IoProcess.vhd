@@ -145,7 +145,9 @@ begin
           ireg1value <= cpuRegs(iregop1);
           ireg2value <= cpuRegs(iregop2);
 
-          if opcode = oRWIO then
+          if opcode = oRWIO 
+            or opcode = oIOST 
+          then
             if flag = '0' then
               IOR_ENA <= '1';
             else
@@ -181,7 +183,7 @@ begin
             end if;
           end if;
         when CLEANUP_S =>
-          if ffopcode = oRWIO then
+          if ffopcode = oRWIO or ffopcode = oIOST then
             if ffflag = '0' then
               IOR_ENA <= '0';
             else
