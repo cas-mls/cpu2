@@ -198,12 +198,12 @@ begin
                         r_initialize <= '0';
                     end if;
                 elsif r_uartInterrupt = '1'
-                    then
+                then
                     RdStatus(0) <= '1';
                 elsif RdStatus(0) = '1'
                     and r_s_axi_arvalid = '0' -- Wait for Last Status is completed.  -- XXX - better check would be r_s_axi_arready, but doesn't work
                     and r_s_axi_rvalid = '0' -- to start reading.
-                    then -- Read Data
+                then -- Read Data
                     r_s_axi_araddr <= X"0";
                     r_s_axi_arvalid <= '1';
                     interrupt <= '1';
@@ -211,7 +211,7 @@ begin
                     if r_s_axi_rready = '0'
                         and r_s_axi_rvalid = '0'
                         and RdStatus(0) = '0'
-                        then -- Get Status Register.
+                    then -- Get Status Register.
                         r_s_axi_araddr <= X"8";
                         r_s_axi_arvalid <= '1';
                     end if;
@@ -223,16 +223,16 @@ begin
                 end if;
 
                 if r_s_axi_rvalid = '1'
-                    then
+                then
                     r_s_axi_rready <= '0';
                     if r_s_axi_araddr = X"0"
-                        then -- Read Data
+                    then -- Read Data
                         RdByte <= r_s_axi_rdata(7 downto 0);
                         interrupt <= '0';
                         RdStatus(0) <= '0';
                         RdStatus(2 downto 1) <= r_s_axi_rresp;
                     elsif r_s_axi_araddr = X"8"
-                        then -- Read Status
+                    then -- Read Status
                         RdStatus(10 downto 3) <= r_s_axi_rdata(7 downto 0);
                     end if;
                 end if;
@@ -286,13 +286,13 @@ begin
             else
                 if TxAvail = '1'
                     and TxStatus(0) = '0'
-                    then
+                then
                     TxStatus(0) <= '1';
                 elsif TxStatus(0) = '1'
                     and w_s_axi_arvalid = '0'
                     and w_s_axi_rvalid = '0' -- Status Completed?
                     and w_s_axi_wready = '0'
-                    then -- Setup to Write Data
+                then -- Setup to Write Data
                     w_s_axi_awaddr <= X"4";
                     w_s_axi_wdata <= X"000000" & TxByte;
                     w_s_axi_awvalid <= '1';
@@ -300,7 +300,7 @@ begin
                     w_write_processing <= '1';
                     InhibitStatus := true;
                 elsif w_s_axi_awvalid = '1'
-                    then -- Done Writting Data
+                then -- Done Writting Data
                     w_s_axi_awvalid <= '0';
                     w_s_axi_wvalid <= '0';
                     TxStatus(2 downto 1) <= w_s_axi_bresp;
@@ -316,7 +316,7 @@ begin
                     and TxAvail = '0'
                     and not InhibitStatus
                     -- and TxStatus(0) = '0'
-                    then
+                then
                     w_s_axi_arvalid <= '1';
                 end if;
 
@@ -328,7 +328,7 @@ begin
                 if w_s_axi_rvalid = '1'
                     and w_write_processing = '0'
                     -- and TxStatus(0) = '0'
-                    then -- Get and save status word
+                then -- Get and save status word
                     w_s_axi_rready <= '0';
                     TxStatus(10 downto 3) <= w_s_axi_rdata(7 downto 0);
                     if w_status_processing = '1' then

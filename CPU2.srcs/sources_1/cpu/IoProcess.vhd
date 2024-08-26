@@ -84,7 +84,9 @@ entity IoProcess is
     IOW_ENA : out std_logic;
     IOR_ENA : out std_logic;
     IO_ADDR : out std_logic_vector (7 downto 0);
-    IOW_DATA : out std_logic_vector (31 downto 0)
+    IOW_DATA : out std_logic_vector (31 downto 0);
+    IO_STATUS_REQ : out std_logic
+
 
   );
 
@@ -153,6 +155,9 @@ begin
             else
               IOW_ENA <= '1';
             end if;
+            if opcode = oIOST then
+              IO_STATUS_REQ <= '1';
+            end if;
             case memop is
               when REGREG =>
                 IO_ADDR <= cpuRegs(iregop2)(7 downto 0);
@@ -188,6 +193,9 @@ begin
               IOR_ENA <= '0';
             else
               IOW_ENA <= '0';
+            end if;
+            if ffopcode = oIOST then
+              IO_STATUS_REQ <= '0';
             end if;
           end if;
         when others =>

@@ -236,7 +236,9 @@ begin
                 ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16))));
 
             elsif fsm_interrupt_cycle_n = INTRWAIT_S then
-                if fsm_inst_cycle_p = EXECUTE_S then
+                if fsm_inst_cycle_p = EXECUTE_S 
+                    or fsm_inst_cycle_p = WAITS_S
+                then
                     if ffopcode = oSWI then
                         case ffmemop is
                             when REGREG =>

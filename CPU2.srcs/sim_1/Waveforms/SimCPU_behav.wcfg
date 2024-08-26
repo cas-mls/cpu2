@@ -6,20 +6,22 @@
       <db_ref path="SimCPU_behav.wdb" id="1">
          <top_modules>
             <top_module name="SimCPU" />
+            <top_module name="ipif_pkg" />
+            <top_module name="lib_pkg" />
             <top_module name="utilities" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="151.001 ns"></ZoomEndTime>
-      <Cursor1Time time="15.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000000 us"></ZoomStartTime>
+      <ZoomEndTime time="9.200001 us"></ZoomEndTime>
+      <Cursor1Time time="2.955000 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="266"></NameColumnWidth>
-      <ValueColumnWidth column_width="92"></ValueColumnWidth>
+      <ValueColumnWidth column_width="82"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="18" />
+   <WVObjectSize size="19" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -58,7 +60,7 @@
       <obj_property name="ElementShortName">[13][31:0]</obj_property>
       <obj_property name="ObjectShortName">[13][31:0]</obj_property>
       <obj_property name="label">ErrorRegister[13][31:0]</obj_property>
-      <obj_property name="CustomSignalColor">#FF0000</obj_property>
+      <obj_property name="CustomSignalColor">#FF00FF</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs" type="array">
@@ -68,7 +70,6 @@
    <wvobject fp_name="group949" type="group">
       <obj_property name="label">Mem A</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/MEM_ENA" type="logic">
          <obj_property name="ElementShortName">MEM_ENA</obj_property>
          <obj_property name="ObjectShortName">MEM_ENA</obj_property>
@@ -85,7 +86,6 @@
    <wvobject fp_name="group162" type="group">
       <obj_property name="label">MemB</obj_property>
       <obj_property name="DisplayName">label</obj_property>
-      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/cpuCUT/MEM_ENB" type="logic">
          <obj_property name="ElementShortName">MEM_ENB</obj_property>
          <obj_property name="ObjectShortName">MEM_ENB</obj_property>
@@ -206,6 +206,10 @@
          <obj_property name="ElementShortName">IOStatus[31:0]</obj_property>
          <obj_property name="ObjectShortName">IOStatus[31:0]</obj_property>
       </wvobject>
+      <wvobject fp_name="/SimCPU/IOStatusReq" type="logic">
+         <obj_property name="ElementShortName">IOStatusReq</obj_property>
+         <obj_property name="ObjectShortName">IOStatusReq</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/METRICS.CycleCount" type="array">
       <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
@@ -277,6 +281,7 @@
    <wvobject fp_name="group556" type="group">
       <obj_property name="label">Read Program File</obj_property>
       <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
       <wvobject fp_name="/SimCPU/MEM_DINA" type="array">
          <obj_property name="ElementShortName">MEM_DINA[31:0]</obj_property>
          <obj_property name="ObjectShortName">MEM_DINA[31:0]</obj_property>
@@ -324,6 +329,43 @@
       <wvobject fp_name="/SimCPU/RUN" type="other">
          <obj_property name="ElementShortName">RUN</obj_property>
          <obj_property name="ObjectShortName">RUN</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group189" type="group">
+      <obj_property name="label">UART</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/SimCPU/UART_RXD" type="logic">
+         <obj_property name="ElementShortName">UART_RXD</obj_property>
+         <obj_property name="ObjectShortName">UART_RXD</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/UART_TXD" type="logic">
+         <obj_property name="ElementShortName">UART_TXD</obj_property>
+         <obj_property name="ObjectShortName">UART_TXD</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/TxByte" type="array">
+         <obj_property name="ElementShortName">TxByte[7:0]</obj_property>
+         <obj_property name="ObjectShortName">TxByte[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/TxAvail" type="logic">
+         <obj_property name="ElementShortName">TxAvail</obj_property>
+         <obj_property name="ObjectShortName">TxAvail</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/TxStatus" type="array">
+         <obj_property name="ElementShortName">TxStatus[31:0]</obj_property>
+         <obj_property name="ObjectShortName">TxStatus[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/UartInterrupt" type="logic">
+         <obj_property name="ElementShortName">UartInterrupt</obj_property>
+         <obj_property name="ObjectShortName">UartInterrupt</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/RdByte" type="array">
+         <obj_property name="ElementShortName">RdByte[7:0]</obj_property>
+         <obj_property name="ObjectShortName">RdByte[7:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/RdStatus" type="array">
+         <obj_property name="ElementShortName">RdStatus[31:0]</obj_property>
+         <obj_property name="ObjectShortName">RdStatus[31:0]</obj_property>
       </wvobject>
    </wvobject>
 </wave_config>

@@ -130,6 +130,7 @@ entity CPU is
         IOR_ENA : out std_logic;
         IOW_ENA : out std_logic;
         IO_STATUS : in std_logic_vector (31 downto 0);
+        IO_STATUS_REQ : out std_logic;
         INTERRUPT : in std_logic_vector (31 downto 0);
         -- METRICS     : out METRICSTYPE;
         MEM_ENA : out std_logic := '1';
@@ -218,7 +219,8 @@ architecture Behavioral of CPU is
             IOW_ENA : out std_logic;
             IOR_ENA : out std_logic;
             IO_ADDR : out std_logic_vector (7 downto 0);
-            IOW_DATA : out std_logic_vector (31 downto 0)
+            IOW_DATA : out std_logic_vector (31 downto 0);
+            IO_STATUS_REQ : out std_logic
 
         );
     end component IoProcess;
@@ -392,7 +394,8 @@ begin
         IOW_ENA => IOW_ENA,
         IOR_ENA => IOR_ENA,
         IO_ADDR => IO_ADDR,
-        IOW_DATA => IOW_DATA
+        IOW_DATA => IOW_DATA,
+        IO_STATUS_REQ => IO_STATUS_REQ
     );
 
     WaitTimer_enty : WaitTimer

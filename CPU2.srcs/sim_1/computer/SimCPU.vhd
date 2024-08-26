@@ -50,6 +50,7 @@ architecture Behavioral of SimCPU is
             IOR_ENA : out std_logic;
             IOW_ENA : out std_logic;
             IO_STATUS : in std_logic_vector (31 downto 0);
+            IO_STATUS_REQ : out std_logic;
             interrupt : in std_logic_vector (31 downto 0);
             MEM_ENA : out std_logic := '1';
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
@@ -81,7 +82,29 @@ architecture Behavioral of SimCPU is
         );
     end component;
 
+    component UartDevice is
+        Port (  CLK         : in STD_LOGIC;
+                RST         : in STD_LOGIC;
+                UART_RXD    : in STD_LOGIC;
+                UART_TXD    : out STD_LOGIC;
+                TxByte      : in STD_LOGIC_VECTOR (7 downto 0);
+                TxAvail     : in STD_LOGIC;
+                TxStatus    : out STD_LOGIC_VECTOR (31 downto 0);
+                Interrupt   : out STD_LOGIC;
+                RdByte      : out STD_LOGIC_VECTOR (7 downto 0);
+                RdStatus    : out STD_LOGIC_VECTOR (31 downto 0)
+                );
+    end component;
+    
     constant HALF_PERIOD : time := 5 ns;
+
+    constant PERIOD : TIME := 10 ns;
+    constant CLK_FREQ : NATURAL := 50e6;
+    constant BAUD_RATE : NATURAL := 115200;
+    constant TRANS_COUNT : NATURAL := 2 ** 8;
+    constant CLK_PERIOD : TIME := 1 ns * INTEGER(real(1e9)/real(CLK_FREQ));
+    constant UART_PERIOD_I : NATURAL := INTEGER(real(1e9)/real(BAUD_RATE));
+    constant UART_PERIOD : TIME := 1 ns * UART_PERIOD_I;
 
     signal RUN : boolean := true;
     -- signal RUN : boolean := false;
@@ -93,6 +116,7 @@ architecture Behavioral of SimCPU is
     signal IORena : std_logic := '0';
     signal IOWena : std_logic := '0';
     signal IOStatus : std_logic_vector (31 downto 0) := (others => '0');
+    signal IOStatusReq : STD_LOGIC := '0';
     signal interrupt : std_logic_vector (31 downto 0) := (others => '0');
 
     signal echoIO : std_logic_vector (31 downto 0) := (others => '0');
@@ -127,6 +151,18 @@ architecture Behavioral of SimCPU is
     signal RUN_DOUTA : std_logic_vector(31 downto 0) := X"00000000";
 
     -- signal data1 : std_ulogic_vector(31 downto 0) := X"00000000";
+
+    -- UART Device 
+    signal UART_RXD    : STD_LOGIC;
+    signal UART_TXD    : STD_LOGIC;
+    signal TxByte      : STD_LOGIC_VECTOR (7 downto 0);
+    signal TxAvail     : STD_LOGIC;
+    signal TxStatus    : STD_LOGIC_VECTOR (31 downto 0);
+    signal UartInterrupt : STD_LOGIC;
+    signal RdByte      : STD_LOGIC_VECTOR (7 downto 0);
+    signal RdStatus    : STD_LOGIC_VECTOR (31 downto 0);
+    signal r_xtr        : STD_LOGIC_VECTOR(7 downto 0);
+
 
     procedure InitRamFromFile
     (RamFileName : in string;
@@ -170,6 +206,27 @@ begin
     end if;
 end procedure;
 
+procedure UART_DRIVER (
+    constant UART_PER : TIME;
+    signal UART_DIN : in STD_LOGIC_VECTOR(7 downto 0);
+    signal UART_TXD : out STD_LOGIC
+) is
+    variable rnd_delay : NATURAL;
+begin
+    -- start bit
+    UART_TXD <= '0';
+    wait for UART_PER;
+    -- data bits
+    for i in 0 to (UART_DIN'LENGTH - 1) loop
+        UART_TXD <= UART_DIN(i);
+        wait for UART_PER;
+    end loop;
+    -- stop bit
+    UART_TXD <= '1';
+    wait for UART_PER;
+end procedure;
+
+
 begin
 
 cpuCUT : CPU
@@ -182,6 +239,7 @@ port map
     IOR_ENA => IORena,
     IOW_ENA => IOWena,
     IO_STATUS => IOStatus,
+    IO_STATUS_REQ => IOStatusReq,
     interrupt => interrupt,
     MEM_ENA => RUN_ENA,
     MEM_WEA => RUN_WEA,
@@ -194,6 +252,21 @@ port map
     MEM_DINB => MEM_DINB,
     MEM_DOUTB => MEM_DOUTB
 );
+
+uartCUT : UartDevice
+port map(
+    CLK         => CLK      ,
+    RST         => interrupt(0)      ,
+    UART_RXD    => UART_RXD ,
+    UART_TXD    => UART_TXD ,
+    TxByte      => TxByte   ,
+    TxAvail     => TxAvail  ,
+    TxStatus    => TxStatus ,
+    Interrupt   => UartInterrupt,
+    RdByte      => RdByte   ,
+    RdStatus    => RdStatus         
+);
+
 
 memory : cpumemory
 port map(
@@ -210,6 +283,7 @@ port map(
     dinb => MEM_DINB,
     doutb => MEM_DOUTB
 );
+
 
 -- Link the LOAD Program and RUN program memory signals.
 MEM_CLK <= clk when RUN else
@@ -229,6 +303,28 @@ LD_DOUTA <= MEM_DOUTA when not RUN else
 
 clk <= '0' after HALF_PERIOD when clk = '1' and RUN else
        '1' after HALF_PERIOD;
+
+       test_proc_read : process
+       begin
+           UART_RXD <= '1';
+   
+           wait until interrupt(0) = '0';
+           wait for PERIOD * 5;
+           r_xtr <= X"55";
+           UART_DRIVER(UART_PERIOD, r_xtr, UART_RXD);
+           wait for 2 * UART_PERIOD;
+           -- Send Serial Data to UART.
+           r_xtr <= X"aa";
+           UART_DRIVER(UART_PERIOD, r_xtr, UART_RXD);
+           wait for 2 * UART_PERIOD;
+           -- Send Serial Data to UART.
+           r_xtr <= X"00";
+           UART_DRIVER(UART_PERIOD, r_xtr, UART_RXD);
+           wait for 2 * UART_PERIOD;
+   
+       end process; -- test_proc_read
+   
+       interrupt(12) <= UARTInterrupt;
 
 test : process
 begin
@@ -250,7 +346,7 @@ begin
         end loop;
         interrupt(0) <= '0';
 
-        for j in 1 to 10000 loop
+        while true loop
             wait until rising_edge (clk);
             if ioaddr = X"01" and IORena = '1' then
                 IORdata <= echoIO;
@@ -262,8 +358,31 @@ begin
                 IOStatus <= X"00000010";
             elsif ioaddr = X"05" and IOWena = '1' then
                 interrupt(2) <= IOWdata(0);
+
+            elsif ioaddr = X"0c" 
+                and IOWena = '1' 
+                and IOStatusReq = '1' 
+            then
+                IOStatus <= TxStatus;
+            elsif ioaddr = X"0c" 
+                and IOWena = '1' 
+                and IOStatusReq = '0' 
+            then
+                TxByte <= IOWdata(7 downto 0);
+                TxAvail <= '1';
+            elsif ioaddr = X"0c" 
+                and IORena = '1' 
+                and IOStatusReq = '1' 
+            then
+                IOStatus <= RdStatus;
+            elsif ioaddr = X"0c" 
+                and IORena = '1' 
+                and IOStatusReq = '0' 
+            then
+                IORdata <= X"000000" & RdByte;
             else
-                IOStatus <= X"00000000";
+                TxAvail <= '0';
+                -- IOStatus <= X"00000000";
             end if;
         end loop;
     end if;
