@@ -628,34 +628,36 @@ stateDiagram
 
 ## Instructions
 
-| Opcode                                                       | Bits    | Flag              | Address #0 <br /><u>Register / Register</u>                  | Address #1 <br /><u>Immediate</u>                            | Address #2 <br /><u>Absolute Memory</u>           | Address #3 <br /><u>Index Memory</u>                      |
-| ------------------------------------------------------------ | ------- | ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------- | --------------------------------------------------------- |
-| `NOOP`                                                       | `00000` | NA                | NA                                                           | NA                                                           | NA                                                | NA                                                        |
-| `ld` (Load)                                                  | `00010` | High Bits (16-31) | $R2 → R1$                                                    | $imm → R1$                                                   | $mem[imm] → R1$                                   | $mem[r2+imm] → R1$                                        |
-| `st` (Store)                                                 | `00100` | NA                | NA                                                           | NA                                                           | $R1 → mem[imm]$                                   | $R1 → mem[r2+imm]$                                        |
-| `jmp` (Jump)                                                 | `00110` | NA                | $R1 → PC$                                                    | $imm → PC$                                                   | $mem[imm] → PC$                                   | $mem[r2 + mem] → PC$                                      |
-| `jsr` (Jump Subroutine)[^1]                                  | `01000` | NA                | $PC+1 → mem[R1]\\R1-1 → R1\\R2 → PC$                         | $PC+1 → mem[R1]\\R1-1 → R1\\imm → PC$                        | NA                                                | NA                                                        |
-| `rtn` (Return)[^1]                                           | `01010` | NA                | $R1+1 → R1\\mem(R1) → PC$                                    | NA                                                           | NA                                                | NA                                                        |
-| `be`<br />`bne` (not flag)[^2] <br />`bz` (R2=0)<br />`bnz` (R2=0, Flag=1)[^3] | `01100` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                                   | NA                                                        |
-| `bl`<br />`bge` (not flag)[^4] <br />`bn` (R2=0)[^5]         | `01110` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                                   | NA                                                        |
-| `bg`<br />`ble` (not flag)[^6]<br />`bp` (R2=0)[^7]          | `10000` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                                   | NA                                                        |
-| `push`[^1]                                                   | `10010` | 0                 | $R2 → mem(R1)\\R1-1 → R1$                                    | $imm → mem(R1)\\R1-1 → R1$                                   | NA[^8]                                            | NA[^8]                                                    |
-| `pop`[^1]                                                    | `10010` | 1                 | $R1+1 → R1\\mem(R1) → R2$                                    | NA                                                           | NA[^8]                                            | NA[^8]                                                    |
-| `wait`[^13]                                                  | `10101` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                                   |                                                           |
-| `timer`[^14]                                                 | `10101` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                                   |                                                           |
-| cancel                                                       | 10101   | 1                 | $if (R1 is Wait Register) then\\'0' → waitFlag\\if (R1 is Timer Register) then\\'0' → timerFlag$ |                                                              |                                                   |                                                           |
-| `rio` (Read IO)                                              | `10110` | 0                 | $R2 → IOAddr,\\IOData →  R1\\Status → R0$[^9]                | $imm → IOAddr\\IOData → R1\\Status → R0$[^9]                 | $R2 → IOAddr\\IOData → mem(imm)\\Status → R0$[^9] | ~~$R1 → IOAddr\\IOData → mem(r2+imm)\\Status → R0$~~[^10] |
-| `wio` (Write IO)                                             | `10110` | 1                 | $R2 → IOAddr\\R1 → IOData\\ Status → R0$[^9]                 | $imm → IOAddr\\R1 → IOData\\Status → R0$[^9]                 | $R2 → IOAddr\\mem(imm) → IOData\\Status → R0$[^9] | ~~$R1 → IOAddr\\mem(r2+imm) → IOData\\Status → R0$~~[^10] |
-| `rti` (Return from Interrupt)[^11]                           | `11010` | NA                | NA                                                           | NA                                                           | NA                                                | NA                                                        |
-| `swi` (Software Interrupt)[^11]                              | `11100` | NA                | $'1' → IRProcFlag\\R1 → InterNum$                            | $'1' → IRProcFlag\\imm  → InterNum$                          | Not Tested                                        | NA                                                        |
-| `iena` (Interrupt enable mask)[^11]: [^12]:                  | `11110` | NA                | $R1 → IRSP,\\R2 → InterEna$                                  | $R1 → IRSP,\\imm → InterEna$                                 | $R1 → IRSP\\mem(imm) → \\InterEna$                | NA                                                        |
-| `add`                                                        | `00001` | NA                | $R1 + R2 → R1$                                               | $R1 + R2 + imm → R1 \\ R2 == 0 : R1 + \\imm → R1$            | $R1 + mem(imm) → R1$                              | $R1 + mem(r2+imm)$ → R1                                   |
-| `sub`                                                        | `00011` | NA                | $R1 - R2 → R1$                                               | $R1 - R2 - imm → R1\\R2 == 0 : R1 -\\ imm → R1$              | $R1 - mem(imm) → R1$                              | $R1 - mem(r2+imm) → R1$                                   |
-| `and`<br />`nand` (Flag = 1)                                 | `00101` | not               | $R1 ∧ R2 → R1$                                               | $R1 ∧ R2 ∧ imm → R1\\R2 = 0  : R1 ∧ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                              | $R1 ∧ mem(r2+imm) → R1$                                   |
-| `or`<br />`nor` (Flag = 1)                                   | `00110` | not               | $R1 ∨ R2  → R1$                                              | $R1 ∨ R2 ∨ imm → R1\\R2 = 0  : R1 ∨ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                              | $R1 ∨ mem(r2+imm) → R1$                                   |
-| `xor`<br />`xnor` (Flag = 1)                                 | `01011` | not               | $R1 ⊕ R2  → R1$                                              | $R1⊕R2⊕imm→ R1\\R2=0:R1⊕\\imm→R1$                            | $R1 ⊕ mem(imm) → R1$                              | $R1 ⊕ mem(r2+imm) → R1$                                   |
-| `sll` (Shift Left Logical)                                   | `01101` | NA                | $R1 << R2  → R1$                                             | $R1<<imm → R1\\R2 = 0  : R1<<\\imm → R1$                     | $R1<<mem(imm) → R1$                               | $R1<<mem(r2+imm) → R1$                                    |
-| `srl`(Shift Right Logical)                                   | `01111` | NA                | $R1 >> R2 → R1$                                              | $R1 >> imm → R1\\R2 = 0  : R1 >> \\imm → R1$                 | $R1>>mem(imm) → R1$                               | $R1>>mem(r2+imm) → R1$                                    |
+| Opcode                                                       | Bits    | Flag              | Address #0 <br /><u>Register / Register</u>                  | Address #1 <br /><u>Immediate</u>                            | Address #2 <br /><u>Absolute Memory</u> | Address #3 <br /><u>Index Memory</u> |
+| ------------------------------------------------------------ | ------- | ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------------------- | ------------------------------------ |
+| `NOOP`                                                       | `00000` | NA                | NA                                                           | NA                                                           | NA                                      | NA                                   |
+| `ld` (Load)                                                  | `00010` | High Bits (16-31) | $R2 → R1$                                                    | $imm → R1$                                                   | $mem[imm] → R1$                         | $mem[r2+imm] → R1$                   |
+| `st` (Store)                                                 | `00100` | NA                | NA                                                           | NA                                                           | $R1 → mem[imm]$                         | $R1 → mem[r2+imm]$                   |
+| `jmp` (Jump)                                                 | `00110` | NA                | $R1 → PC$                                                    | $imm → PC$                                                   | $mem[imm] → PC$                         | $mem[r2 + mem] → PC$                 |
+| `jsr` (Jump Subroutine)[^1]                                  | `01000` | NA                | $PC+1 → mem[R1]\\R1-1 → R1\\R2 → PC$                         | $PC+1 → mem[R1]\\R1-1 → R1\\imm → PC$                        | NA                                      | NA                                   |
+| `rtn` (Return)[^1]                                           | `01010` | NA                | $R1+1 → R1\\mem(R1) → PC$                                    | NA                                                           | NA                                      | NA                                   |
+| `be`<br />`bne` (not flag)[^2] <br />`bz` (R2=0)<br />`bnz` (R2=0, Flag=1)[^3] | `01100` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
+| `bl`<br />`bge` (not flag)[^4] <br />`bn` (R2=0)[^5]         | `01110` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
+| `bg`<br />`ble` (not flag)[^6]<br />`bp` (R2=0)[^7]          | `10000` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
+| `push`[^1]                                                   | `10010` | 0                 | $R2 → mem(R1)\\R1-1 → R1$                                    | $imm → mem(R1)\\R1-1 → R1$                                   | NA[^8]                                  | NA[^8]                               |
+| `pop`[^1]                                                    | `10010` | 1                 | $R1+1 → R1\\mem(R1) → R2$                                    | NA                                                           | NA[^8]                                  | NA[^8]                               |
+| `wait`[^13]                                                  | `10101` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                         |                                      |
+| `timer`[^14]                                                 | `10101` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                         |                                      |
+| cancel                                                       | 10101   | 1                 | $if (R1 is Wait Register) then\\'0' → waitFlag\\if (R1 is Timer Register) then\\'0' → timerFlag$ |                                                              |                                         |                                      |
+| `rio` (Read IO)                                              | `10110` | 0                 | $R2 → IOAddr,\\IOData →  R1$                                 | $imm → IOAddr\\IOData → R1$                                  | $R2 → IOAddr\\IOData → mem(imm)$        | $R1 → IOAddr\\IOData → mem(r2+imm)$  |
+| `wio` (Write IO)                                             | `10110` | 1                 | $R2 → IOAddr\\R1 → IOData$                                   | $imm → IOAddr\\R1 → IOData$                                  | $R2 → IOAddr\\mem(imm) → IOData$        | $R1 → IOAddr\\mem(r2+imm) → IOData$  |
+| `rsio (Read Status)`                                         | `11000` | 0                 | $R2 → IOAddr\\Status → R1$                                   | $imm → IOAddr\\Status → R1$                                  |                                         |                                      |
+| `wsio (Write Status)`                                        | `11000` | 1                 | $R2 → IOAddr\\ Status → R1$                                  | $imm → IOAddr\\Status → R1$                                  |                                         |                                      |
+| `rti` (Return from Interrupt)[^11]                           | `11010` | NA                | NA                                                           | NA                                                           | NA                                      | NA                                   |
+| `swi` (Software Interrupt)[^11]                              | `11100` | NA                | $'1' → IRProcFlag\\R1 → InterNum$                            | $'1' → IRProcFlag\\imm  → InterNum$                          | Not Tested                              | NA                                   |
+| `iena` (Interrupt enable mask)[^11]: [^12]:                  | `11110` | NA                | $R1 → IRSP,\\R2 → InterEna$                                  | $R1 → IRSP,\\imm → InterEna$                                 | $R1 → IRSP\\mem(imm) → \\InterEna$      | NA                                   |
+| `add`                                                        | `00001` | NA                | $R1 + R2 → R1$                                               | $R1 + R2 + imm → R1 \\ R2 == 0 : R1 + \\imm → R1$            | $R1 + mem(imm) → R1$                    | $R1 + mem(r2+imm)$ → R1              |
+| `sub`                                                        | `00011` | NA                | $R1 - R2 → R1$                                               | $R1 - R2 - imm → R1\\R2 == 0 : R1 -\\ imm → R1$              | $R1 - mem(imm) → R1$                    | $R1 - mem(r2+imm) → R1$              |
+| `and`<br />`nand` (Flag = 1)                                 | `00101` | not               | $R1 ∧ R2 → R1$                                               | $R1 ∧ R2 ∧ imm → R1\\R2 = 0  : R1 ∧ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∧ mem(r2+imm) → R1$              |
+| `or`<br />`nor` (Flag = 1)                                   | `00110` | not               | $R1 ∨ R2  → R1$                                              | $R1 ∨ R2 ∨ imm → R1\\R2 = 0  : R1 ∨ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∨ mem(r2+imm) → R1$              |
+| `xor`<br />`xnor` (Flag = 1)                                 | `01011` | not               | $R1 ⊕ R2  → R1$                                              | $R1⊕R2⊕imm→ R1\\R2=0:R1⊕\\imm→R1$                            | $R1 ⊕ mem(imm) → R1$                    | $R1 ⊕ mem(r2+imm) → R1$              |
+| `sll` (Shift Left Logical)                                   | `01101` | NA                | $R1 << R2  → R1$                                             | $R1<<imm → R1\\R2 = 0  : R1<<\\imm → R1$                     | $R1<<mem(imm) → R1$                     | $R1<<mem(r2+imm) → R1$               |
+| `srl`(Shift Right Logical)                                   | `01111` | NA                | $R1 >> R2 → R1$                                              | $R1 >> imm → R1\\R2 = 0  : R1 >> \\imm → R1$                 | $R1>>mem(imm) → R1$                     | $R1>>mem(r2+imm) → R1$               |
 
 [^1]: R1 is the  Stack Pointer
 [^2]: R2 <> 0: R1 = R2 R1<>R2 (Flag=1)
@@ -665,8 +667,8 @@ stateDiagram
 [^6]: R2 <> 0: R1 > R2 / R1<=R2 (Flag=1)
 [^7]: R2 = 0: R1 > 0 / R1 <= 0 (Flag=1)
 [^8]: Memory Type 2 and 3 (might be possible with additional cycles)
-[^9]: R0 is used for the I/O status.  
-[^10]: Memory Access 3 is not implemented and is not consistent with others.  But, it would be handy for streams.
+[^9]: Reserved.  
+[^10]: Reserved.
 [^11]:See Interrupt Section.
 [^12]:Interrupt Stack Pointer register number is saved and used for hardware and software interrupt.
 [^13]: R2 = 0: Wait statement
@@ -677,26 +679,43 @@ stateDiagram
 
 ### Instruction Matrix:
 
-|      | 0         | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    | a    | b    | c    | d    | e    | f    |
-| ---- | --------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| 0    |           | <sub>`ld r1, r2`</sub> |      | <sub>`jmp r1`</sub> | <sub>`jsr r1, r2`</sub> | <sub>`rtn r1`</sub> |      |      |      | <sub>`push r1, r2`</sub> |      | <sub>`rio r1, r2`</sub> |  | <sub>`rti`</sub> | <sub>`swi r2`</sub> | <sub>`iena r1, r2`</sub> |
-| 1 |  | <sub>`ldl r1, imm`</sub> |      | <sub>`jmp imm`</sub> | <sub>`jsr imm`</sub> |      | <sub>`be r1, r2, imm<br />bz r1, imm`</sub> | <sub>`blt r1, r2, imm<br />bn r1, imm` </sub> | <sub>`bgt r1, r2, imm<br />bp r1, imm`</sub> | <sub>`push r1, imm`</sub> | <sub>`wait r1, imm<br />time r1, r2, imm`</sub> | <sub>`roi r1, imm`</sub>             |  |                | <sub>`swi imm`</sub> | <sub>`iena r1, imm`</sub> |
-| 2 |           | <sub>`ld r1, mem [addr]`</sub> | <sub>`st r1, mem [addr]`</sub> | <sub>`jmp mem [addr]`</sub> |      |      | <sub>`be r1, r2, mem [addr]<br />bz r1, mem [addr]`</sub> | <sub>`blt r1, r2, mem[addr] <br /> bn r1, mem[addr]`</sub> | <sub>`bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`</sub> |      |                       | <sub>`roi r1, mem[addr]`</sub>       |  |      | <sub>`swi mem[addr]`</sub> | <sub>`iena r1, mem[addr]`</sub> |
-| 3 |           | <sub>`ld r1, r2, mem [addr]`</sub> | <sub>`st r1, r2, mem [addr]`</sub> | <sub>`jmp r2, mem [addr]`</sub> |      |      |      |      |      |      |                       | <sub>`roi r1, r2, mem[addr]`</sub> |  |      |      |      |
-| 4 |           |      |      |      |      |      |      |      |      | <sub>`pop r1, r2`</sub> | <sub>`CANC r1`</sub> | <sub>`wio r1, r2`</sub> |      |      |      |      |
-| 5 |           | <sub>`ldh r1, imm`</sub> |      |      |      |      | <sub>`bne r1, r2, imm<br />bnz r1, imm`</sub> | <sub>`bge r1, r2, imm<br />bl r1, r0, imm`</sub> | <sub>`ble r1, r2, imm<br />bg r1, r0, imm`</sub> |      |      | <sub>`woi r1, imm`</sub> |      |      |      |      |
-| 6 |           |      |      |      |      |      | <sub>`bne r1, r2, mem [addr]<br />bnz r1, mem [addr]`</sub> | <sub>`bge r1, r2, mem[addr]<br />bl r1, r0, mem[addr]`</sub> | <sub>`ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]`</sub> |      |      | <sub>`woi r1, mem[addr]`</sub> |      |      |      |      |
-| 7 |           |      |      |      |      |      |      |      |      |      |      | <sub>`woi r1, r2, mem[addr]`</sub> |      |      |      |      |
-| 8 | <sub>`add r1, r2`</sub> | <sub>`sub r1, r2`</sub> | <sub>`and r1, r2`</sub> | <sub>`or r1, r2`</sub> |      | <sub>`xor r1, r2`</sub> | <sub>`sll r1, r2`</sub> | <sub>`srl r1, r2`</sub> |      |      |      |      |      |      |      |      |
-| 9 | <sub>`add r1, r2, imm<br />add r1, imm`</sub> | <sub>`sub r1, r2, imm<br />sub r1, imm`</sub> | <sub>`and r1, r2, imm<br />and r1, imm`</sub> | <sub>`or r1, r2, imm <br />or r1, imm`</sub> |      | <sub>`xor r1, r2, imm<br />xor r1, imm`</sub> | <sub>`sll r1, r2, imm<br />sll r1, imm`</sub> | <sub>`srl r1, r2, imm<br />srl r1, imm`</sub> |      |      |      |      |      |      |      |      |
-| a | <sub>`add  r1, mem[addr]`</sub> | <sub>`sub r1, mem[addr]`</sub> | <sub>`and r1, mem[addr]`</sub> | <sub>`or r1, mem[addr]`</sub> |      | <sub>`xor r1, mem[addr]`</sub> | <sub>`sll r1, mem[addr]`</sub> | <sub>`srl r1, mem[addr]`</sub> |      |      |      |      |      |      |      |      |
-| b | <sub>`add r1, r2, mem[addr]`</sub> | <sub>`sub r1, r2, mem[addr]`</sub> | <sub>`and r1, r2, mem[addr]`</sub> | <sub>`or r1, r2, mem[addr]`</sub> |      | <sub>`xor r1, r2, mem[addr]`</sub> | <sub>`sll r1, r2, mem[addr]`</sub> | <sub>`srl r1, r2, mem[addr]`</sub> |      |      |      |      |      |      |      |      |
-| c |                                             |                                             | <sub>`nand r1, r2`</sub>                      | <sub>`nor r1, r2`</sub>                     |                       | <sub>`xnor r1, r2`</sub>                      |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
-| d    |                                             |                                             | <sub>`nand r1, r2, imm<br />nand r1, imm`</sub> | <sub>`nor r1, r2, imm<br />nor r1, imm`</sub> |                       | <sub>`xnor r1, r2, imm<br />xnor r1, imm`</sub> |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
-| e    |                                             |                                             | <sub>`nand r1, mem[addr]`</sub>               | <sub>`nor r1, mem[addr]`</sub>              |                       | <sub>`xnor r1, mem[addr]`</sub>               |                                                           |                                                            |                                                            |                         |                       |                                      |                                      |                |                          |                               |
-| f    |                                             |      | <sub>`nand r1, r2, mem[addr]`</sub> | <sub>`nor r1, r2, mem[addr]`</sub> |      | <sub>`xnor r1, r2, mem[addr]`</sub> |      |      |      |      |      |      |      |      |      |      |
+|      | 0         | 1    | 2    | 3    | 4    | 5    | 6    | 7    |
+| ---- | --------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+| 0    |           | <sub>`ld r1, r2`</sub> |      | <sub>`jmp r1`</sub> | <sub>`jsr r1, r2`</sub> | <sub>`rtn r1`</sub> |      |      |
+| 1 |  | <sub>`ldl r1, imm`</sub> |      | <sub>`jmp imm`</sub> | <sub>`jsr imm`</sub> |      | <sub>`be r1, r2, imm<br />bz r1, imm`</sub> | <sub>`blt r1, r2, imm<br />bn r1, imm` </sub> |
+| 2 |           | <sub>`ld r1, mem [addr]`</sub> | <sub>`st r1, mem [addr]`</sub> | <sub>`jmp mem [addr]`</sub> |      |      | <sub>`be r1, r2, mem [addr]<br />bz r1, mem [addr]`</sub> | <sub>`blt r1, r2, mem[addr] <br /> bn r1, mem[addr]`</sub> |
+| 3 |           | <sub>`ld r1, r2, mem [addr]`</sub> | <sub>`st r1, r2, mem [addr]`</sub> | <sub>`jmp r2, mem [addr]`</sub> |      |      |      |      |
+| 4 |           |      |      |      |      |      |      |      |
+| 5 |           | <sub>`ldh r1, imm`</sub> |      |      |      |      | <sub>`bne r1, r2, imm<br />bnz r1, imm`</sub> | <sub>`bge r1, r2, imm<br />bl r1, r0, imm`</sub> |
+| 6 |           |      |      |      |      |      | <sub>`bne r1, r2, mem [addr]<br />bnz r1, mem [addr]`</sub> | <sub>`bge r1, r2, mem[addr]<br />bl r1, r0, mem[addr]`</sub> |
+| 7 |           |      |      |      |      |      |      |      |
+| 8 | <sub>`add r1, r2`</sub> | <sub>`sub r1, r2`</sub> | <sub>`and r1, r2`</sub> | <sub>`or r1, r2`</sub> |      | <sub>`xor r1, r2`</sub> | <sub>`sll r1, r2`</sub> | <sub>`srl r1, r2`</sub> |
+| 9 | <sub>`add r1, r2, imm<br />add r1, imm`</sub> | <sub>`sub r1, r2, imm<br />sub r1, imm`</sub> | <sub>`and r1, r2, imm<br />and r1, imm`</sub> | <sub>`or r1, r2, imm <br />or r1, imm`</sub> |      | <sub>`xor r1, r2, imm<br />xor r1, imm`</sub> | <sub>`sll r1, r2, imm<br />sll r1, imm`</sub> | <sub>`srl r1, r2, imm<br />srl r1, imm`</sub> |
+| a | <sub>`add  r1, mem[addr]`</sub> | <sub>`sub r1, mem[addr]`</sub> | <sub>`and r1, mem[addr]`</sub> | <sub>`or r1, mem[addr]`</sub> |      | <sub>`xor r1, mem[addr]`</sub> | <sub>`sll r1, mem[addr]`</sub> | <sub>`srl r1, mem[addr]`</sub> |
+| b | <sub>`add r1, r2, mem[addr]`</sub> | <sub>`sub r1, r2, mem[addr]`</sub> | <sub>`and r1, r2, mem[addr]`</sub> | <sub>`or r1, r2, mem[addr]`</sub> |      | <sub>`xor r1, r2, mem[addr]`</sub> | <sub>`sll r1, r2, mem[addr]`</sub> | <sub>`srl r1, r2, mem[addr]`</sub> |
+| c |                                             |                                             | <sub>`nand r1, r2`</sub>                      | <sub>`nor r1, r2`</sub>                     |                       | <sub>`xnor r1, r2`</sub>                      |                                                           |                                                            |
+| d    |                                             |                                             | <sub>`nand r1, r2, imm<br />nand r1, imm`</sub> | <sub>`nor r1, r2, imm<br />nor r1, imm`</sub> |                       | <sub>`xnor r1, r2, imm<br />xnor r1, imm`</sub> |                                                           |                                                            |
+| e    |                                             |                                             | <sub>`nand r1, mem[addr]`</sub>               | <sub>`nor r1, mem[addr]`</sub>              |                       | <sub>`xnor r1, mem[addr]`</sub>               |                                                           |                                                            |
+| f    |                                             |      | <sub>`nand r1, r2, mem[addr]`</sub> | <sub>`nor r1, r2, mem[addr]`</sub> |      | <sub>`xnor r1, r2, mem[addr]`</sub> |      |      |
 
-
+|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e               | f                    |
+| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | --------------- | -------------------- |
+| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`        | `iena r1, r2`        |
+| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`       | `iena r1, imm`       |
+| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]` | `iena r1, mem[addr]` |
+| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                 |                      |
+| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       |                 |                      |
+| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       |                 |                      |
+| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       |                 |                      |
+| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                 |                      |
+| 8    |                                                   |                |                                      |                         |                |       |                 |                      |
+| 9    |                                                   |                |                                      |                         |                |       |                 |                      |
+| a    |                                                   |                |                                      |                         |                |       |                 |                      |
+| b    |                                                   |                |                                      |                         |                |       |                 |                      |
+| c    |                                                   |                |                                      |                         |                |       |                 |                      |
+| d    |                                                   |                |                                      |                         |                |       |                 |                      |
+| e    |                                                   |                |                                      |                         |                |       |                 |                      |
+| f    |                                                   |                |                                      |                         |                |       |                 |                      |
 
 ## Instruction Detail
 
@@ -804,12 +823,14 @@ Stack operations require a stack pointer register for R1.  This is a normal regi
 
 This command received input for peripherals.  The IO address is one 8 bits (byte) and the data is one word 32 bits.  The Status is defined by the peripheral, the only requirement is bit 0 is a busy bit.
 
-| Assembly                     | Addressing        | Code   | Clock Cycles | Operation                                                  |
-| ---------------------------- | ----------------- | ------ | ------------ | ---------------------------------------------------------- |
-| rio r1, r2                   | Register/Register | b0     | 7            | R2 → IOAddr,<br />IOData →  R1,<br />Status → R0           |
-| roi r1, Imm                  | Immediate         | b1     | 7            | Imm → IOAddr, <br />IOData → R1, <br />Status → R0         |
-| roi r1, mem[address]         | Absolute          | b2     | 8            | R2 → IOAddr,<br /> IOData → mem(imm), <br />Status → R0    |
-| roi r1, r2, mem[address]     | Index             | b3     | 8            | R1 → IOAddr, <br />IOData → mem(r2+imm), <br />Status → R0 |
+| Assembly                 | Addressing        | Code | Clock Cycles | Operation                               |
+| ------------------------ | ----------------- | ---- | ------------ | --------------------------------------- |
+| rio r1, r2               | Register/Register | b0   | 7            | R2 → IOAddr,<br />IOData →  R1          |
+| rio r1, Imm              | Immediate         | b1   | 7            | Imm → IOAddr, <br />IOData → R1         |
+| rio r1, mem[address]     | Absolute          | b2   | 8            | R2 → IOAddr,<br /> IOData → mem(imm)    |
+| rio r1, r2, mem[address] | Index             | b3   | 8            | R1 → IOAddr, <br />IOData → mem(r2+imm) |
+| rsio r1, r2              | Register/Register | c0   | 7            | R2 → IOAddr,<br />Status →  R1          |
+| rsio r1, Imm             | Immediate         | c1   | 7            | Imm → IOAddr, <br />Status → R1         |
 
 ### Output
 
@@ -817,9 +838,11 @@ This command output data to the peripherals.  The IO address is one 8 bits (byte
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation                                                  |
 | ------------------------ | ----------------- | ---- | ------------ | ---------------------------------------------------------- |
 | wio r1, r2               | Register/Register | b4   | 7            | R2 → IOAddr, <br />R1 → IOData,<br />Status → R0           |
-| woi r1, Imm              | Immediate         | b5   | 7            | Imm → IOAddr, <br />R1 → IOData, <br />Status → R0         |
-| woi r1, mem[address]     | Absolute          | b6   | 8            | R2 → IOAddr, <br />mem(imm) → IOData, <br />Status → R0    |
-| woi r1, r2, mem[address] | Index             | b7   | 8            | R1 → IOAddr, <br />mem(r2+imm) → IOData, <br />Status → R0 |
+| wio r1, Imm              | Immediate         | b5   | 7            | Imm → IOAddr, <br />R1 → IOData, <br />Status → R0         |
+| wio r1, mem[address]     | Absolute          | b6   | 8            | R2 → IOAddr, <br />mem(imm) → IOData, <br />Status → R0    |
+| wio r1, r2, mem[address] | Index             | b7   | 8            | R1 → IOAddr, <br />mem(r2+imm) → IOData, <br />Status → R0 |
+| wsio r1, r2              | Register/Register | c4   | 7            | R2 → IOAddr,<br />Status →  R1                             |
+| wsio r1, Imm             | Immediate         | c5   | 7            | Imm → IOAddr, <br />Status → R1                            |
 
 ### Add
 
@@ -1028,4 +1051,36 @@ Return from interrupt processing:
 | MEMR      | Wait                                     |
 | EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
 | MEMW      | DoutB → IntEna                           |
+
+## Serial Device
+
+The Serial Device is a basic UART that runs through the Serial/Programming interface for the Arty device.  This device uses the AXI UART Lite v2.0 IP provided by Vivado.  The interface is AXI-Lite, the first time I used this interface, and needed additional time to understand it.  It was hard to find documentation and examples of this IP.  The example Vivado uses is limited and can only be read from the serial.  I'm not describing the AXI-Lite protocol.
+
+| Signal    | Direction | Description                                            |
+| --------- | --------- | ------------------------------------------------------ |
+| CLK       | IN        | The System Clock                                       |
+| RST       | IN        | Reset Signal                                           |
+| UART_RXD  | IN        | Serial Read.                                           |
+| UART_TXD  | OUT       | Serial Transmitted.                                    |
+| TxByte    | IN        | Byte data to be transmitted.                           |
+| TxAvail   | IN        | The flag indicates that the transmitted byte is valid. |
+| TxStatus  | OUT       | Transmitted Status word.                               |
+| Interrupt | OUT       | Interrupt value when the read data is available.       |
+| RdByte    | OUT       | Read data byte.                                        |
+| RdStatus  | OUT       | Read Status word                                       |
+
+Read/Write Status word is formatted with the following fields:
+
+| Bit(s) | Name          | Read/Write/Both | Description                                                  |
+| ------ | ------------- | --------------- | ------------------------------------------------------------ |
+| 0      | Busy          | Both            |                                                              |
+| 1-2    | AXI Response  | Both            | 0 = OKAY - Successful<br />1 = EXOKAY - Successful with Exclusive Access<br />2 = SLVERR - Unsuccessful<br />3 = DECERR - Decode Error |
+| 3      | Rx FIFO Valid | Read            | Indicates if the receive FIFO has data.                      |
+| 4      | RX FIFO Full  | Read            | Indicates if the receive FIFO is full.                       |
+| 5      | Tx FIFO Empty | Write           | Indicates if the transmit FIFO is empty.                     |
+| 6      | TS FIFO Full  | Write           | Indicates if the transmit FIFO is full.                      |
+| 7      | Interrupt Ena | Read            | Indicates that interrupts is enabled.                        |
+| 8      | Overrun Error | Read            | Indicates that an overrun error has occurred after the last time the status register was read. Overrun is when a new character has been received but the receive FIFO is full. The received character is ignored and not written into the receive FIFO. This bit is cleared when the status register is read. [This might not work in my implementation] |
+| 9      | Frame Error   | Read            | Indicates that a frame error has occurred after the last time the status register was read. Frame error is defined as detection of a stop bit with the value 0. The receive character is ignored and not written to the receive FIFO. |
+| 10     | Parity Error  | Read            | Indicates that a parity error has occurred after the last time the status register was read. If the UART is configured without any parity handling, this bit is always 0. |
 
