@@ -153,17 +153,31 @@ architecture Behavioral of Interrupt_Entity is
     signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal ffimmop : IMMTYPE;
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
+
+    -- attribute keep of fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute keep of fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute keep of INTERRUPT : signal is "TRUE";
 
     -- attribute keep of timerAlarm : signal is "TRUE";
-    -- attribute keep of timerRun : signal is "TRUE";
     -- attribute keep of timerInt : signal is "TRUE";
 
-    -- attribute keep of waitRun : signal is "TRUE";
-    -- attribute keep of waitAlarm : signal is "TRUE";
-    -- attribute keep of waitCancel : signal is "TRUE";
+    -- attribute keep of interruptRun : signal is "TRUE";
+    -- attribute keep of interruptMaskLocal : signal is "TRUE";
+    -- attribute keep of interruptSpNumLocal : signal is "TRUE";
 
+    -- attribute MARK_DEBUG of fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute MARK_DEBUG of fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute MARK_DEBUG of INTERRUPT : signal is "TRUE";
+
+    -- attribute MARK_DEBUG of timerAlarm : signal is "TRUE";
+    -- attribute MARK_DEBUG of timerInt : signal is "TRUE";
+
+    -- attribute MARK_DEBUG of interruptRun : signal is "TRUE";
+    -- attribute MARK_DEBUG of interruptMaskLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of interruptSpNumLocal : signal is "TRUE";
+    
 begin
 
     opcode <= INSTRUCTION(31 downto 27);

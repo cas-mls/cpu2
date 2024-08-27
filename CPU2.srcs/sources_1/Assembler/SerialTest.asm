@@ -13,28 +13,6 @@ RINDEX = 5;
 WINDEX = 6;
 BUSY = 0b1`16
 
-INT0:
-    #d32    START
-SERIALINTERRUPT:
-#addr 12
-    #d32    SERIALHANDLER
-
-SERIALHANDLER:
-    push    r SP1, R10
-    ; push    r SP1, R11
-LOOPRB:
-    rsio    r10, r IOADDR
-    ; ld      R11, R10
-    and     r10, 0b1`16
-    bnz     r10, LOOPRB
-    ; and     r11, 0b1000`16
-    ; bz      r11, LOOPRB
-    rio     r IOADDR, r RINDEX, mem[READDATA]
-    add     R RINDEX, 1
-    ; pop     r SP1, r11
-    pop     r SP1, r10
-    rti
-
 LedIo = 3 ; IO Address for the Leds
 WaitRes = 100000000 / 100000 ; 1 Clocks in one millisecond
 Wait = 50000 ; Wait Time 1/2 second.
@@ -42,6 +20,14 @@ MaxCount = 16 ; Count 0 to 15
 CountReg = 1; 
 MaxCountReg = 2;
 WaitReg = 3;
+
+
+INT0:
+    #d32    START
+
+SERIALINTERRUPT:
+#addr 12
+    #d32    SERIALHANDLER
 
 #addr 32
 START:
@@ -80,6 +66,23 @@ LOOPWB:
 WRITERET:
     pop     r SP1, r10
     rtn     r SP1
+
+SERIALHANDLER:
+    push    r SP1, R10
+    ; push    r SP1, R11
+LOOPRB:
+    rsio    r10, r IOADDR
+    ; ld      R11, R10
+    and     r10, 0b1`16
+    bnz     r10, LOOPRB
+    ; and     r11, 0b1000`16
+    ; bz      r11, LOOPRB
+    rio     r IOADDR, r RINDEX, mem[READDATA]
+    add     R RINDEX, 1
+    ; pop     r SP1, r11
+    pop     r SP1, r10
+    rti
+
 WRITEDATA:
     #d32    "\0\0\01"
     #d32    "\0\0\02"

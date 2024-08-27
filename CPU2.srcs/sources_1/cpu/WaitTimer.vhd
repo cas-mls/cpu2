@@ -139,8 +139,8 @@ architecture Behavioral of WaitTimer is
     signal immop : IMMTYPE;
     signal ffimmop : IMMTYPE;
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
 
     -- attribute keep of timerAlarm : signal is "TRUE";
     -- attribute keep of timerRun : signal is "TRUE";
