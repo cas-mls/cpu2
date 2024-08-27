@@ -698,24 +698,24 @@ stateDiagram
 | e    |                                             |                                             | <sub>`nand r1, mem[addr]`</sub>               | <sub>`nor r1, mem[addr]`</sub>              |                       | <sub>`xnor r1, mem[addr]`</sub>               |                                                           |                                                            |
 | f    |                                             |      | <sub>`nand r1, r2, mem[addr]`</sub> | <sub>`nor r1, r2, mem[addr]`</sub> |      | <sub>`xnor r1, r2, mem[addr]`</sub> |      |      |
 
-|      | 8                                                 | 9              | a                                    | b                       | c       | d     | e               | f                    |
-| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | ------- | ----- | --------------- | -------------------- |
-| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | rsio r1 | `rti` | `swi r2`        | `iena r1, r2`        |
-| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           |         |       | `swi imm`       | `iena r1, imm`       |
-| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |         |       | `swi mem[addr]` | `iena r1, mem[addr]` |
-| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |         |       |                 |                      |
-| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | wsio r1 |       |                 |                      |
-| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           |         |       |                 |                      |
-| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |         |       |                 |                      |
-| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |         |       |                 |                      |
-| 8    |                                                   |                |                                      |                         |         |       |                 |                      |
-| 9    |                                                   |                |                                      |                         |         |       |                 |                      |
-| a    |                                                   |                |                                      |                         |         |       |                 |                      |
-| b    |                                                   |                |                                      |                         |         |       |                 |                      |
-| c    |                                                   |                |                                      |                         |         |       |                 |                      |
-| d    |                                                   |                |                                      |                         |         |       |                 |                      |
-| e    |                                                   |                |                                      |                         |         |       |                 |                      |
-| f    |                                                   |                |                                      |                         |         |       |                 |                      |
+|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e               | f                    |
+| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | --------------- | -------------------- |
+| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`        | `iena r1, r2`        |
+| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`       | `iena r1, imm`       |
+| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]` | `iena r1, mem[addr]` |
+| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                 |                      |
+| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       |                 |                      |
+| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       |                 |                      |
+| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       |                 |                      |
+| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                 |                      |
+| 8    |                                                   |                |                                      |                         |                |       |                 |                      |
+| 9    |                                                   |                |                                      |                         |                |       |                 |                      |
+| a    |                                                   |                |                                      |                         |                |       |                 |                      |
+| b    |                                                   |                |                                      |                         |                |       |                 |                      |
+| c    |                                                   |                |                                      |                         |                |       |                 |                      |
+| d    |                                                   |                |                                      |                         |                |       |                 |                      |
+| e    |                                                   |                |                                      |                         |                |       |                 |                      |
+| f    |                                                   |                |                                      |                         |                |       |                 |                      |
 
 ## Instruction Detail
 
@@ -823,12 +823,14 @@ Stack operations require a stack pointer register for R1.  This is a normal regi
 
 This command received input for peripherals.  The IO address is one 8 bits (byte) and the data is one word 32 bits.  The Status is defined by the peripheral, the only requirement is bit 0 is a busy bit.
 
-| Assembly                     | Addressing        | Code   | Clock Cycles | Operation                                                  |
-| ---------------------------- | ----------------- | ------ | ------------ | ---------------------------------------------------------- |
-| rio r1, r2                   | Register/Register | b0     | 7            | R2 → IOAddr,<br />IOData →  R1,<br />Status → R0           |
-| roi r1, Imm                  | Immediate         | b1     | 7            | Imm → IOAddr, <br />IOData → R1, <br />Status → R0         |
-| roi r1, mem[address]         | Absolute          | b2     | 8            | R2 → IOAddr,<br /> IOData → mem(imm), <br />Status → R0    |
-| roi r1, r2, mem[address]     | Index             | b3     | 8            | R1 → IOAddr, <br />IOData → mem(r2+imm), <br />Status → R0 |
+| Assembly                 | Addressing        | Code | Clock Cycles | Operation                               |
+| ------------------------ | ----------------- | ---- | ------------ | --------------------------------------- |
+| rio r1, r2               | Register/Register | b0   | 7            | R2 → IOAddr,<br />IOData →  R1          |
+| rio r1, Imm              | Immediate         | b1   | 7            | Imm → IOAddr, <br />IOData → R1         |
+| rio r1, mem[address]     | Absolute          | b2   | 8            | R2 → IOAddr,<br /> IOData → mem(imm)    |
+| rio r1, r2, mem[address] | Index             | b3   | 8            | R1 → IOAddr, <br />IOData → mem(r2+imm) |
+| rsio r1, r2              | Register/Register | c0   | 7            | R2 → IOAddr,<br />Status →  R1          |
+| rsio r1, Imm             | Immediate         | c1   | 7            | Imm → IOAddr, <br />Status → R1         |
 
 ### Output
 
@@ -836,9 +838,11 @@ This command output data to the peripherals.  The IO address is one 8 bits (byte
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation                                                  |
 | ------------------------ | ----------------- | ---- | ------------ | ---------------------------------------------------------- |
 | wio r1, r2               | Register/Register | b4   | 7            | R2 → IOAddr, <br />R1 → IOData,<br />Status → R0           |
-| woi r1, Imm              | Immediate         | b5   | 7            | Imm → IOAddr, <br />R1 → IOData, <br />Status → R0         |
-| woi r1, mem[address]     | Absolute          | b6   | 8            | R2 → IOAddr, <br />mem(imm) → IOData, <br />Status → R0    |
-| woi r1, r2, mem[address] | Index             | b7   | 8            | R1 → IOAddr, <br />mem(r2+imm) → IOData, <br />Status → R0 |
+| wio r1, Imm              | Immediate         | b5   | 7            | Imm → IOAddr, <br />R1 → IOData, <br />Status → R0         |
+| wio r1, mem[address]     | Absolute          | b6   | 8            | R2 → IOAddr, <br />mem(imm) → IOData, <br />Status → R0    |
+| wio r1, r2, mem[address] | Index             | b7   | 8            | R1 → IOAddr, <br />mem(r2+imm) → IOData, <br />Status → R0 |
+| wsio r1, r2              | Register/Register | c4   | 7            | R2 → IOAddr,<br />Status →  R1                             |
+| wsio r1, Imm             | Immediate         | c5   | 7            | Imm → IOAddr, <br />Status → R1                            |
 
 ### Add
 
@@ -1047,4 +1051,36 @@ Return from interrupt processing:
 | MEMR      | Wait                                     |
 | EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
 | MEMW      | DoutB → IntEna                           |
+
+## Serial Device
+
+The Serial Device is a basic UART that runs through the Serial/Programming interface for the Arty device.  This device uses the AXI UART Lite v2.0 IP provided by Vivado.  The interface is AXI-Lite, the first time I used this interface, and needed additional time to understand it.  It was hard to find documentation and examples of this IP.  The example Vivado uses is limited and can only be read from the serial.  I'm not describing the AXI-Lite protocol.
+
+| Signal    | Direction | Description                                            |
+| --------- | --------- | ------------------------------------------------------ |
+| CLK       | IN        | The System Clock                                       |
+| RST       | IN        | Reset Signal                                           |
+| UART_RXD  | IN        | Serial Read.                                           |
+| UART_TXD  | OUT       | Serial Transmitted.                                    |
+| TxByte    | IN        | Byte data to be transmitted.                           |
+| TxAvail   | IN        | The flag indicates that the transmitted byte is valid. |
+| TxStatus  | OUT       | Transmitted Status word.                               |
+| Interrupt | OUT       | Interrupt value when the read data is available.       |
+| RdByte    | OUT       | Read data byte.                                        |
+| RdStatus  | OUT       | Read Status word                                       |
+
+Read/Write Status word is formatted with the following fields:
+
+| Bit(s) | Name          | Read/Write/Both | Description                                                  |
+| ------ | ------------- | --------------- | ------------------------------------------------------------ |
+| 0      | Busy          | Both            |                                                              |
+| 1-2    | AXI Response  | Both            | 0 = OKAY - Successful<br />1 = EXOKAY - Successful with Exclusive Access<br />2 = SLVERR - Unsuccessful<br />3 = DECERR - Decode Error |
+| 3      | Rx FIFO Valid | Read            | Indicates if the receive FIFO has data.                      |
+| 4      | RX FIFO Full  | Read            | Indicates if the receive FIFO is full.                       |
+| 5      | Tx FIFO Empty | Write           | Indicates if the transmit FIFO is empty.                     |
+| 6      | TS FIFO Full  | Write           | Indicates if the transmit FIFO is full.                      |
+| 7      | Interrupt Ena | Read            | Indicates that interrupts is enabled.                        |
+| 8      | Overrun Error | Read            | Indicates that an overrun error has occurred after the last time the status register was read. Overrun is when a new character has been received but the receive FIFO is full. The received character is ignored and not written into the receive FIFO. This bit is cleared when the status register is read. [This might not work in my implementation] |
+| 9      | Frame Error   | Read            | Indicates that a frame error has occurred after the last time the status register was read. Frame error is defined as detection of a stop bit with the value 0. The receive character is ignored and not written to the receive FIFO. |
+| 10     | Parity Error  | Read            | Indicates that a parity error has occurred after the last time the status register was read. If the UART is configured without any parity handling, this bit is always 0. |
 
