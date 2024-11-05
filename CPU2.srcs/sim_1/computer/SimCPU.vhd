@@ -25,6 +25,8 @@ use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.numeric_std_unsigned.all;
 use std.textio.all;
+library xil_defaultlib;
+use xil_defaultlib.Utilities.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -61,7 +63,10 @@ architecture Behavioral of SimCPU is
             MEM_WEB       : out STD_LOGIC_VECTOR(0 downto 0)  := "0";
             MEM_ADDRB     : out STD_LOGIC_VECTOR(11 downto 0) := X"000";
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000"
+            MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+
+            DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+            DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
 
@@ -164,6 +169,10 @@ architecture Behavioral of SimCPU is
     signal RdStatus      : STD_LOGIC_VECTOR (31 downto 0);
     signal r_xtr         : STD_LOGIC_VECTOR(7 downto 0);
 
+    -- Debug Items
+    signal DebugIn      : DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+    signal DebugOut     : DEBUGOUTTYPE;
+
     procedure InitRamFromFile
     (RamFileName    : in  STRING;
     signal LD_CLK   : out STD_LOGIC;
@@ -248,7 +257,9 @@ port map(
     MEM_WEB       => MEM_WEB,
     MEM_ADDRB     => MEM_ADDRB,
     MEM_DINB      => MEM_DINB,
-    MEM_DOUTB     => MEM_DOUTB
+    MEM_DOUTB     => MEM_DOUTB,
+    DEBUGIN     => DebugIn,
+    DEBUGOUT    => DebugOut
 );
 
 uartCUT : UartDevice
@@ -383,6 +394,31 @@ begin
             end if;
         end loop;
     end if;
+
+end process;
+
+debug : process
+begin
+    wait for 1us;
+    DebugIn.DebugMode <= '1';
+    DebugIn.BreakPoints(0) <= x"063";
+    wait for 5us;
+    wait until rising_edge (clk);
+    DebugIn.Break <= '1';
+    wait until rising_edge (clk);
+    DebugIn.Break <= '0';
+
+    wait for 1us;
+    wait until rising_edge (clk);
+    DebugIn.Step <= '1';
+    wait until rising_edge (clk);
+    DebugIn.Step <= '0';
+
+    wait for 5us;
+    wait until rising_edge (clk);
+    DebugIn.Continue <= '1';
+    wait until rising_edge (clk);
+    DebugIn.Continue <= '0';
 
 end process;
 

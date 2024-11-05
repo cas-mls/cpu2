@@ -1084,3 +1084,11 @@ Read/Write Status word is formatted with the following fields:
 | 9      | Frame Error   | Read            | Indicates that a frame error has occurred after the last time the status register was read. Frame error is defined as detection of a stop bit with the value 0. The receive character is ignored and not written to the receive FIFO. |
 | 10     | Parity Error  | Read            | Indicates that a parity error has occurred after the last time the status register was read. If the UART is configured without any parity handling, this bit is always 0. |
 
+## Debug
+
+Links: 
+
+* [Wishbone Interconnect](https://wishbone-interconnect.readthedocs.io/en/latest/03_classic.html)
+
+Wishbone/UART interconnect where UART is the master and the Computer.vhd is the slave.
+

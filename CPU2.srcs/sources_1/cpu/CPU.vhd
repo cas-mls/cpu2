@@ -132,7 +132,6 @@ entity CPU is
         IO_STATUS : in std_logic_vector (31 downto 0);
         IO_STATUS_REQ : out std_logic;
         INTERRUPT : in std_logic_vector (31 downto 0);
-        -- METRICS     : out METRICSTYPE;
         MEM_ENA : out std_logic := '1';
         MEM_WEA : out std_logic_vector(0 downto 0) := "0";
         MEM_ADDRA : out std_logic_vector(11 downto 0) := X"000";
@@ -142,7 +141,10 @@ entity CPU is
         MEM_WEB : out std_logic_vector(0 downto 0) := "0";
         MEM_ADDRB : out std_logic_vector(11 downto 0) := X"000";
         MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
-        MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000"
+        MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
+
+        DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+        DEBUGOUT    : out DEBUGOUTTYPE
     );
 
 end CPU;
@@ -162,7 +164,7 @@ architecture Behavioral of CPU is
             ireg1value : in std_logic_vector(31 downto 0);
             ireg2value : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
-            cpuRegs : out reg_type
+            cpuRegs : out REG_TYPE
         );
 
     end component;
@@ -171,7 +173,7 @@ architecture Behavioral of CPU is
         port (
             SYS_CLK : in std_logic;
             INSTRUCTION : in std_logic_vector(31 downto 0);
-            cpuRegs : in reg_type;
+            cpuRegs : in REG_TYPE;
 
             fsm_inst_cycle_p : in CYCLETYPE_FSM;
             fsm_interrupt_cycle_p : in INTERRUPT_FSM;
@@ -181,7 +183,7 @@ architecture Behavioral of CPU is
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             interruptRun : in std_logic;
             interruptNum : in integer range 0 to interruptNums := 0;
-            ProgramCounter : in unsigned(11 downto 0);
+            ProgramCounter : in PCTYPE;
             interruptMask : in std_logic_vector(interruptNums downto 0);
 
             MEM_ENB : out std_logic := '1';
@@ -195,7 +197,7 @@ architecture Behavioral of CPU is
         port (
             SYS_CLK : in std_logic;
             INSTRUCTION : in std_logic_vector(31 downto 0);
-            cpuRegs : in reg_type;
+            cpuRegs : in REG_TYPE;
 
             fsm_inst_cycle_p : in CYCLETYPE_FSM;
             fsm_interrupt_cycle_p : in INTERRUPT_FSM;
@@ -204,7 +206,7 @@ architecture Behavioral of CPU is
             MEM_ENA : out std_logic := '1';
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
             MEM_ADDRA : out std_logic_vector(11 downto 0);
-            ProgramCounter : out unsigned(11 downto 0)
+            ProgramCounter : out PCTYPE
         );
     end component ProgCounter;
 
@@ -212,7 +214,7 @@ architecture Behavioral of CPU is
         port (
             SYS_CLK : in std_logic;
             INSTRUCTION : in std_logic_vector(31 downto 0);
-            cpuRegs : in reg_type;
+            cpuRegs : in REG_TYPE;
             MEM_ARG : in std_logic_vector(31 downto 0);
             fsm_inst_cycle_p : in CYCLETYPE_FSM;
 
@@ -229,7 +231,7 @@ architecture Behavioral of CPU is
         port (
             SYS_CLK : in std_logic;
             INSTRUCTION : in std_logic_vector(31 downto 0);
-            cpuRegs : in reg_type;
+            cpuRegs : in REG_TYPE;
             fsm_inst_cycle_p : in CYCLETYPE_FSM;
 
             waitAlarm : out std_logic;
@@ -245,7 +247,7 @@ architecture Behavioral of CPU is
         port (
             SYS_CLK : in std_logic;
             INSTRUCTION : in std_logic_vector(31 downto 0);
-            cpuRegs : in reg_type;
+            cpuRegs : in REG_TYPE;
             fsm_inst_cycle_p : in CYCLETYPE_FSM;
             MEM_ARG : in std_logic_vector(31 downto 0);
             INTERRUPT : in std_logic_vector (31 downto 0);
@@ -261,9 +263,8 @@ architecture Behavioral of CPU is
         );
     end component Interrupt_Entity;
 
-    signal METRICS : METRICSTYPE;
 
-    signal ProgramCounter : unsigned(11 downto 0) := X"000";
+    signal ProgramCounter : PCTYPE := X"000";
     signal fsm_inst_cycle_p : CYCLETYPE_FSM := RESET_STATE_S;
     signal fsm_inst_cycle_n : CYCLETYPE_FSM := RESET_STATE_S;
 
@@ -286,7 +287,7 @@ architecture Behavioral of CPU is
     signal ffimmop : IMMTYPE;
 
     -- Register information
-    signal cpuRegs : reg_type := (others => (others => '0'));
+    signal cpuRegs : REG_TYPE := (others => (others => '0'));
 
     -- interrupts
     signal fsm_interrupt_cycle_p : INTERRUPT_FSM := INTRWAIT_S;
@@ -296,15 +297,15 @@ architecture Behavioral of CPU is
     signal interruptSpNum : integer range 0 to interruptNums;
     signal interruptSpAddrValue : integer range 0 to 2 ** MEM_ADDRB'length - 1;
 
-    -- metrics
-    signal cycleCount : unsigned (63 downto 0) := (others => '0');
-
     signal waitRun : std_logic := '0';
     signal waitAlarm : std_logic := '0';
     signal waitCancel : std_logic := '0';
 
     signal timerAlarm : std_logic := '0';
     signal timerInt : unsigned (4 downto 0) := "00000";
+
+    -- DEBUG 
+    signal StepWait : STD_LOGIC := '0';
 
     -- Help with ILA debugging by flattening the Wires.
     -- attribute keep : string;
@@ -436,12 +437,8 @@ begin
     begin
         if rising_edge (SYS_CLK) then
             if (INTERRUPT = RESET) then
-                cycleCount <= (others => '0');
-                METRICS.cycleCount <= (others => '0');
                 fsm_inst_cycle_p <= RESET_STATE_S;
             else
-                cycleCount <= cycleCount + 1;
-                METRICS.cycleCount <= cycleCount;
                 if interruptRun = '1' then
                     fsm_inst_cycle_p <= ADDRESS_S;
                 else
@@ -461,6 +458,7 @@ begin
         waitAlarm,
         waitCancel,
         interruptRun,
+        DEBUGOUT.Stopped,
         fsm_interrupt_cycle_p
         )
     begin
@@ -473,7 +471,11 @@ begin
                 ----------------------------------------------------------------
                 -- This sets up the instruction address to read.
             when ADDRESS_S =>
-                fsm_inst_cycle_n <= INSTFETCH1_S;
+                if DEBUGOUT.Stopped = '1' then
+                    fsm_inst_cycle_n <= ADDRESS_S;
+                else
+                    fsm_inst_cycle_n <= INSTFETCH1_S;
+                end if;
 
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
@@ -578,6 +580,9 @@ begin
                         fsm_inst_cycle_n <= ADDRESS_S;
                     end if;
 
+                elsif DEBUGOUT.Stopped = '1' then
+                    fsm_inst_cycle_n <= ADDRESS_S;
+
                 elsif ffopcode /= oJMP
                     and ffopcode /= oBE
                     and ffopcode /= oBLT
@@ -640,6 +645,64 @@ begin
         end if;
 
     end process decode_Proc;
+
+    debug_proc : process(SYS_CLK)
+        variable pc1 : unsigned(7 downto 0);
+        variable pc2 : unsigned(7 downto 0);
+    begin
+        if rising_edge (SYS_CLK) then
+            case fsm_inst_cycle_p is
+                -- CPU RESET
+                when RESET_STATE_S =>
+                    DEBUGOUT.Stopped     <= '0';
+                    DEBUGOUT.CycleCount  <= (others => '0');
+                    DEBUGOUT.ProgCounter <= (others => '0');
+                    DEBUGOUT.Regs        <= (others => (others => '0'));
+                    DEBUGOUT.Instruction <= (others =>'0');
+                    stepWait <= '0';
+
+                when ADDRESS_S =>
+                    if DEBUGIN.DebugMode = '1' then
+                        if  DEBUGOUT.Stopped /= '1'and ( 
+                            ProgramCounter = DEBUGIN.BreakPoints(0)
+                            or ProgramCounter = DEBUGIN.BreakPoints(1)
+                            or ProgramCounter = DEBUGIN.BreakPoints(2)
+                            or ProgramCounter = DEBUGIN.BreakPoints(3))
+                        then
+                            DEBUGOUT.Stopped <= '1';
+                            DEBUGOUT.ProgCounter <= ProgramCounter;
+                            DEBUGOUT.Regs <= cpuRegs;
+                            DEBUGOUT.Instruction <= MEM_DOUTA;
+                        else
+                            if DEBUGIN.Continue = '1'
+                            then
+                                DEBUGOUT.Stopped <= '0';
+                            elsif DEBUGIN.Step = '1'
+                            then
+                                DEBUGOUT.Stopped <= '0';
+                                StepWait <= '1';
+                            end if;
+                        end if;
+                    end if;
+                when others =>
+                    if DEBUGIN.DebugMode = '1' then
+                        if  DEBUGOUT.Stopped /= '1' 
+                        then
+                            DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
+                            if DEBUGIN.Break = '1' 
+                                or StepWait = '1'
+                            then
+                                StepWait <= '0';
+                                DEBUGOUT.Stopped <= '1';
+                                DEBUGOUT.ProgCounter <= ProgramCounter;
+                                DEBUGOUT.Regs <= cpuRegs;
+                                DEBUGOUT.Instruction <= MEM_DOUTA;
+                            end if;
+                        end if;
+                    end if;
+            end case;
+        end if;
+    end process debug_proc;
 
     -- intrCounter_proc : process (SYS_CLK)
     -- begin

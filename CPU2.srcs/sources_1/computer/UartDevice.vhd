@@ -51,6 +51,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 
 
+
 entity UartDevice is
     Port (  CLK      : in STD_LOGIC;
             RST     : in STD_LOGIC;
@@ -139,12 +140,16 @@ architecture Behavioral of UartDevice is
     -- Other Write Flag Signals
     signal w_write_processing : STD_LOGIC;
     signal w_status_processing : STD_LOGIC;
-
+    -- Write Status Flags
+    signal w_Busy : STD_LOGIC;
+    signal w_Response : STD_LOGIC_VECTOR(1 downto 0);
+    signal w_Status : STD_LOGIC_VECTOR(7 downto 0);
 
 begin
 
     w_s_axi_aresetn <= not RST;
     r_s_axi_aresetn <= not RST;
+    TxStatus <= B"000000000000000000000" & w_Status & w_Response & w_Busy;
 
     uartRead : SerialDevice115k
     port map(
@@ -265,10 +270,10 @@ begin
         tx            => UART_TXD
     );
 
+
+
     write_proc : process (CLK)
-        -- This variable is used to stop status in the
-        -- middle of the write command.
-        variable InhibitStatus : BOOLEAN := false;
+
     begin
 
         if rising_edge(CLK) then
@@ -277,74 +282,69 @@ begin
                 w_s_axi_awvalid <= '0';
                 w_s_axi_wdata <= (others => '0');
                 w_s_axi_wvalid <= '0';
-                w_s_axi_araddr <= X"8";
-                w_s_axi_arvalid <= '0';
-                w_s_axi_rready <= '0';
-                TxStatus <= (others => '0');
-                w_write_processing <= '0';
-                w_status_processing <= '0';
+                w_Busy <= '0';
             else
-                if TxAvail = '1'
-                    and TxStatus(0) = '0'
-                then
-                    TxStatus(0) <= '1';
-                elsif TxStatus(0) = '1'
-                    and w_s_axi_arvalid = '0'
-                    and w_s_axi_rvalid = '0' -- Status Completed?
-                    and w_s_axi_wready = '0'
-                then -- Setup to Write Data
-                    w_s_axi_awaddr <= X"4";
-                    w_s_axi_wdata <= X"000000" & TxByte;
-                    w_s_axi_awvalid <= '1';
-                    w_s_axi_wvalid <= '1';
-                    w_write_processing <= '1';
-                    InhibitStatus := true;
-                elsif w_s_axi_awvalid = '1'
-                then -- Done Writting Data
-                    w_s_axi_awvalid <= '0';
-                    w_s_axi_wvalid <= '0';
-                    TxStatus(2 downto 1) <= w_s_axi_bresp;
-                    w_write_processing <= '0';
-                    w_status_processing <= '1';
-                    InhibitStatus := false;
-                end if;
-
-                -- else -- Status word
-                if w_s_axi_rready = '0'
-                    and w_s_axi_rvalid = '0'
-                    -- and  w_write_processing = '0'
-                    and TxAvail = '0'
-                    and not InhibitStatus
-                    -- and TxStatus(0) = '0'
-                then
-                    w_s_axi_arvalid <= '1';
-                end if;
-
-                if w_s_axi_arready = '1' then
-                    w_s_axi_arvalid <= '0';
-                    w_s_axi_rready <= '1';
-                end if;
-
-                if w_s_axi_rvalid = '1'
-                    and w_write_processing = '0'
-                    -- and TxStatus(0) = '0'
-                then -- Get and save status word
-                    w_s_axi_rready <= '0';
-                    TxStatus(10 downto 3) <= w_s_axi_rdata(7 downto 0);
-                    if w_status_processing = '1' then
-                        TxStatus(0) <= '0';
-                        w_status_processing <= '0';
+                if w_Busy = '0' then
+                    if TxAvail = '1' then -- Set up Write
+                        w_Busy <= '1'; -- Set Busy Flag
+                        w_s_axi_awaddr <= X"4";
+                        w_s_axi_awvalid <= '1';
+                        w_s_axi_wdata <= X"000000" & TxByte;
+                        w_s_axi_wvalid <= '1';
+                    end if;
+                else -- Busy
+                    if w_s_axi_wready = '1' then -- Finish Write
+                        w_s_axi_awvalid <= '0';
+                        w_s_axi_wvalid <= '0';
+                        w_Busy <= '0';
                     end if;
                 end if;
 
-                if w_s_axi_bvalid = '1' then
-                    w_s_axi_bready <= '1';
-                elsif w_s_axi_bready = '1' then
-                    w_s_axi_bready <= '0';
-                end if;
             end if;
         end if;
     end process write_proc; -- write_proc
+
+    write_status_proc : process (CLK)
+    begin
+
+        if rising_edge(CLK) then
+            if RST = '1' then
+                w_Status <= (others => '0');
+                w_s_axi_rready <= '1';
+                w_s_axi_araddr <= X"8";
+                w_s_axi_arvalid <= '1';
+            else
+                if w_Busy = '0' then
+                    if w_s_axi_arready = '1' then
+                        w_s_axi_arvalid <= '1';
+                    end if;
+                    if w_s_axi_rvalid = '1' then
+                        w_s_axi_arvalid <= '0';
+                        w_Status <= w_s_axi_rdata(7 downto 0);
+                    end if;
+                end if;
+            end if;
+        end if;
+
+    end process write_status_proc;
+
+    write_response_proc : process (CLK)
+    begin
+
+        if rising_edge(CLK) then
+            if RST = '1' then
+                w_Response <= (others => '0');
+                w_s_axi_bready <= '1';
+            else
+                if w_Busy = '0' then
+                    if w_s_axi_bvalid = '1' then
+                        w_Response <= w_s_axi_bresp;
+                    end if;
+                end if;
+            end if;
+        end if;
+
+    end process write_response_proc;
 
 
 end Behavioral;

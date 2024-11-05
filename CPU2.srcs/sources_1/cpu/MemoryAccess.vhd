@@ -92,7 +92,7 @@ entity MemoryAccess is
     port (
         SYS_CLK : in std_logic;
         INSTRUCTION : in std_logic_vector(31 downto 0);
-        cpuRegs : in reg_type;
+        cpuRegs : in REG_TYPE;
 
         fsm_inst_cycle_p : in CYCLETYPE_FSM;
         fsm_interrupt_cycle_p : in INTERRUPT_FSM;
@@ -102,7 +102,7 @@ entity MemoryAccess is
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
         interruptRun : in std_logic;
         interruptNum : in integer range 0 to interruptNums := 0;
-        ProgramCounter : in unsigned(11 downto 0);
+        ProgramCounter : in PCTYPE;
         interruptMask : in std_logic_vector(interruptNums downto 0);
 
         MEM_ENB : out std_logic := '1';

@@ -58,12 +58,16 @@ package Utilities is
         DONE_S          -- State 8
     );
 
+    -- Program Counter
+    subtype PCTYPE is unsigned(11 downto 0);
+
     -- Register Information
     constant regOpSizeBits : integer := 4;
     constant regOpMax  : integer := 2**regOpSizeBits-1;
-    type reg_type is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
+    type REG_TYPE is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
 
     -- Instruction Decode Types
+    subtype INSTRUCTIONTYPE is STD_LOGIC_VECTOR (31 downto 0);
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
     subtype MEMTYPE is  STD_LOGIC_VECTOR (1 downto 0);
     subtype REGTYPE is  STD_LOGIC_VECTOR (regOpSizeBits-1 downto 0);
@@ -111,8 +115,44 @@ package Utilities is
     constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
     constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
-    type METRICSTYPE is record
-        CycleCount : unsigned(63 downto 0);
+    type DEBUGOUTTYPE is record
+        Stopped     : STD_LOGIC;
+        CycleCount  : unsigned(63 downto 0);
+        ProgCounter : PCTYPE;
+        Regs        : REG_TYPE;
+        Instruction : INSTRUCTIONTYPE;
     end record;
+
+    constant NumBreakPoint : integer := 4;
+    type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
+
+    type DEBUGINTYPE is record
+        DebugMode   : STD_LOGIC;
+        BreakPoints : BREAKPOINTS_TYPE;
+        Break       : STD_LOGIC;
+        Step        : STD_LOGIC;
+        Continue    : STD_LOGIC;
+    end record;
+
+    type WB_ADDRTAGS_TYPE is (
+        WB_COMMANDS,            -- Value 0
+        WB_REGISTERS,           -- Value 1
+        WB_MEMORY               -- Value 2
+        );
+
+    type DEBUG_CMD_TYPE is (    -- WB_COMMANDS (ADDRESS READ)
+        DBG_MODE,               -- Value 0
+        DBG_BREAK,              -- Value 1
+        DBG_STEP,               -- Value 2
+        DBG_CONTINUE            -- Value 3
+    );
+
+    type DEBUG_DATA is (        -- WB_COMMANDS (ADDRESS WRITE)
+        DBG_STATE,              -- VALUE 0
+        DBG_PROG_COUNTER,       -- VALUE 1
+        DBG_INSTRUCTION,        -- VALUE 2
+        DBG_CYCLES              -- VALUE 3
+    );
+
 
 end Package;

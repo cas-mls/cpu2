@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="simComputer_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="ipif_pkg" />
+            <top_module name="lib_pkg" />
+            <top_module name="simComputer" />
+            <top_module name="utilities" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="153.163200 us"></ZoomStartTime>
+      <ZoomEndTime time="770.163201 us"></ZoomEndTime>
+      <Cursor1Time time="478.163200 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="256"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="13" />
+   <wvobject fp_name="/simComputer/CLK" type="logic">
+      <obj_property name="ElementShortName">CLK</obj_property>
+      <obj_property name="ObjectShortName">CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/RST" type="logic">
+      <obj_property name="ElementShortName">RST</obj_property>
+      <obj_property name="ObjectShortName">RST</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/UART_RXD" type="logic">
+      <obj_property name="ElementShortName">UART_RXD</obj_property>
+      <obj_property name="ObjectShortName">UART_RXD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/UART_TXD" type="logic">
+      <obj_property name="ElementShortName">UART_TXD</obj_property>
+      <obj_property name="ObjectShortName">UART_TXD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/led" type="array">
+      <obj_property name="ElementShortName">led[3:0]</obj_property>
+      <obj_property name="ObjectShortName">led[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/dmode" type="logic">
+      <obj_property name="ElementShortName">dmode</obj_property>
+      <obj_property name="ObjectShortName">dmode</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/dcont" type="logic">
+      <obj_property name="ElementShortName">dcont</obj_property>
+      <obj_property name="ObjectShortName">dcont</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/dstep" type="logic">
+      <obj_property name="ElementShortName">dstep</obj_property>
+      <obj_property name="ObjectShortName">dstep</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/dbreak" type="logic">
+      <obj_property name="ElementShortName">dbreak</obj_property>
+      <obj_property name="ObjectShortName">dbreak</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/CMD" type="array">
+      <obj_property name="ElementShortName">CMD[7:0]</obj_property>
+      <obj_property name="ObjectShortName">CMD[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/ADDRESS" type="array">
+      <obj_property name="ElementShortName">ADDRESS[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ADDRESS[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/CMD_RESP" type="array">
+      <obj_property name="ElementShortName">CMD_RESP[7:0]</obj_property>
+      <obj_property name="ObjectShortName">CMD_RESP[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/DATA_OUT" type="array">
+      <obj_property name="ElementShortName">DATA_OUT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">DATA_OUT[31:0]</obj_property>
+   </wvobject>
+</wave_config>
