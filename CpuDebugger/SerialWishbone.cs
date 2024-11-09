@@ -43,12 +43,16 @@ namespace CpuDebugger
             WbPort.Write(inbuf, 0, 1);
             BitConverter.GetBytes(addr).CopyTo(inbuf, 1);
             WbPort.Write(inbuf, 1, 2);
-            WbPort.Read(outbuf, 0, 5);
 
+            WbPort.Read(outbuf, 0, 1);
+            WbPort.Read(outbuf, 1, 1);
+            WbPort.Read(outbuf, 2, 1);
+            WbPort.Read(outbuf, 3, 1);
+            WbPort.Read(outbuf, 4, 1);
+            //outbuf = taskRead.Result;
 
-            //port.Read(outbuf, 0, 1);
-            //return BitConverter.ToUInt32(taskRead.Result, 1);
             return BitConverter.ToUInt32(outbuf, 1);
+            //return BitConverter.ToUInt32(outbuf, 1);
         }
 
         //def write(self, addr, data) :
@@ -81,13 +85,21 @@ namespace CpuDebugger
 
         internal static SerialPort Open(string portName)
         {
-            SerialPort WbPort = new() { PortName = portName, BaudRate = 115200, DataBits = 8, StopBits = StopBits.One, Parity = Parity.None, Handshake = Handshake.None };
+            SerialPort WbPort = new() { 
+                PortName = portName, 
+                BaudRate = 115200, 
+                DataBits = 8, 
+                StopBits = StopBits.One, 
+                Parity = Parity.None, 
+                Handshake = Handshake.None,
+                ReadTimeout = 2000 };
             // TestPort.BaudRate = 115200;
             // TestPort.DataBits = 8;
             // TestPort.StopBits = StopBits.One;
             // TestPort.Parity = Parity.None;
             // TestPort.Handshake = Handshake.None;
             // Echo True
+            WbPort.ErrorReceived += Port_ErrorReceived;
             WbPort.Open();
             return WbPort;
         }
@@ -101,5 +113,10 @@ namespace CpuDebugger
         {
             return SerialPort.GetPortNames();
         }
+        private static void Port_ErrorReceived(object sender, SerialErrorReceivedEventArgs e)
+        {
+            Console.WriteLine("Error = " + e.EventType.ToString());
+        }
+
     }
 }

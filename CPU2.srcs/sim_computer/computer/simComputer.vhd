@@ -76,6 +76,7 @@ architecture Behavioral of simComputer is
     signal ADDRESS : STD_LOGIC_VECTOR(15 downto 0);
     signal CMD_RESP : STD_LOGIC_VECTOR(7 downto 0);
     signal DATA_OUT : STD_LOGIC_VECTOR(31 downto 0);
+    signal DATA_IN  : STD_LOGIC_VECTOR(31 downto 0);
 
 
     procedure UART_DRIVER (
@@ -100,8 +101,8 @@ architecture Behavioral of simComputer is
 
     procedure UART_MONITOR (
         constant UART_PER       : time;
-        signal   UART_TXD       : in  std_logic;
-        variable   UART_DOUT      : out std_logic_vector(7 downto 0)
+        variable UART_DOUT      : out std_logic_vector(7 downto 0);
+        signal   UART_TXD       : in  std_logic
     ) is 
         variable tmp : STD_LOGIC_VECTOR(7 downto 0);
     begin
@@ -137,8 +138,8 @@ architecture Behavioral of simComputer is
         signal UART_TXD     : in  STD_LOGIC;
         signal CMD          : in  STD_LOGIC_VECTOR(7 downto 0);
         signal ADDRESS      : in  STD_LOGIC_VECTOR(15 downto 0);
-        signal CMD_RESP      : out STD_LOGIC_VECTOR(7 downto 0);
-        signal DATA         : out STD_LOGIC_VECTOR(31 downto 0)
+        signal DATA         : out STD_LOGIC_VECTOR(31 downto 0);
+        signal CMD_RESP      : out STD_LOGIC_VECTOR(7 downto 0)
     ) is
         variable tmp : STD_LOGIC_VECTOR(31 downto 0);
         variable tmp2 : STD_LOGIC_VECTOR(7 downto 0);
@@ -146,14 +147,37 @@ architecture Behavioral of simComputer is
         UART_DRIVER(UART_PERIOD, CMD, UART_RXD); -- Command
         UART_DRIVER(UART_PERIOD, ADDRESS(7 downto 0), UART_RXD); -- Low Address
         UART_DRIVER(UART_PERIOD, ADDRESS(15 downto 8), UART_RXD); -- High Address
-        UART_MONITOR(UART_PERIOD, UART_TXD, tmp2); -- Data 0
-        UART_MONITOR(UART_PERIOD, UART_TXD, tmp(7 downto 0)); -- Data 0
-        UART_MONITOR(UART_PERIOD, UART_TXD, tmp(15 downto 8)); -- Data 1
-        UART_MONITOR(UART_PERIOD, UART_TXD, tmp(23 downto 16)); -- Data 2
-        UART_MONITOR(UART_PERIOD, UART_TXD, tmp(31 downto 24)); -- Data 3
+        UART_MONITOR(UART_PERIOD, tmp2, UART_TXD); -- Command Response
+        UART_MONITOR(UART_PERIOD, tmp(7 downto 0), UART_TXD); -- Data 0
+        UART_MONITOR(UART_PERIOD, tmp(15 downto 8), UART_TXD); -- Data 1
+        UART_MONITOR(UART_PERIOD, tmp(23 downto 16), UART_TXD); -- Data 2
+        UART_MONITOR(UART_PERIOD, tmp(31 downto 24), UART_TXD); -- Data 3
         DATA <= tmp;
         CMD_RESP <= tmp2;
     end procedure;
+
+    procedure WB_WRITE(
+        constant UART_PER   : time;
+        signal UART_RXD     : out STD_LOGIC;
+        signal UART_TXD     : in  STD_LOGIC;
+        signal CMD          : in  STD_LOGIC_VECTOR(7 downto 0);
+        signal ADDRESS      : in  STD_LOGIC_VECTOR(15 downto 0);
+        signal DATA         : in STD_LOGIC_VECTOR(31 downto 0);
+        signal CMD_RESP      : out STD_LOGIC_VECTOR(7 downto 0)
+    ) is
+        variable tmp2 : STD_LOGIC_VECTOR(7 downto 0);
+    begin
+        UART_DRIVER(UART_PERIOD, CMD, UART_RXD); -- Command
+        UART_DRIVER(UART_PERIOD, ADDRESS(7 downto 0), UART_RXD); -- Low Address
+        UART_DRIVER(UART_PERIOD, ADDRESS(15 downto 8), UART_RXD); -- High Address
+        UART_DRIVER(UART_PERIOD, DATA(7 downto 0), UART_RXD); -- Data 0
+        UART_DRIVER(UART_PERIOD, DATA(15 downto 8), UART_RXD); -- Data 1
+        UART_DRIVER(UART_PERIOD, DATA(23 downto 16), UART_RXD); -- Data 2
+        UART_DRIVER(UART_PERIOD, DATA(31 downto 24), UART_RXD); -- Data 3
+        UART_MONITOR(UART_PERIOD, tmp2, UART_TXD); -- Command Response
+        CMD_RESP <= tmp2;
+    end procedure;
+
 
 begin
 
@@ -195,6 +219,7 @@ begin
         dstep <= '0';
         dbreak <= '0';
         DATA_OUT <= (others => '0');
+        DATA_IN <= (others => '0');
         wait until RST = '0';
 
         wait for PERIOD * 5;
@@ -206,37 +231,53 @@ begin
         dbreak <= '0';
 
         wait for PERIOD * 5;
-        CMD <= X"00";
-        ADDRESS <= X"0000";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0001";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0002";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0003";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
+        CMD <= X"01"; -- Command Write
+        ADDRESS <= X"0001"; -- Break
+        DATA_IN <= (others => '0');
+        WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
+
+        CMD <= X"00"; -- Command Read (Status)
+        ADDRESS <= X"0000"; -- Debug Mode (1 = Stop, 0 = Run)
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0001"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0002"; -- Instruction
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0003"; -- Cycles
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
         wait until rising_edge(clk);
         dstep <= '1';
         wait until rising_edge(clk);
         dstep <= '0';
-        ADDRESS <= X"0001";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0002";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0003";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
+        ADDRESS <= X"0001"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0002"; -- Instruction
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0003"; -- Cycles
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
         wait until rising_edge(clk);
         dstep <= '1';
         wait until rising_edge(clk);
         dstep <= '0';
-        ADDRESS <= X"0001";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0002";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
-        ADDRESS <= X"0003";
-        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, CMD_RESP, DATA_OUT);
+        ADDRESS <= X"0001"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0002"; -- Instruction
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0003"; -- Cycles
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
 
+        CMD <= X"01"; -- Command Write
+        ADDRESS <= X"0002"; -- Step
+        DATA_IN <= (others => '0');
+        WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
 
+        CMD <= X"00"; -- Command Read (Status)
+        ADDRESS <= X"0001"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0002"; -- Instruction
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0003"; -- Cycles
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
 
 
         wait;

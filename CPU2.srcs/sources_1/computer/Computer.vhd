@@ -234,51 +234,59 @@ architecture Behavioral of Computer is
     signal dstep3       : STD_LOGIC;
     signal RdValid      : STD_LOGIC;
 
-    attribute keep                           : STRING;
-    attribute MARK_DEBUG : string;
-    attribute keep of rst                    : signal is "TRUE";
-    -- attribute keep of ioAddr                 : signal is "TRUE";
-    -- attribute keep of IORdata                : signal is "TRUE";
-    -- attribute keep of IOWdata                : signal is "TRUE";
-    -- attribute keep of echoIO                 : signal is "TRUE";
-    -- attribute keep of IOStatus               : signal is "TRUE";
-    -- attribute keep of IOStatusReq            : signal is "TRUE";
-    -- attribute keep of uart_rxd_in            : signal is "TRUE";
-    -- attribute keep of uart_txd_out           : signal is "TRUE";
-    attribute keep of TxByte                 : signal is "TRUE";
-    attribute keep of TxAvail                : signal is "TRUE";
-    attribute keep of TxStatus               : signal is "TRUE";
-    -- attribute keep of RdByte                 : signal is "TRUE";
-    -- attribute keep of RdStatus               : signal is "TRUE";
-    -- attribute keep of UartInterrupt          : signal is "TRUE";
-    attribute MARK_DEBUG of rst              : signal is "TRUE";
-    -- attribute MARK_DEBUG of ioAddr           : signal is "TRUE";
-    -- attribute MARK_DEBUG of IORdata          : signal is "TRUE";
-    -- attribute MARK_DEBUG of IOWdata          : signal is "TRUE";
-    -- attribute MARK_DEBUG of echoIO           : signal is "TRUE";
-    -- attribute MARK_DEBUG of IOStatus         : signal is "TRUE";
-    -- attribute MARK_DEBUG of IOStatusReq      : signal is "TRUE";
-    -- attribute MARK_DEBUG of uart_rxd_in      : signal is "TRUE";
-    -- attribute MARK_DEBUG of uart_txd_out     : signal is "TRUE";
-    attribute MARK_DEBUG of TxByte           : signal is "TRUE";
-    attribute MARK_DEBUG of TxAvail          : signal is "TRUE";
-    attribute MARK_DEBUG of TxStatus         : signal is "TRUE";
+    signal dbreakUart   : STD_LOGIC;
+    signal dstepUart    : STD_LOGIC;
+    signal dcontUart    : STD_LOGIC;
 
-    -- attribute MARK_DEBUG of RdByte           : signal is "TRUE";
-    -- attribute MARK_DEBUG of RdStatus         : signal is "TRUE";
-    -- attribute MARK_DEBUG of UartInterrupt    : signal is "TRUE";
-    attribute keep of DebugIn               : signal is "TRUE";
-    attribute MARK_DEBUG of DebugIn         : signal is "TRUE";
-    attribute keep of DebugOut              : signal is "TRUE";
-    attribute MARK_DEBUG of DebugOut        : signal is "TRUE";
-    attribute keep of dmode       : signal is "TRUE"; 
-    attribute keep of dcont       : signal is "TRUE"; 
-    attribute keep of dstep       : signal is "TRUE"; 
-    attribute keep of dbreak      : signal is "TRUE"; 
-    attribute MARK_DEBUG of dmode : signal is "TRUE"; 
-    attribute MARK_DEBUG of dcont : signal is "TRUE"; 
-    attribute MARK_DEBUG of dstep : signal is "TRUE"; 
-    attribute MARK_DEBUG of dbreak : signal is "TRUE"; 
+    attribute keep                          : STRING;
+    attribute MARK_DEBUG                    : string;
+    attribute keep          of rst          : signal is "TRUE";
+    attribute MARK_DEBUG    of rst          : signal is "TRUE";
+
+    -- attribute keep          of ioAddr       : signal is "TRUE";
+    -- attribute MARK_DEBUG    of ioAddr       : signal is "TRUE";
+    -- attribute keep          of IORdata      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of IORdata      : signal is "TRUE";
+    -- attribute keep          of IOWdata      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of IOWdata      : signal is "TRUE";
+    -- attribute keep          of echoIO       : signal is "TRUE";
+    -- attribute MARK_DEBUG    of echoIO       : signal is "TRUE";
+    -- attribute keep          of IOStatus     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of IOStatus     : signal is "TRUE";
+    -- attribute keep          of IOStatusReq  : signal is "TRUE";
+    -- attribute MARK_DEBUG    of IOStatusReq  : signal is "TRUE";
+
+    -- UARTS ELEMENTS
+    attribute keep          of uart_rxd_in  : signal is "TRUE";
+    attribute MARK_DEBUG    of uart_rxd_in  : signal is "TRUE";
+    attribute keep          of uart_txd_out : signal is "TRUE";
+    attribute MARK_DEBUG    of uart_txd_out : signal is "TRUE";
+    attribute keep          of TxByte       : signal is "TRUE";
+    attribute MARK_DEBUG    of TxByte       : signal is "TRUE";
+    attribute keep          of TxAvail      : signal is "TRUE";
+    attribute MARK_DEBUG    of TxAvail      : signal is "TRUE";
+    attribute keep          of TxStatus     : signal is "TRUE";
+    attribute MARK_DEBUG    of TxStatus     : signal is "TRUE";
+    -- attribute keep          of RdByte       : signal is "TRUE";
+    -- attribute MARK_DEBUG    of RdByte       : signal is "TRUE";
+    -- attribute keep          of RdStatus     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of RdStatus     : signal is "TRUE";
+    -- DEBUG ELEMENTS
+    -- attribute keep          of DebugIn      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
+    attribute keep          of DebugOut     : signal is "TRUE";
+    attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
+    -- attribute keep          of dmode        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dmode        : signal is "TRUE"; 
+    -- attribute keep          of dcont        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dcont        : signal is "TRUE"; 
+    -- attribute keep          of dstep        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dstep        : signal is "TRUE"; 
+    -- attribute keep          of dbreak       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dbreak       : signal is "TRUE"; 
+
+    attribute keep          of DebugTxByte  : signal is "TRUE"; 
+    attribute MARK_DEBUG    of DebugTxByte  : signal is "TRUE"; 
 
 begin
 
@@ -418,17 +426,19 @@ begin
                     dbreak1 <= dbreak;
                     dbreak2 <= dbreak1;
                     dbreak3 <= dbreak2;
-                    DebugIn.Break <= dbreak3;
+                    DebugIn.Break <= dbreak3 or dbreakUart;
 
                     dcont1 <= dcont;
                     dcont2 <= dcont1;
                     dcont3 <= dcont2;
-                    DebugIn.COntinue <= dcont3;
+                    DebugIn.COntinue <= dcont3 or dcontUart;
 
                     dstep1 <= dstep;
                     dstep2 <= dstep1;
                     dstep3 <= dstep2;
                     if dstep3 = '0' and dstep2 = '1' then -- Falling
+                        DebugIn.Step <= '1';
+                    elsif dstepUart = '1' then
                         DebugIn.Step <= '1';
                     end if;
                     if DebugIn.Step = '1' then
@@ -454,6 +464,9 @@ begin
             if rst = '1' then
                 WB_ACK <= '0';
                 WB_STALL <= '0';
+                dbreakUart <= '0';
+                dstepUart <= '0';
+                dcontUart <= '0';
             else
                 if WB_CYC = '1' then
                     case WB_ADDRTAGS_TYPE'VAL(to_integer(unsigned(WB_TGA(1 downto 0)))) is
@@ -471,6 +484,25 @@ begin
                                     when others =>
                                 end case;
                             else
+                                case DEBUG_CMD_TYPE'VAL(to_integer(unsigned(WB_ADDR))) is
+                                    when DBG_MODE =>
+                                    when DBG_BREAK =>
+                                        dbreakUart <= '1';
+                                        if dbreakUart = '1' then
+                                            dbreakUart <= '0';
+                                        end if;
+                                    when DBG_STEP =>
+                                        dstepUart <= '1';
+                                        if dstepUart = '1' then
+                                            dstepUart <= '0';
+                                        end if;
+                                    when DBG_CONTINUE =>
+                                        dcontUart <= '1';
+                                        if dcontUart = '1' then
+                                            dcontUart <= '0';
+                                        end if;
+                                    when others =>
+                                end case;
                             end if;
                         when WB_REGISTERS =>           -- Value 1
                         if WB_WE = '0' then

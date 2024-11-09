@@ -68,6 +68,26 @@ architecture RTL of UART2WBM is
     signal uart_din_vld  : std_logic;
     signal uart_din_rdy  : std_logic;
 
+    attribute keep          : STRING;
+    attribute MARK_DEBUG    : string;
+    attribute keep          of fsm_pstate   : signal is "TRUE";
+    attribute MARK_DEBUG    of fsm_pstate   : signal is "TRUE";
+    attribute keep          of fsm_nstate   : signal is "TRUE";
+    attribute MARK_DEBUG    of fsm_nstate   : signal is "TRUE";
+    attribute keep          of cmd_reg      : signal is "TRUE";
+    attribute MARK_DEBUG    of cmd_reg      : signal is "TRUE";
+    attribute keep          of addr_reg     : signal is "TRUE";
+    attribute MARK_DEBUG    of addr_reg     : signal is "TRUE";
+    attribute keep          of din_reg      : signal is "TRUE";
+    attribute MARK_DEBUG    of din_reg      : signal is "TRUE";
+    attribute keep          of dout_reg     : signal is "TRUE";
+    attribute MARK_DEBUG    of dout_reg     : signal is "TRUE";
+    attribute keep          of uart_dout    : signal is "TRUE";
+    attribute MARK_DEBUG    of uart_dout    : signal is "TRUE";
+    attribute keep          of uart_din     : signal is "TRUE";
+    attribute MARK_DEBUG    of uart_din     : signal is "TRUE";
+
+
 begin
 
     process (CLK)
