@@ -72,6 +72,7 @@
             label11 = new Label();
             btnConnect = new Button();
             btnDisConnect = new Button();
+            bgwDebugStatus = new System.ComponentModel.BackgroundWorker();
             grpCommands.SuspendLayout();
             grpRegisters.SuspendLayout();
             grpInstruction.SuspendLayout();
@@ -491,6 +492,13 @@
             btnDisConnect.UseVisualStyleBackColor = true;
             btnDisConnect.Click += btnDisConnect_Click;
             // 
+            // bgwDebugStatus
+            // 
+            bgwDebugStatus.WorkerReportsProgress = true;
+            bgwDebugStatus.WorkerSupportsCancellation = true;
+            bgwDebugStatus.DoWork += bgwDebugStatus_DoWork;
+            bgwDebugStatus.ProgressChanged += bgwDebugStatus_ProgressChanged;
+            // 
             // Debugger
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -566,5 +574,6 @@
         private TextBox textBox2;
         private Label label13;
         private TextBox textBox1;
+        private System.ComponentModel.BackgroundWorker bgwDebugStatus;
     }
 }

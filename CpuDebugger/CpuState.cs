@@ -16,15 +16,20 @@ namespace CpuDebugger
     
     {
         Statuses status;
-        uint[] priorRegs = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        Dictionary<byte, string> AccessMap = new Dictionary<byte, string>()
+            {   {0, "REGREG" },
+                {1, "IMMED" },
+                {2, "ABSOLUTE" },
+                {3, "INDEX" } };
 
-        public CpuState() { }
+        public CpuState() 
+        {
+        }
         internal Statuses ExecutationState { get; set; }
         internal uint ProgramCounter { get; set; }
         internal uint InstructionCode { get; set; }
         internal uint Cycles { get; set; }
-        internal uint[] Registers { get; set; }
-        internal bool[] RegisterChanges { get; set; }
+        internal Registers CpuRegisters { get; } = new Registers();
         internal byte Opcode 
         {
             get
@@ -34,6 +39,105 @@ namespace CpuDebugger
                 return (byte)Op;
             }
         }
+
+        internal string OpcodeDecode
+        {
+            get
+            {
+
+                string results = "";
+                switch (Opcode)
+                {
+                    case 0x02:
+                        results = (Flag == 0 ? "ldl" : "ldh");
+                        break;
+                    case 0x04:
+                        results = "st";
+                        break;
+                    case 0x06:
+                        results = "jmp";
+                        break;
+                    case 0x08:
+                        results = "jsr";
+                        break;
+                    case 0x0A:
+                        results = "rtn";
+                        break;
+                    case 0x0C:
+                        if (Register2 != 0)
+                            results = Flag == 0 ? "be" : "bne";
+                        else
+                            results = Flag == 0 ? "bz" : "bnz";
+                        break;
+                    case 0x0E:
+                        if (Register2 != 0)
+                            results = Flag == 0 ? "bl" : "bge";
+                        else
+                            results = Flag == 0 ? "bn" : "bnn";
+                        break;
+                    case 0x10:
+                        if (Register2 != 0)
+                            results = Flag == 0 ? "bg" : "ble";
+                        else
+                            results = Flag == 0 ? "bp" : "bnp";
+                        break;
+                    case 0x12:
+                        results = Flag == 0 ? "push" : "pop";
+                        break;
+                    case 0x14:
+                        if (Register2 != 0)
+                            results = Flag == 0 ? "timer" : "cancel";
+                        else
+                            results = Flag == 0 ? "wait" : "cancel";
+                        break;
+                    case 0x16:
+                        results = Flag == 0 ? "rio" : "wio";
+                        break;
+                    case 0x18:
+                        results = Flag == 0 ? "rsio" : "wsio";
+                        break;
+                    case 0x1A:
+                        results = "rti";
+                        break;
+                    case 0x1C:
+                        results = "swi";
+                        break;
+                    case 0x1E:
+                        results = "iena";
+                        break;
+
+                    case 0x01:
+                        results = "add";
+                        break;
+                    case 0x03:
+                        results = "sub";
+                        break;
+                    case 0x05:
+                        results = Flag == 0 ? "and" : "nand";
+                        break;
+                    case 0x07:
+                        results = Flag == 0 ? "aor" : "nor";
+                        break;
+                    case 0x09:
+                        results = "empty";
+                        break;
+                    case 0x0B:
+                        results = Flag == 0 ? "xor" : "xnor";
+                        break;
+                    case 0x0D:
+                        results = "sll";
+                        break;
+                    case 0x0F:
+                        results = "srl";
+                        break;
+                    default:
+                        results = "empty";
+                        break;
+                }
+                return results;
+            }
+        }
+
         internal byte Flag
         {
             get
@@ -50,6 +154,14 @@ namespace CpuDebugger
                 uint OpAccess = InstructionCode & 0x03000000;
                 OpAccess >>= 24;
                 return (byte)OpAccess;
+            }
+        }
+
+        internal string MemoryAccessDecode
+        {
+            get
+            {
+                return AccessMap[(byte)MemoryAccess];
             }
         }
         internal byte Register1
@@ -70,12 +182,12 @@ namespace CpuDebugger
                 return (byte)OpReg2;
             }
         }
-        internal byte Immediate
+        internal ushort Immediate
         {
             get
             {
                 uint OpImm = InstructionCode & 0x0000ffff;
-                return (byte)OpImm;
+                return (ushort)OpImm;
             }
         }
     }
