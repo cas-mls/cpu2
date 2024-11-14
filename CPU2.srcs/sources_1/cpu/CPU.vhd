@@ -143,7 +143,14 @@ entity CPU is
         MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
         MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
 
-        DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+        DEBUGIN     : in DEBUGINTYPE := (
+            DebugMode => '0',
+            BreakPoints => (others => (others => '0')), 
+            Break => '0', 
+            Step => '0', 
+            Continue => '0',
+            BWhenReg => 16,
+            BWhenValue => (others => '0'));
         DEBUGOUT    : out DEBUGOUTTYPE
     );
 
@@ -667,7 +674,9 @@ begin
                             ProgramCounter = DEBUGIN.BreakPoints(0)
                             or ProgramCounter = DEBUGIN.BreakPoints(1)
                             or ProgramCounter = DEBUGIN.BreakPoints(2)
-                            or ProgramCounter = DEBUGIN.BreakPoints(3))
+                            or ProgramCounter = DEBUGIN.BreakPoints(3)
+                            or (DEBUGIN.BWhenReg < 16 and cpuRegs(DEBUGIN.BWhenReg) = DEBUGIN.BWhenValue)
+                            )
                         then
                             DEBUGOUT.Stopped <= '1';
                             DEBUGOUT.ProgCounter <= ProgramCounter;

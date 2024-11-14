@@ -22,6 +22,8 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
+library xil_defaultlib;
+use xil_defaultlib.Utilities.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -231,12 +233,12 @@ begin
         dbreak <= '0';
 
         wait for PERIOD * 5;
-        CMD <= X"01"; -- Command Write
-        ADDRESS <= X"0001"; -- Break
+        CMD <= TGA_BREAK & '1'; -- Break
+        ADDRESS <= X"0000"; 
         DATA_IN <= (others => '0');
         WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
 
-        CMD <= X"00"; -- Command Read (Status)
+        CMD <= TGA_STATUS & '0'; -- Command Read (Status)
         ADDRESS <= X"0000"; -- Debug Mode (1 = Stop, 0 = Run)
         WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
         ADDRESS <= X"0001"; -- Program Counter
@@ -266,12 +268,12 @@ begin
         ADDRESS <= X"0003"; -- Cycles
         WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
 
-        CMD <= X"01"; -- Command Write
-        ADDRESS <= X"0002"; -- Step
+        CMD <= TGA_STEP & '1'; -- Step
+        ADDRESS <= X"0002"; 
         DATA_IN <= (others => '0');
         WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
 
-        CMD <= X"00"; -- Command Read (Status)
+        CMD <= TGA_STATUS & '0'; -- Command Read (Status)
         ADDRESS <= X"0001"; -- Program Counter
         WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
         ADDRESS <= X"0002"; -- Instruction

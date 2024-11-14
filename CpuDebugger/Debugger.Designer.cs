@@ -29,14 +29,11 @@
         private void InitializeComponent()
         {
             grpCommands = new GroupBox();
-            textBox2 = new TextBox();
+            txtBWhenValue = new TextBox();
             label13 = new Label();
-            textBox1 = new TextBox();
+            txtBWhenReg = new TextBox();
             label12 = new Label();
             btnBreakWhen = new Button();
-            txtBreakAt3 = new TextBox();
-            txtBreakAt2 = new TextBox();
-            txtBreakAt1 = new TextBox();
             txtBreakAt0 = new TextBox();
             btnBreakAt = new Button();
             btnContinue = new Button();
@@ -80,14 +77,11 @@
             // 
             // grpCommands
             // 
-            grpCommands.Controls.Add(textBox2);
+            grpCommands.Controls.Add(txtBWhenValue);
             grpCommands.Controls.Add(label13);
-            grpCommands.Controls.Add(textBox1);
+            grpCommands.Controls.Add(txtBWhenReg);
             grpCommands.Controls.Add(label12);
             grpCommands.Controls.Add(btnBreakWhen);
-            grpCommands.Controls.Add(txtBreakAt3);
-            grpCommands.Controls.Add(txtBreakAt2);
-            grpCommands.Controls.Add(txtBreakAt1);
             grpCommands.Controls.Add(txtBreakAt0);
             grpCommands.Controls.Add(btnBreakAt);
             grpCommands.Controls.Add(btnContinue);
@@ -100,12 +94,12 @@
             grpCommands.TabStop = false;
             grpCommands.Text = "Commands";
             // 
-            // textBox2
+            // txtBWhenValue
             // 
-            textBox2.Location = new Point(22, 390);
-            textBox2.Name = "textBox2";
-            textBox2.Size = new Size(94, 27);
-            textBox2.TabIndex = 12;
+            txtBWhenValue.Location = new Point(22, 390);
+            txtBWhenValue.Name = "txtBWhenValue";
+            txtBWhenValue.Size = new Size(94, 27);
+            txtBWhenValue.TabIndex = 12;
             // 
             // label13
             // 
@@ -116,12 +110,12 @@
             label13.TabIndex = 11;
             label13.Text = "Value";
             // 
-            // textBox1
+            // txtBWhenReg
             // 
-            textBox1.Location = new Point(78, 336);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(38, 27);
-            textBox1.TabIndex = 10;
+            txtBWhenReg.Location = new Point(78, 336);
+            txtBWhenReg.Name = "txtBWhenReg";
+            txtBWhenReg.Size = new Size(38, 27);
+            txtBWhenReg.TabIndex = 10;
             // 
             // label12
             // 
@@ -140,27 +134,7 @@
             btnBreakWhen.TabIndex = 8;
             btnBreakWhen.Text = "Brk When";
             btnBreakWhen.UseVisualStyleBackColor = true;
-            // 
-            // txtBreakAt3
-            // 
-            txtBreakAt3.Location = new Point(22, 268);
-            txtBreakAt3.Name = "txtBreakAt3";
-            txtBreakAt3.Size = new Size(94, 27);
-            txtBreakAt3.TabIndex = 7;
-            // 
-            // txtBreakAt2
-            // 
-            txtBreakAt2.Location = new Point(22, 235);
-            txtBreakAt2.Name = "txtBreakAt2";
-            txtBreakAt2.Size = new Size(94, 27);
-            txtBreakAt2.TabIndex = 6;
-            // 
-            // txtBreakAt1
-            // 
-            txtBreakAt1.Location = new Point(22, 202);
-            txtBreakAt1.Name = "txtBreakAt1";
-            txtBreakAt1.Size = new Size(94, 27);
-            txtBreakAt1.TabIndex = 5;
+            btnBreakWhen.Click += btnBreakWhen_Click;
             // 
             // txtBreakAt0
             // 
@@ -177,6 +151,7 @@
             btnBreakAt.TabIndex = 3;
             btnBreakAt.Text = "Break At";
             btnBreakAt.UseVisualStyleBackColor = true;
+            btnBreakAt.Click += btnBreakAt_Click;
             // 
             // btnContinue
             // 
@@ -222,6 +197,7 @@
             // txtRegs0
             // 
             txtRegs0.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            txtRegs0.BackColor = SystemColors.Window;
             txtRegs0.Enabled = false;
             txtRegs0.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             txtRegs0.ForeColor = SystemColors.InfoText;
@@ -565,15 +541,12 @@
         private Button btnDisConnect;
         private TextBox txtAccess;
         private Button btnBreakAt;
-        private TextBox txtBreakAt3;
-        private TextBox txtBreakAt2;
-        private TextBox txtBreakAt1;
         private TextBox txtBreakAt0;
         private Button btnBreakWhen;
         private Label label12;
-        private TextBox textBox2;
+        private TextBox txtBWhenValue;
         private Label label13;
-        private TextBox textBox1;
+        private TextBox txtBWhenReg;
         private System.ComponentModel.BackgroundWorker bgwDebugStatus;
     }
 }

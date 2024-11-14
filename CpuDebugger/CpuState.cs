@@ -9,8 +9,6 @@ namespace CpuDebugger
 {
 
     enum Statuses { notconnected, stopped, running };
-    enum CmdStatusAddr { Status = 0, ProgCounter, Instruction, Cycles };
-    enum Cmd { Commands = 0, Registers, Memory };
 
     internal class CpuState
     

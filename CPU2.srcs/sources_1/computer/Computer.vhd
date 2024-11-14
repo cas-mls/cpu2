@@ -73,7 +73,14 @@ architecture Behavioral of Computer is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')),
+                Break => '0', 
+                Step => '0', 
+                Continue => '0',
+                BWhenReg => 16,
+                BWhenValue => (others => '0'));
             DEBUGOUT    : out DEBUGOUTTYPE
 
             );
@@ -217,7 +224,9 @@ architecture Behavioral of Computer is
         BreakPoints => (others => (others => '0')), 
         Break => '0', 
         Step => '0', 
-        Continue => '0');
+        Continue => '0',
+        BWhenReg => 16,
+        BWhenValue => (others => '0'));
     signal DebugOut     : DEBUGOUTTYPE;
     -- Debug metastability
     signal dmode1       : STD_LOGIC;
@@ -238,10 +247,10 @@ architecture Behavioral of Computer is
     signal dstepUart    : STD_LOGIC;
     signal dcontUart    : STD_LOGIC;
 
-    attribute keep                          : STRING;
-    attribute MARK_DEBUG                    : string;
-    attribute keep          of rst          : signal is "TRUE";
-    attribute MARK_DEBUG    of rst          : signal is "TRUE";
+    -- attribute keep                          : STRING;
+    -- attribute MARK_DEBUG                    : string;
+    -- attribute keep          of rst          : signal is "TRUE";
+    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
     -- attribute keep          of ioAddr       : signal is "TRUE";
     -- attribute MARK_DEBUG    of ioAddr       : signal is "TRUE";
@@ -257,16 +266,16 @@ architecture Behavioral of Computer is
     -- attribute MARK_DEBUG    of IOStatusReq  : signal is "TRUE";
 
     -- UARTS ELEMENTS
-    attribute keep          of uart_rxd_in  : signal is "TRUE";
-    attribute MARK_DEBUG    of uart_rxd_in  : signal is "TRUE";
-    attribute keep          of uart_txd_out : signal is "TRUE";
-    attribute MARK_DEBUG    of uart_txd_out : signal is "TRUE";
-    attribute keep          of TxByte       : signal is "TRUE";
-    attribute MARK_DEBUG    of TxByte       : signal is "TRUE";
-    attribute keep          of TxAvail      : signal is "TRUE";
-    attribute MARK_DEBUG    of TxAvail      : signal is "TRUE";
-    attribute keep          of TxStatus     : signal is "TRUE";
-    attribute MARK_DEBUG    of TxStatus     : signal is "TRUE";
+    -- attribute keep          of uart_rxd_in  : signal is "TRUE";
+    -- attribute MARK_DEBUG    of uart_rxd_in  : signal is "TRUE";
+    -- attribute keep          of uart_txd_out : signal is "TRUE";
+    -- attribute MARK_DEBUG    of uart_txd_out : signal is "TRUE";
+    -- attribute keep          of TxByte       : signal is "TRUE";
+    -- attribute MARK_DEBUG    of TxByte       : signal is "TRUE";
+    -- attribute keep          of TxAvail      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of TxAvail      : signal is "TRUE";
+    -- attribute keep          of TxStatus     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of TxStatus     : signal is "TRUE";
     -- attribute keep          of RdByte       : signal is "TRUE";
     -- attribute MARK_DEBUG    of RdByte       : signal is "TRUE";
     -- attribute keep          of RdStatus     : signal is "TRUE";
@@ -274,19 +283,33 @@ architecture Behavioral of Computer is
     -- DEBUG ELEMENTS
     -- attribute keep          of DebugIn      : signal is "TRUE";
     -- attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
-    attribute keep          of DebugOut     : signal is "TRUE";
-    attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
-    -- attribute keep          of dmode        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of dmode        : signal is "TRUE"; 
-    -- attribute keep          of dcont        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of dcont        : signal is "TRUE"; 
-    -- attribute keep          of dstep        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of dstep        : signal is "TRUE"; 
-    -- attribute keep          of dbreak       : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of dbreak       : signal is "TRUE"; 
+    -- attribute keep          of DebugOut     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
 
-    attribute keep          of DebugTxByte  : signal is "TRUE"; 
-    attribute MARK_DEBUG    of DebugTxByte  : signal is "TRUE"; 
+    -- attribute keep          of dcontUart    : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dcontUart    : signal is "TRUE"; 
+    -- attribute keep          of dstepUart    : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dstepUart    : signal is "TRUE"; 
+    -- attribute keep          of dbreakUart   : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dbreakUart   : signal is "TRUE"; 
+
+    -- attribute keep          of DebugTxByte  : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of DebugTxByte  : signal is "TRUE"; 
+
+    -- attribute keep          of WB_TGA       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_TGA       : signal is "TRUE"; 
+    -- attribute keep          of WB_ADDR       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_ADDR       : signal is "TRUE"; 
+    -- attribute keep          of WB_WE       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_WE       : signal is "TRUE"; 
+    -- attribute keep          of WB_ACK       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_ACK       : signal is "TRUE"; 
+    -- attribute keep          of WB_CYC       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_CYC       : signal is "TRUE"; 
+    -- attribute keep          of WB_DIN       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_DIN       : signal is "TRUE"; 
+    -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
 
 begin
 
@@ -467,11 +490,15 @@ begin
                 dbreakUart <= '0';
                 dstepUart <= '0';
                 dcontUart <= '0';
+                DebugIn.BreakPoints <= (others => (others => '0'));
+                DebugIn.BWhenReg <= 16;
+                DebugIn.BWhenValue <= (others => '0');
+            
             else
                 if WB_CYC = '1' then
-                    case WB_ADDRTAGS_TYPE'VAL(to_integer(unsigned(WB_TGA(1 downto 0)))) is
-                        when WB_COMMANDS =>            -- Value 0
-                            if WB_WE = '0' then
+                    case WB_TGA is
+                        when TGA_STATUS =>
+                            if WB_WE = '0' then -- STATUS COMMAND
                                 case DEBUG_DATA'VAL(to_integer(unsigned(WB_ADDR))) is
                                     when DBG_STATE =>              -- VALUE 0
                                         WB_DIN <= X"0000000" & B"000" & DebugOut.Stopped;
@@ -483,33 +510,49 @@ begin
                                         WB_DIN <= STD_LOGIC_VECTOR(Debugout.CycleCount(31 downto 0));
                                     when others =>
                                 end case;
-                            else
-                                case DEBUG_CMD_TYPE'VAL(to_integer(unsigned(WB_ADDR))) is
-                                    when DBG_MODE =>
-                                    when DBG_BREAK =>
-                                        dbreakUart <= '1';
-                                        if dbreakUart = '1' then
-                                            dbreakUart <= '0';
-                                        end if;
-                                    when DBG_STEP =>
-                                        dstepUart <= '1';
-                                        if dstepUart = '1' then
-                                            dstepUart <= '0';
-                                        end if;
-                                    when DBG_CONTINUE =>
-                                        dcontUart <= '1';
-                                        if dcontUart = '1' then
-                                            dcontUart <= '0';
-                                        end if;
-                                    when others =>
-                                end case;
                             end if;
-                        when WB_REGISTERS =>           -- Value 1
-                        if WB_WE = '0' then
-                            WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0))));
-                        else
-                        end if;
-                        when WB_MEMORY =>              -- Value 2
+                            
+                        when TGA_STEP =>
+                            if WB_WE = '1' then -- STEP COMMAND
+                                dstepUart <= '1';
+                                if dstepUart = '1' then
+                                    dstepUart <= '0';
+                                end if;
+                            end if;
+
+                        when TGA_CONTINUE =>
+                            if WB_WE = '1' then -- CONTINUE COMMAND
+                                dcontUart <= '1';
+                                if dcontUart = '1' then
+                                    dcontUart <= '0';
+                                end if;
+                            end if;
+
+                        when TGA_BREAK =>
+                            if WB_WE = '1' then -- BREAK COMMAND
+                                dbreakUart <= '1';
+                                if dbreakUart = '1' then
+                                    dbreakUart <= '0';
+                                end if;
+                            end if;
+
+                        when TGA_BREAKAT =>
+                            if WB_WE = '1' then -- BREAK COMMAND
+                                DebugIn.BreakPoints(to_integer(unsigned(WB_ADDR(3 downto 0))))
+                                    <= unsigned(WB_DOUT(11 downto 0));
+                            end if;
+
+                        when TGA_BREAKWHEN =>
+                            if WB_WE = '1' then -- BREAK COMMAND
+                                DebugIn.BWhenReg <= to_integer(unsigned(WB_ADDR(3 downto 0)));
+                                DebugIn.BWhenValue <= WB_DOUT(31 downto 0);
+                            end if;
+                        when TGA_REGISTERS => -- REGISTER COMMAND
+                            if WB_WE = '0' then
+                                WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0))));
+                            else
+                            end if;
+                        when TGA_MEMORY => -- MEMORY COMMAND
                         when others =>
                     end case;
                     WB_ACK <= '1';

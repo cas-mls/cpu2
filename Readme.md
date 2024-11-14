@@ -1092,24 +1092,46 @@ Links:
 
 Wishbone/UART interconnect where UART is the master and the Computer.vhd is the slave.
 
+
+
+| Globals |              |                                                              | UART |
+| ------- | ------------ | ------------------------------------------------------------ | ---- |
+| Signal  | Source       | Description                                                  |      |
+| ACLK    | Clock source | Global clock signal. See Clock on page A3-38.                | Yes  |
+| ARESETn | Reset source | Global reset signal, active LOW.  See Reset on page A3-38.   | Yes  |
+| AWADDR  | Master       | Write address. The write address  gives the address of the first transfer in a write burst transaction. See Address structure on page A3-46. | Yes  |
+| AWVALID | Master       | Write address valid. This signal  indicates that the channel is signaling valid write address and control  information. See Channel handshake signals on page A3-40. | Yes  |
+| AWREADY | Slave        | Write address ready. This signal  indicates that the slave is ready to accept an address and associated control  signals. See Channel handshake signals on page A3-40. | Yes  |
+| WDATA   | Master       | Write data.                                                  | Yes  |
+| WSTRB   | Master       | Write strobes. This signal  indicates which byte lanes hold valid data. There is one write strobe bit for  each eight bits of the write data bus. See Write strobes on page A3-52. | Yes  |
+| WVALID  | Master       | Write valid. This signal  indicates that valid write data and strobes are available. See Channel handshake signals on page  A3-40. | Yes  |
+| WREADY  | Slave        | Write ready. This signal  indicates that the slave can accept the write data. See Channel  handshake signals on page A3-40. | Yes  |
+| BRESP   | Slave        | Write response. This signal  indicates the status of the write transaction. See Read  and write response structure on page A3-57. | Yes  |
+| BVALID  | Slave        | Write response valid. This  signal indicates that the channel is signaling a valid write response. See Channel handshake signals on page  A3-40. | Yes  |
+| BREADY  | Master       | Response ready. This signal  indicates that the master can accept a write response. See Channel  handshake signals on page A3-40. | Yes  |
+| ARADDR  | Master       | Read address. The read address  gives the address of the first transfer in a read burst transaction. See Address structure on page A3-46. | Yes  |
+| ARVALID | Master       | Read address valid. This signal  indicates that the channel is signaling valid read address and control  information. See Channel handshake signals on page A3-40. | Yes  |
+| ARREADY | Slave        | Read address ready. This signal  indicates that the slave is ready to accept an address and associated control  signals. See Channel handshake signals on page A3-40. | Yes  |
+| RDATA   | Slave        | Read data.                                                   | Yes  |
+| RRESP   | Slave        | Read response. This signal  indicates the status of the read transfer. See Read and  write response structure on page A3-57. | Yes  |
+| RVALID  | Slave        | Read valid. This signal  indicates that the channel is signaling the required read data. See Channel handshake signals on page  A3-40. | Yes  |
+| RREADY  | Master       | Read ready. This signal  indicates that the master can accept the read data and response information.  See Channel handshake signals  on page A3-40. | Yes  |
+
+
+
 Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (bit 0) and TGA_O (bits 1-7) signals.
 
-| CMD (bits 0=WE_O , 1-7=TGA_O) | WE_O  | TGA_O | Address                                                    | Data                                    | Description |
-| ----------------------------- | ----- | ----- | ---------------------------------------------------------- | --------------------------------------- | ----------- |
-| 0 = Status                    | 0 = R | 0     | 0 (Status)                                                 | 0 = Running<br />1 = Stopped            |             |
-|                               |       |       | 1 = Program Counter                                        | The current program counter.            |             |
-|                               |       |       | 2 = Instruction                                            | Next instruction which will be executed |             |
-|                               |       |       | 3 = Cycles                                                 | Number of Cycles from the last reset.   |             |
-| 1 = Commands                  | 1 = W | 0     | 0 = Break                                                  | N/A                                     |             |
-|                               |       |       | 1 = Step                                                   | N/A                                     |             |
-|                               |       |       | 2 = Continue                                               | N/A                                     |             |
-|                               |       |       | 3 = Break At #0                                            | Break 0 At Address                      |             |
-|                               |       |       | 4 = Break At #1                                            | Break 1 At Address                      |             |
-|                               |       |       | 5 = Break At #2                                            | Break 2 At Address                      |             |
-|                               |       |       | 6 = Break At #3                                            | Break 3 At Address                      |             |
-|                               |       |       | 16-31 Break When Register equal data (Reg 0 is address 16) | Register Data                           |             |
-| 2 = Read Registers            | 0 = R | 1     | 0-15 Register Number                                       | Register Content                        |             |
-| 3 = Write Registers           | 1 = W | 1     | Not Implemented                                            |                                         |             |
-| 4 = Read Memory               | 0 = R | 2     | Not Implemented                                            |                                         |             |
-| 5 = Write Memory              | 1 = W | 2     | Not Implemented                                            |                                         |             |
+| CMD           | WE_O | Address                 | Data                                    | Description                 |
+| ------------- | ---- | ----------------------- | --------------------------------------- | --------------------------- |
+| 0 = Status    | R    | 0 (Status)              | 0 = Running<br />1 = Stopped            |                             |
+|               |      | 1 = Program Counter     | The current program counter.            |                             |
+|               |      | 2 = Instruction         | Next instruction which will be executed |                             |
+|               |      | 3 = Cycles              | Number of Cycles from the last reset.   |                             |
+| 1 = Step      | W    | 0                       | 0                                       |                             |
+| 2 = Continue  | W    | 0                       | 0                                       |                             |
+| 3 = Break     | W    | 0                       | 0                                       |                             |
+| 4 = Break At  | W    | 1-4 = Break At Location | Break At Address                        |                             |
+| 5= Break When | W    | Register (0-15)         | Value                                   | >15 will disable the break. |
+| 8 = Register  | RW   | Register Number (0-15)  | Register Content                        | Write Not Implemented       |
+| 16 = Memory   | RW   | Memory Address          | Memory Data                             | Not Implemented             |
 

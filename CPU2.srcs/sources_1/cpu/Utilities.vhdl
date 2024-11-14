@@ -132,20 +132,20 @@ package Utilities is
         Break       : STD_LOGIC;
         Step        : STD_LOGIC;
         Continue    : STD_LOGIC;
+        BWhenReg    : integer;
+        BWhenValue  : STD_LOGIC_VECTOR(31 downto 0);
     end record;
 
-    type WB_ADDRTAGS_TYPE is (
-        WB_COMMANDS,            -- Value 0
-        WB_REGISTERS,           -- Value 1
-        WB_MEMORY               -- Value 2
-        );
+    subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);
 
-    type DEBUG_CMD_TYPE is (    -- WB_COMMANDS (ADDRESS READ)
-        DBG_MODE,               -- Value 0
-        DBG_BREAK,              -- Value 1
-        DBG_STEP,               -- Value 2
-        DBG_CONTINUE            -- Value 3
-    );
+    constant TGA_STATUS     : TGA_TYPE := std_logic_vector(to_unsigned(     0 , TGA_TYPE'length));
+    constant TGA_STEP       : TGA_TYPE := std_logic_vector(to_unsigned(     1 , TGA_TYPE'length));
+    constant TGA_CONTINUE   : TGA_TYPE := std_logic_vector(to_unsigned(     2 , TGA_TYPE'length));
+    constant TGA_BREAK      : TGA_TYPE := std_logic_vector(to_unsigned(     3 , TGA_TYPE'length));
+    constant TGA_BREAKAT    : TGA_TYPE := std_logic_vector(to_unsigned(     4 , TGA_TYPE'length));
+    constant TGA_BREAKWHEN  : TGA_TYPE := std_logic_vector(to_unsigned(     5 , TGA_TYPE'length));
+    constant TGA_REGISTERS  : TGA_TYPE := std_logic_vector(to_unsigned(     8 , TGA_TYPE'length));
+    constant TGA_MEMORY     : TGA_TYPE := std_logic_vector(to_unsigned(    16 , TGA_TYPE'length));
 
     type DEBUG_DATA is (        -- WB_COMMANDS (ADDRESS WRITE)
         DBG_STATE,              -- VALUE 0

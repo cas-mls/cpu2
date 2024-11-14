@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.Net.NetworkInformation;
 using System.ComponentModel;
 //using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Text.RegularExpressions;
 
 
 namespace CpuDebugger
@@ -12,20 +13,54 @@ namespace CpuDebugger
     public partial class Debugger : Form
     {
         TextBox[] RegsData = new TextBox[16];
+        TextBox[] txtBreakAt = new TextBox[4];
         System.Windows.Forms.Label[] RegsLabel = new System.Windows.Forms.Label[16];
         SerialPort port;
         CpuState cpuState;
         CpuAccess WbAccess;
+        BreakData breakData;
+        bool changeToStopped;
+        Statuses lastExecutionState = Statuses.running;
 
         public Debugger()
         {
             InitializeComponent();
             cpuState = new CpuState();
-            WbAccess = new CpuAccess(cpuState);
+            breakData = new BreakData();
+            breakData.BreakWhen = new BreakData.BreakWhenStruct()
+            {
+                Valid = false,
+                Register = (byte)16,
+                Value = 0
+            };
 
+            WbAccess = new CpuAccess(cpuState, breakData);
+            changeToStopped = false;
+
+            CreateRegisterControls();
+            CreateBreakPointControls();
+
+        }
+
+        private void CreateBreakPointControls()
+        {
+            txtBreakAt[0] = txtBreakAt0;
+            txtBreakAt[0].BackColor = SystemColors.Window;
+            for (int i = 1; i < txtBreakAt.Length; i++)
+            {
+                txtBreakAt[i] = txtBreakAt[0].Clone();
+                txtBreakAt[i].Location = new Point(txtBreakAt[0].Location.X, txtBreakAt[0].Location.Y + 25 * i);
+                txtBreakAt[i].Visible = true;
+            }
+
+        }
+
+        private void CreateRegisterControls()
+        {
             RegsData[0] = txtRegs0;
             RegsData[0].Enabled = true;
             RegsData[0].ReadOnly = true;
+            RegsData[0].BackColor = SystemColors.Window;
             RegsLabel[0] = lblReg0;
             for (int i = 1; i < RegsData.Length; i++)
             {
@@ -42,7 +77,6 @@ namespace CpuDebugger
             RegsData[0].Visible = true;
             RegsLabel[0].Visible = true;
             this.Refresh();
-
         }
 
         private void cboComPorts_DropDown(object sender, EventArgs e)
@@ -76,6 +110,7 @@ namespace CpuDebugger
         private void SetDisplayData()
         {
             if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
             WbAccess.GetCpuCurrentState();
             if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
 
@@ -134,7 +169,10 @@ namespace CpuDebugger
 
         private void btnStep_Click(object sender, EventArgs e)
         {
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
             WbAccess.PerformStep();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
             SetDisplayData();
         }
 
@@ -145,25 +183,48 @@ namespace CpuDebugger
 
         private void btnBreak_Click(object sender, EventArgs e)
         {
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
             WbAccess.PerformBreak();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
             SetDisplayData();
         }
 
         private void btnContinue_Click(object sender, EventArgs e)
         {
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
             WbAccess.PerformContinue();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
             SetStatus();
         }
 
         private void bgwDebugStatus_DoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
         {
+            if (!(sender is BackgroundWorker))
+                return;
             BackgroundWorker worker = sender as BackgroundWorker;
             for (; ; )
             {
+                if (worker.CancellationPending)
+                {
+                    e.Cancel = true;
+                    return;
+                }
                 WbAccess.GetExecutionState();
+                if (cpuState.ExecutationState == Statuses.stopped & 
+                    lastExecutionState == Statuses.running)
+                {
+                    changeToStopped = true;
+                }
+                else if (changeToStopped)
+                {
+                    changeToStopped = false;
+                }
+                lastExecutionState = cpuState.ExecutationState;
+
                 worker.ReportProgress(0, cpuState);
-                if (worker.CancellationPending) break;
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(500);
             }
         }
 
@@ -171,6 +232,65 @@ namespace CpuDebugger
         {
             CpuState state = e.UserState as CpuState;
             txtStatus.Text = state.ExecutationState.ToString();
+            if (changeToStopped)
+                SetDisplayData();
+        }
+
+        private void btnBreakAt_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < txtBreakAt.Length; i++)
+            {
+                if (Regex.Match(txtBreakAt[i].Text, "^[0-9A-F]+$", RegexOptions.IgnoreCase) != Match.Empty)
+                {
+                    breakData.BreakAt[i].Location = Convert.ToUInt32(txtBreakAt[i].Text, 16);
+                    breakData.BreakAt[i].Valid = true;
+                }
+                else
+                {
+                    breakData.BreakAt[i].Location = 0;
+                    breakData.BreakAt[i].Valid = false;
+                }
+            }
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            WbAccess.BreakAt();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
+
+        }
+
+        private void btnBreakWhen_Click(object sender, EventArgs e)
+        {
+            int reg; 
+            if (int.TryParse(txtBWhenReg.Text, out reg) 
+                & (Regex.Match(txtBWhenValue.Text, "^[0-9A-F]+$", RegexOptions.IgnoreCase) != Match.Empty))
+            {
+                if (reg >= 0 & reg < 16)
+                {
+                    breakData.BreakWhen = new BreakData.BreakWhenStruct()
+                    {
+                        Valid = true,
+                        Register = (byte)reg,
+                        Value = Convert.ToUInt32(txtBWhenValue.Text, 16)
+                    };
+                }
+                else
+                {
+                    breakData.BreakWhen = new BreakData.BreakWhenStruct()
+                    {
+                        Valid = false,
+                        Register = (byte)0,
+                        Value = 0
+                    };
+                }
+            }
+            else
+                breakData.BreakWhen = new BreakData.BreakWhenStruct()
+                {
+                    Valid = false,
+                    Register = (byte)0,
+                    Value = 0
+                    };
+
+            WbAccess.BreakWhen();
         }
     }
 
