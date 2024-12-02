@@ -226,11 +226,39 @@ begin
 
         wait for PERIOD * 5;
         dmode <= '1';
-        wait for PERIOD * 5;
+        wait for PERIOD * 425;
         wait until rising_edge(clk);
-        dbreak <= '1';
+        dbreak <= '1';                  -- 0bd / 615000e9 / 15 20 00 00
         wait until rising_edge(clk);
         dbreak <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';                   -- 0be / 15200000 / 11 20 00 01
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';                   -- 0bf / 11200001 / 12 30 00 e8
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';                   -- 0c0 / 15100000 / 15 10 00 00
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';
+        wait until rising_edge(clk);
+        dstep <= '0';
+        wait for PERIOD * 20;
+        dstep <= '1';
+        wait until rising_edge(clk);
+        dstep <= '0';
 
         wait for PERIOD * 5;
         CMD <= TGA_BREAK & '1'; -- Break
@@ -281,6 +309,12 @@ begin
         ADDRESS <= X"0003"; -- Cycles
         WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
 
+        CMD <= TGA_MEMORY & '0'; -- Command Read Memory
+        ADDRESS <= X"0000"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        ADDRESS <= X"0020"; -- Program Counter
+        WB_READ(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_OUT, CMD_RESP);
+        
 
         wait;
 

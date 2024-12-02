@@ -188,5 +188,6 @@ namespace CpuDebugger
                 return (ushort)OpImm;
             }
         }
+        internal uint Memory { get; set; }
     }
 }

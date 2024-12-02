@@ -43,6 +43,10 @@
             txtRegs0 = new TextBox();
             lblReg0 = new Label();
             grpInstruction = new GroupBox();
+            txtMemData = new TextBox();
+            label15 = new Label();
+            label14 = new Label();
+            txtMemAddr = new TextBox();
             txtAccess = new TextBox();
             txtCycles = new TextBox();
             txtImmed = new TextBox();
@@ -218,6 +222,10 @@
             // 
             // grpInstruction
             // 
+            grpInstruction.Controls.Add(txtMemData);
+            grpInstruction.Controls.Add(label15);
+            grpInstruction.Controls.Add(label14);
+            grpInstruction.Controls.Add(txtMemAddr);
             grpInstruction.Controls.Add(txtAccess);
             grpInstruction.Controls.Add(txtCycles);
             grpInstruction.Controls.Add(txtImmed);
@@ -242,6 +250,38 @@
             grpInstruction.TabIndex = 2;
             grpInstruction.TabStop = false;
             grpInstruction.Text = "Instruction";
+            // 
+            // txtMemData
+            // 
+            txtMemData.Location = new Point(84, 343);
+            txtMemData.Name = "txtMemData";
+            txtMemData.Size = new Size(89, 27);
+            txtMemData.TabIndex = 21;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(22, 346);
+            label15.Name = "label15";
+            label15.Size = new Size(44, 20);
+            label15.TabIndex = 20;
+            label15.Text = "Data:";
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(22, 313);
+            label14.Name = "label14";
+            label14.Size = new Size(65, 20);
+            label14.TabIndex = 19;
+            label14.Text = "Address:";
+            // 
+            // txtMemAddr
+            // 
+            txtMemAddr.Location = new Point(116, 310);
+            txtMemAddr.Name = "txtMemAddr";
+            txtMemAddr.Size = new Size(57, 27);
+            txtMemAddr.TabIndex = 18;
             // 
             // txtAccess
             // 
@@ -433,9 +473,9 @@
             // cboComPorts
             // 
             cboComPorts.FormattingEnabled = true;
-            cboComPorts.Location = new Point(30, 59);
+            cboComPorts.Location = new Point(42, 59);
             cboComPorts.Name = "cboComPorts";
-            cboComPorts.Size = new Size(131, 28);
+            cboComPorts.Size = new Size(94, 28);
             cboComPorts.TabIndex = 7;
             cboComPorts.DropDown += cboComPorts_DropDown;
             // 
@@ -548,5 +588,9 @@
         private Label label13;
         private TextBox txtBWhenReg;
         private System.ComponentModel.BackgroundWorker bgwDebugStatus;
+        private TextBox txtMemData;
+        private Label label15;
+        private Label label14;
+        private TextBox txtMemAddr;
     }
 }

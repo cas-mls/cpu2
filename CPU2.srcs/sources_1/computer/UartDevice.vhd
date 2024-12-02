@@ -99,12 +99,9 @@ architecture Behavioral of UartDevice is
     signal r_uartInterrupt : STD_LOGIC;
     signal r_s_axi_awaddr : STD_LOGIC_VECTOR(3 downto 0);
     signal r_s_axi_awvalid : STD_LOGIC;
-    signal r_s_axi_awready : STD_LOGIC;
     signal r_s_axi_wdata : STD_LOGIC_VECTOR(31 downto 0);
     signal r_s_axi_wvalid : STD_LOGIC;
     signal r_s_axi_wready : STD_LOGIC;
-    signal r_s_axi_bresp : STD_LOGIC_VECTOR(1 downto 0);
-    signal r_s_axi_bvalid : STD_LOGIC;
     signal r_s_axi_bready : STD_LOGIC;
     signal r_s_axi_araddr : STD_LOGIC_VECTOR(3 downto 0);
     signal r_s_axi_arvalid : STD_LOGIC;
@@ -121,7 +118,6 @@ architecture Behavioral of UartDevice is
     signal w_s_axi_aresetn : STD_LOGIC;
     signal w_s_axi_awaddr : STD_LOGIC_VECTOR(3 downto 0);
     signal w_s_axi_awvalid : STD_LOGIC;
-    signal w_s_axi_awready : STD_LOGIC;
     signal w_s_axi_wdata : STD_LOGIC_VECTOR(31 downto 0);
     signal w_s_axi_wvalid : STD_LOGIC;
     signal w_s_axi_wready : STD_LOGIC;
@@ -132,14 +128,10 @@ architecture Behavioral of UartDevice is
     signal w_s_axi_arvalid : STD_LOGIC;
     signal w_s_axi_arready : STD_LOGIC;
     signal w_s_axi_rdata : STD_LOGIC_VECTOR(31 downto 0);
-    signal w_s_axi_rresp : STD_LOGIC_VECTOR(1 downto 0);
     signal w_s_axi_rvalid : STD_LOGIC;
     signal w_s_axi_rready : STD_LOGIC;
     signal w_UART_RX : STD_LOGIC := '1';
 
-    -- Other Write Flag Signals
-    signal w_write_processing : STD_LOGIC;
-    signal w_status_processing : STD_LOGIC;
     -- Write Status Flags
     signal w_Busy : STD_LOGIC;
     signal w_Response : STD_LOGIC_VECTOR(1 downto 0);
@@ -158,13 +150,13 @@ begin
         interrupt     => r_uartInterrupt,
         s_axi_awaddr  => r_s_axi_awaddr,
         s_axi_awvalid => r_s_axi_awvalid,
-        s_axi_awready => r_s_axi_awready,
+        s_axi_awready => open,
         s_axi_wdata   => r_s_axi_wdata,
         s_axi_wstrb   => X"F",
         s_axi_wvalid  => r_s_axi_wvalid,
         s_axi_wready  => r_s_axi_wready,
-        s_axi_bresp   => r_s_axi_bresp,
-        s_axi_bvalid  => r_s_axi_bvalid,
+        s_axi_bresp   => open,
+        s_axi_bvalid  => open,
         s_axi_bready  => r_s_axi_bready,
         s_axi_araddr  => r_s_axi_araddr,
         s_axi_arvalid => r_s_axi_arvalid,
@@ -251,7 +243,7 @@ begin
         s_axi_aresetn => w_s_axi_aresetn,
         s_axi_awaddr  => w_s_axi_awaddr,
         s_axi_awvalid => w_s_axi_awvalid,
-        s_axi_awready => w_s_axi_awready,
+        s_axi_awready => open,
         s_axi_wdata   => w_s_axi_wdata,
         s_axi_wstrb   => X"F",
         s_axi_wvalid  => w_s_axi_wvalid,
@@ -263,7 +255,7 @@ begin
         s_axi_arvalid => w_s_axi_arvalid,
         s_axi_arready => w_s_axi_arready,
         s_axi_rdata   => w_s_axi_rdata,
-        s_axi_rresp   => w_s_axi_rresp,
+        s_axi_rresp   => open,
         s_axi_rvalid  => w_s_axi_rvalid,
         s_axi_rready  => w_s_axi_rready,
         rx            => w_UART_RX,

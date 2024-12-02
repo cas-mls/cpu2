@@ -186,7 +186,6 @@ architecture Behavioral of CPU is
             fsm_interrupt_cycle_p : in INTERRUPT_FSM;
             interruptSPNum : in integer range 0 to 31;
             IOR_DATA : in std_logic_vector(31 downto 0);
-            IO_STATUS : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             interruptRun : in std_logic;
             interruptNum : in integer range 0 to interruptNums := 0;
@@ -313,6 +312,8 @@ architecture Behavioral of CPU is
 
     -- DEBUG 
     signal StepWait : STD_LOGIC := '0';
+    signal JmpAddrState : STD_LOGIC := '0';
+    signal addrDelayCount : integer range 0 to 7 := 0;
 
     -- Help with ILA debugging by flattening the Wires.
     -- attribute keep : string;
@@ -361,7 +362,6 @@ begin
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
         interruptSPNum => interruptSPNum,
         IOR_DATA => IOR_DATA,
-        IO_STATUS => IO_STATUS,
         interruptSpAddrValue => interruptSpAddrValue,
         interruptRun => interruptRun,
         interruptNum => interruptNum,
@@ -466,6 +466,7 @@ begin
         waitCancel,
         interruptRun,
         DEBUGOUT.Stopped,
+        JmpAddrState,
         fsm_interrupt_cycle_p
         )
     begin
@@ -478,7 +479,8 @@ begin
                 ----------------------------------------------------------------
                 -- This sets up the instruction address to read.
             when ADDRESS_S =>
-                if DEBUGOUT.Stopped = '1' then
+                if DEBUGOUT.Stopped = '1' 
+                    or JmpAddrState = '1' then
                     fsm_inst_cycle_n <= ADDRESS_S;
                 else
                     fsm_inst_cycle_n <= INSTFETCH1_S;
@@ -587,7 +589,9 @@ begin
                         fsm_inst_cycle_n <= ADDRESS_S;
                     end if;
 
-                elsif DEBUGOUT.Stopped = '1' then
+                elsif DEBUGOUT.Stopped = '1'
+                    or JmpAddrState = '1'
+                then
                     fsm_inst_cycle_n <= ADDRESS_S;
 
                 elsif ffopcode /= oJMP
@@ -667,6 +671,8 @@ begin
                     DEBUGOUT.Regs        <= (others => (others => '0'));
                     DEBUGOUT.Instruction <= (others =>'0');
                     stepWait <= '0';
+                    JmpAddrState <= '0';
+                    addrDelayCount <= 0;
 
                 when ADDRESS_S =>
                     if DEBUGIN.DebugMode = '1' then
@@ -676,12 +682,25 @@ begin
                             or ProgramCounter = DEBUGIN.BreakPoints(2)
                             or ProgramCounter = DEBUGIN.BreakPoints(3)
                             or (DEBUGIN.BWhenReg < 16 and cpuRegs(DEBUGIN.BWhenReg) = DEBUGIN.BWhenValue)
+                            or JmpAddrState = '1'
                             )
                         then
-                            DEBUGOUT.Stopped <= '1';
-                            DEBUGOUT.ProgCounter <= ProgramCounter;
-                            DEBUGOUT.Regs <= cpuRegs;
-                            DEBUGOUT.Instruction <= MEM_DOUTA;
+                            if addrDelayCount = 4
+                            then
+                                addrDelayCount <= 0;
+                                StepWait <= '0';
+                                JmpAddrState <= '0';
+                                DEBUGOUT.Stopped <= '1';
+                                DEBUGOUT.ProgCounter <= ProgramCounter;
+                                DEBUGOUT.Regs <= cpuRegs;
+                                DEBUGOUT.Instruction <= MEM_DOUTA;
+                            else
+                                addrDelayCount <= addrDelayCount + 1;
+                            end if;
+                        -- elsif JmpAddrState = '1' then
+                        --     StepWait <= '0';
+                        --     JmpAddrState <= '0';
+                        --     DEBUGOUT.Stopped <= '1';
                         else
                             if DEBUGIN.Continue = '1'
                             then
@@ -699,14 +718,18 @@ begin
                         then
                             DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
                             if DEBUGIN.Break = '1' 
-                                or StepWait = '1'
                             then
-                                StepWait <= '0';
-                                DEBUGOUT.Stopped <= '1';
+                                JmpAddrState <= '1';
                                 DEBUGOUT.ProgCounter <= ProgramCounter;
                                 DEBUGOUT.Regs <= cpuRegs;
                                 DEBUGOUT.Instruction <= MEM_DOUTA;
-                            end if;
+                            elsif StepWait = '1'
+                            then
+                                JmpAddrState <= '1';
+                                DEBUGOUT.ProgCounter <= ProgramCounter;
+                                DEBUGOUT.Regs <= cpuRegs;
+                                DEBUGOUT.Instruction <= MEM_DOUTA;
+                        end if;
                         end if;
                     end if;
             end case;

@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.ComponentModel;
 //using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Text.RegularExpressions;
+using System.Net;
 
 
 namespace CpuDebugger
@@ -160,6 +161,30 @@ namespace CpuDebugger
                     RegsLabel[i].Text = i.ToString() + ":";
 
             }
+            ushort address = 0;
+            if (cpuState.MemoryAccess == 2)
+            {
+                address = cpuState.Immediate;
+            }
+            else if (cpuState.MemoryAccess == 3)
+            {
+                address = (ushort)(cpuState.Immediate + cpuState.CpuRegisters[cpuState.Register2]);
+            }
+            if (cpuState.MemoryAccess == 3 | cpuState.MemoryAccess == 2)
+            {
+                if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+                while (bgwDebugStatus.IsBusy) Application.DoEvents();
+                WbAccess.GetMemory(address);
+                if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
+                txtMemAddr.Text = address.ToString("X4");
+                txtMemData.Text = cpuState.Memory.ToString("X8");
+            }
+            else
+            {
+                txtMemAddr.Text = "";
+                txtMemData.Text = "";
+            }
+
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

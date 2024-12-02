@@ -85,6 +85,19 @@ namespace CpuDebugger
                 }
             }
         }
+
+        internal void GetMemory(ushort address)
+        {
+            if (IsConnected
+                && cpuState.ExecutationState == Statuses.stopped)
+            {
+                cpuState.Memory = (uint)SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.RWRegisters,
+                    (ushort)address);
+            }
+        }
+
         internal void GetExecutionState()
         {
             if (IsConnected)

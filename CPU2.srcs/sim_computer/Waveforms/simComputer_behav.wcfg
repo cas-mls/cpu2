@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="10,289,950.333 ns"></ZoomStartTime>
-      <ZoomEndTime time="10,290,051.334 ns"></ZoomEndTime>
-      <Cursor1Time time="10,290,034.500 ns"></Cursor1Time>
+      <ZoomStartTime time="2,593.351666 us"></ZoomStartTime>
+      <ZoomEndTime time="3,623.351667 us"></ZoomEndTime>
+      <Cursor1Time time="3,451.685000 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="251"></NameColumnWidth>
+      <NameColumnWidth column_width="241"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="15" />
+   <WVObjectSize size="18" />
    <wvobject fp_name="/simComputer/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
       <obj_property name="ObjectShortName">CLK</obj_property>
@@ -30,6 +30,10 @@
    <wvobject fp_name="/simComputer/RST" type="logic">
       <obj_property name="ElementShortName">RST</obj_property>
       <obj_property name="ObjectShortName">RST</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/fsm_inst_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
    </wvobject>
    <wvobject fp_name="/simComputer/UART_RXD" type="logic">
       <obj_property name="ElementShortName">UART_RXD</obj_property>
@@ -83,5 +87,38 @@
    <wvobject fp_name="/simComputer/computer_UUT/DebugOut" type="array">
       <obj_property name="ElementShortName">DebugOut</obj_property>
       <obj_property name="ObjectShortName">DebugOut</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/StepWait" type="logic">
+      <obj_property name="ElementShortName">StepWait</obj_property>
+      <obj_property name="ObjectShortName">StepWait</obj_property>
+   </wvobject>
+   <wvobject fp_name="group101" type="group">
+      <obj_property name="label">DebugMemory</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/simComputer/computer_UUT/DEBUG_MEM_ENA" type="logic">
+         <obj_property name="ElementShortName">DEBUG_MEM_ENA</obj_property>
+         <obj_property name="ObjectShortName">DEBUG_MEM_ENA</obj_property>
+      </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/DEBUG_MEM_WEA" type="array">
+         <obj_property name="ElementShortName">DEBUG_MEM_WEA[0:0]</obj_property>
+         <obj_property name="ObjectShortName">DEBUG_MEM_WEA[0:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/DEBUG_MEM_ADDRA" type="array">
+         <obj_property name="ElementShortName">DEBUG_MEM_ADDRA[11:0]</obj_property>
+         <obj_property name="ObjectShortName">DEBUG_MEM_ADDRA[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/DEBUG_MEM_DINA" type="array">
+         <obj_property name="ElementShortName">DEBUG_MEM_DINA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">DEBUG_MEM_DINA[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/DEBUG_MEM_DOUTA" type="array">
+         <obj_property name="ElementShortName">DEBUG_MEM_DOUTA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">DEBUG_MEM_DOUTA[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/cpu1/StepWait" type="logic">
+         <obj_property name="ElementShortName">StepWait</obj_property>
+         <obj_property name="ObjectShortName">StepWait</obj_property>
+      </wvobject>
    </wvobject>
 </wave_config>

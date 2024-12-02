@@ -176,6 +176,20 @@ architecture Behavioral of Computer is
     signal MEM_DINB  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
     signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
+    -- CPU Memory (A)
+    signal CPU_MEM_ENA   : STD_LOGIC                     := '1';
+    signal CPU_MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
+    signal CPU_MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
+    signal CPU_MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+    signal CPU_MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+
+    -- Debug Memory (A)
+    signal DEBUG_MEM_ENA   : STD_LOGIC                     := '1';
+    signal DEBUG_MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
+    signal DEBUG_MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
+    signal DEBUG_MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+    signal DEBUG_MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+
     -- UART Device 
     signal TxByte        : STD_LOGIC_VECTOR (7 downto 0);
     signal TxAvail       : STD_LOGIC;
@@ -195,7 +209,6 @@ architecture Behavioral of Computer is
     signal DebugTxAvail     : STD_LOGIC;
     signal DebugTxStatus    : STD_LOGIC_VECTOR (31 downto 0);
     signal DebugRdByte      : STD_LOGIC_VECTOR (7 downto 0);
-    signal DebugRdStatus    : STD_LOGIC_VECTOR (31 downto 0);
     signal DebugUartInt     : STD_LOGIC;
     signal DebugUartInt1    : STD_LOGIC;
 
@@ -246,6 +259,8 @@ architecture Behavioral of Computer is
     signal dbreakUart   : STD_LOGIC;
     signal dstepUart    : STD_LOGIC;
     signal dcontUart    : STD_LOGIC;
+
+    signal dmemReadCount: integer range 0 to 3;
 
     -- attribute keep                          : STRING;
     -- attribute MARK_DEBUG                    : string;
@@ -340,16 +355,16 @@ begin
         IO_STATUS     => IOStatus,
         IO_STATUS_REQ => IOStatusReq,
         INTERRUPT     => interrupt,
-        -- MEM_ENA     => RUN_ENA  ,
-        -- MEM_WEA     => RUN_WEA  ,
-        -- MEM_ADDRA   => RUN_ADDRA,
-        -- MEM_DINA    => RUN_DINA ,
-        -- MEM_DOUTA   => RUN_DOUTA,
-        MEM_ENA   => MEM_ENA,
-        MEM_WEA   => MEM_WEA,
-        MEM_ADDRA => MEM_ADDRA,
-        MEM_DINA  => MEM_DINA,
-        MEM_DOUTA => MEM_DOUTA,
+        -- MEM_ENA   => MEM_ENA,
+        -- MEM_WEA   => MEM_WEA,
+        -- MEM_ADDRA => MEM_ADDRA,
+        -- MEM_DINA  => MEM_DINA,
+        -- MEM_DOUTA => MEM_DOUTA,
+        MEM_ENA   => CPU_MEM_ENA,
+        MEM_WEA   => CPU_MEM_WEA,
+        MEM_ADDRA => CPU_MEM_ADDRA,
+        MEM_DINA  => CPU_MEM_DINA,
+        MEM_DOUTA => CPU_MEM_DOUTA,
         MEM_ENB   => MEM_ENB,
         MEM_WEB   => MEM_WEB,
         MEM_ADDRB => MEM_ADDRB,
@@ -401,6 +416,7 @@ begin
 
     MEM_CLK <= SYS_CLK;
 
+    -- Debug/CPU <--> UART MUXes
     TxByte          <= CpuTxByte    when dmode = '0' 
                                     else DebugTxByte;
     TxAvail         <= CpuTxAvail   when dmode = '0' 
@@ -415,12 +431,24 @@ begin
                                     else (others => '0');
     CpuRdStatus     <= RdStatus     when dmode = '0'
                                     else (others => '0');
-    DebugRdStatus   <= RdStatus     when dmode = '1'
-                                    else (others => '0');
     CpuUartInt      <= UartInt      when dmode = '0'
                                    else '0';
     DebugUartInt    <= UartInt     when dmode = '1'
                                    else '0';
+
+    -- Debug/CPU <--> Memory MUXes
+    MEM_ENA         <= CPU_MEM_ENA  when DebugOut.Stopped = '0'
+                                    else DEBUG_MEM_ENA;
+    MEM_WEA         <= CPU_MEM_WEA  when DebugOut.Stopped = '0'
+                                    else DEBUG_MEM_WEA;
+    MEM_ADDRA       <= CPU_MEM_ADDRA when DebugOut.Stopped = '0'
+                                    else DEBUG_MEM_ADDRA;
+    MEM_DINA        <= CPU_MEM_DINA when DebugOut.Stopped = '0'
+                                    else DEBUG_MEM_DINA;
+    CPU_MEM_DOUTA   <= MEM_DOUTA    when DebugOut.Stopped = '0'
+                                    else (others => '0');
+    DEBUG_MEM_DOUTA <= MEM_DOUTA    when DebugOut.Stopped = '1'
+                                    else (others => '0');
 
     meta_debug_proc : process (SYS_CLK)
     begin
@@ -487,13 +515,19 @@ begin
             if rst = '1' then
                 WB_ACK <= '0';
                 WB_STALL <= '0';
+                -- WB_DIN <= (others => '0');
                 dbreakUart <= '0';
                 dstepUart <= '0';
                 dcontUart <= '0';
                 DebugIn.BreakPoints <= (others => (others => '0'));
                 DebugIn.BWhenReg <= 16;
                 DebugIn.BWhenValue <= (others => '0');
-            
+                dmemReadCount <= 0;
+                DEBUG_MEM_ADDRA <= (others => '0');
+                DEBUG_MEM_ENA <= '0';
+                DEBUG_MEM_WEA(0) <= '0';
+                DEBUG_MEM_DINA <= (others => '0');
+
             else
                 if WB_CYC = '1' then
                     case WB_TGA is
@@ -511,6 +545,7 @@ begin
                                     when others =>
                                 end case;
                             end if;
+                            WB_ACK <= '1';
                             
                         when TGA_STEP =>
                             if WB_WE = '1' then -- STEP COMMAND
@@ -519,6 +554,7 @@ begin
                                     dstepUart <= '0';
                                 end if;
                             end if;
+                            WB_ACK <= '1';
 
                         when TGA_CONTINUE =>
                             if WB_WE = '1' then -- CONTINUE COMMAND
@@ -527,6 +563,7 @@ begin
                                     dcontUart <= '0';
                                 end if;
                             end if;
+                            WB_ACK <= '1';
 
                         when TGA_BREAK =>
                             if WB_WE = '1' then -- BREAK COMMAND
@@ -535,27 +572,63 @@ begin
                                     dbreakUart <= '0';
                                 end if;
                             end if;
+                            WB_ACK <= '1';
 
                         when TGA_BREAKAT =>
                             if WB_WE = '1' then -- BREAK COMMAND
                                 DebugIn.BreakPoints(to_integer(unsigned(WB_ADDR(3 downto 0))))
                                     <= unsigned(WB_DOUT(11 downto 0));
                             end if;
+                            WB_ACK <= '1';
 
                         when TGA_BREAKWHEN =>
                             if WB_WE = '1' then -- BREAK COMMAND
                                 DebugIn.BWhenReg <= to_integer(unsigned(WB_ADDR(3 downto 0)));
                                 DebugIn.BWhenValue <= WB_DOUT(31 downto 0);
                             end if;
+                            WB_ACK <= '1';
+
                         when TGA_REGISTERS => -- REGISTER COMMAND
                             if WB_WE = '0' then
                                 WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0))));
                             else
+                                -- TODO: Debug write CPU Registers.
+                                -- This would require DebugIn to have the CPURegs.
+                                -- Also, the CPU Regs for the ALU and Debug Needs to be MUXed.
+                                -- This is possible, not hard, but, I will leave it for later.
                             end if;
+                            WB_ACK <= '1';
+
                         when TGA_MEMORY => -- MEMORY COMMAND
+                            if WB_WE = '0' then
+                                if dmemReadCount /= 3 then
+                                    DEBUG_MEM_ADDRA <= WB_ADDR(11 downto 0);
+                                    DEBUG_MEM_ENA <= '1';
+                                    DEBUG_MEM_WEA(0) <= '0';
+                                    dmemReadCount <= dmemReadCount + 1;
+                                else
+                                    DEBUG_MEM_ENA <= '0';
+                                    WB_DIN <= DEBUG_MEM_DOUTA;
+                                    WB_ACK <= '1';
+                                    dmemReadCount <= 0;
+                                end if;
+                            else
+                                if dmemReadCount /= 1 then
+                                    DEBUG_MEM_ADDRA <= WB_ADDR(11 downto 0);
+                                    DEBUG_MEM_ENA <= '1';
+                                    DEBUG_MEM_WEA(0) <= '1';
+                                    DEBUG_MEM_DINA <= WB_DOUT;
+                                    dmemReadCount <= dmemReadCount + 1;
+                                else
+                                    DEBUG_MEM_ENA <= '0';
+                                    DEBUG_MEM_WEA(0) <= '0';
+                                    WB_ACK <= '1';
+                                    dmemReadCount <= 0;
+                                end if;
+                            end if;
                         when others =>
                     end case;
-                    WB_ACK <= '1';
+                    -- WB_ACK <= '1';
                 else
                     WB_ACK <= '0';
                 end if;

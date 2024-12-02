@@ -106,7 +106,8 @@ This is a simple CPU architecture that I used to verify that I understand how to
 1. Each instruction contains 2 register fields.
 1. Only the store commands will update memory.
 1. There will be 16 registers.
-1. No status flags are required.  Branches compare 2 registers.
+1. No CPU status flags (word) are required.  Branches compare 2 registers.
+1. No internal Tri-State Logic
 
 ## Instruction Format
 
@@ -1099,23 +1100,23 @@ Wishbone/UART interconnect where UART is the master and the Computer.vhd is the 
 | Signal  | Source       | Description                                                  |      |
 | ACLK    | Clock source | Global clock signal. See Clock on page A3-38.                | Yes  |
 | ARESETn | Reset source | Global reset signal, active LOW.  See Reset on page A3-38.   | Yes  |
-| AWADDR  | Master       | Write address. The write address  gives the address of the first transfer in a write burst transaction. See Address structure on page A3-46. | Yes  |
-| AWVALID | Master       | Write address valid. This signal  indicates that the channel is signaling valid write address and control  information. See Channel handshake signals on page A3-40. | Yes  |
-| AWREADY | Slave        | Write address ready. This signal  indicates that the slave is ready to accept an address and associated control  signals. See Channel handshake signals on page A3-40. | Yes  |
+| AWADDR  | Master       | Write address. The write address gives the address of the first transfer in a write burst transaction. See Address structure on page A3-46. | Yes  |
+| AWVALID | Master       | Write address valid. This signal indicates that the channel is signaling valid write address and control information. See Channel handshake signals on page A3-40. | Yes  |
+| AWREADY | Slave        | Write address ready. This signal indicates that the slave is ready to accept an address and associated control signals. See Channel handshake signals on page A3-40. | Yes  |
 | WDATA   | Master       | Write data.                                                  | Yes  |
-| WSTRB   | Master       | Write strobes. This signal  indicates which byte lanes hold valid data. There is one write strobe bit for  each eight bits of the write data bus. See Write strobes on page A3-52. | Yes  |
-| WVALID  | Master       | Write valid. This signal  indicates that valid write data and strobes are available. See Channel handshake signals on page  A3-40. | Yes  |
-| WREADY  | Slave        | Write ready. This signal  indicates that the slave can accept the write data. See Channel  handshake signals on page A3-40. | Yes  |
-| BRESP   | Slave        | Write response. This signal  indicates the status of the write transaction. See Read  and write response structure on page A3-57. | Yes  |
-| BVALID  | Slave        | Write response valid. This  signal indicates that the channel is signaling a valid write response. See Channel handshake signals on page  A3-40. | Yes  |
-| BREADY  | Master       | Response ready. This signal  indicates that the master can accept a write response. See Channel  handshake signals on page A3-40. | Yes  |
-| ARADDR  | Master       | Read address. The read address  gives the address of the first transfer in a read burst transaction. See Address structure on page A3-46. | Yes  |
-| ARVALID | Master       | Read address valid. This signal  indicates that the channel is signaling valid read address and control  information. See Channel handshake signals on page A3-40. | Yes  |
-| ARREADY | Slave        | Read address ready. This signal  indicates that the slave is ready to accept an address and associated control  signals. See Channel handshake signals on page A3-40. | Yes  |
+| WSTRB   | Master       | Write strobes. This signal indicates which byte lanes hold valid data. There is one write strobe bit for each eight bits of the write data bus. See Write strobes on page A3-52. | Yes  |
+| WVALID  | Master       | Write valid. This signal indicates that valid write data and strobes are available. See Channel handshake signals on page A3-40. | Yes  |
+| WREADY  | Slave        | Write ready. This signal indicates that the slave can accept the write data. See Channel handshake signals on page A3-40. | Yes  |
+| BRESP   | Slave        | Write response. This signal indicates the status of the write transaction. See Read and write response structure on page A3-57. | Yes  |
+| BVALID  | Slave        | Write response valid. This signal indicates that the channel is signaling a valid write response. See Channel handshake signals on page  A3-40. | Yes  |
+| BREADY  | Master       | Response ready. This signal indicates that the master can accept a write response. See Channel handshake signals on page A3-40. | Yes  |
+| ARADDR  | Master       | Read address. The read address gives the address of the first transfer in a read burst transaction. See Address structure on page A3-46. | Yes  |
+| ARVALID | Master       | Read address valid. This signal indicates that the channel is signaling valid read address and control information. See Channel handshake signals on page A3-40. | Yes  |
+| ARREADY | Slave        | Read address ready. This signal indicates that the slave is ready to accept an address and associated control signals. See Channel handshake signals on page A3-40. | Yes  |
 | RDATA   | Slave        | Read data.                                                   | Yes  |
-| RRESP   | Slave        | Read response. This signal  indicates the status of the read transfer. See Read and  write response structure on page A3-57. | Yes  |
-| RVALID  | Slave        | Read valid. This signal  indicates that the channel is signaling the required read data. See Channel handshake signals on page  A3-40. | Yes  |
-| RREADY  | Master       | Read ready. This signal  indicates that the master can accept the read data and response information.  See Channel handshake signals  on page A3-40. | Yes  |
+| RRESP   | Slave        | Read response. This signal indicates the status of the read transfer. See Read and Write Response Structure on page A3-57. | Yes  |
+| RVALID  | Slave        | Read valid. This signal indicates that the channel is signaling the required read data. See Channel handshake signals on page  A3-40. | Yes  |
+| RREADY  | Master       | Read ready. This signal indicates that the master can accept the read data and response information.  See Channel handshake signals on page A3-40. | Yes  |
 
 
 
@@ -1135,3 +1136,17 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 | 8 = Register  | RW   | Register Number (0-15)  | Register Content                        | Write Not Implemented       |
 | 16 = Memory   | RW   | Memory Address          | Memory Data                             | Not Implemented             |
 
+### Serial  Protocol
+
+|   Byte 0    |     Byte 1     |     Byte 2     |       Byte 3       |     Byte 4      |     Byte 5      |     Byte 6      | Byte 7             |
+| :---------: | :------------: | :------------: | :----------------: | :-------------: | :-------------: | :-------------: | ------------------ |
+|  **Read**   |                |                |                    |                 |                 |                 |                    |
+| Command (W) | Address Lo (W) | Address Hi (W) | Response (CMD) (R) | Data In (0) (R) | Data In (1) (R) | Data In (2) (R) | Data In(3) (R)     |
+|  **Write**  |                |                |                    |                 |                 |                 |                    |
+| Command (W) | Address Lo (W) | Address Hi (W) |  Data Out(0) (W)   | Data Out(1) (W) | Data Out(2) (W) | Data Out(3) (W) | Response (CMD) (R) |
+
+* Command - 
+* Address - 
+* Data In - 
+* Data Out - 
+* Response - 
