@@ -95,7 +95,7 @@ entity ALU is
         ireg1value : in std_logic_vector(31 downto 0);
         ireg2value : in std_logic_vector(31 downto 0);
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
-        cpuRegs : out reg_type
+        cpuRegs : out REG_TYPE
     );
 
 end ALU;

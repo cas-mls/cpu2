@@ -111,3 +111,9 @@ xsim.dir
 */*/*/bd/*/ip/*/*.tcl
 hw_handoff
 ipshared
+
+# Microsoft Visual Studio 
+*/bin
+*/obj
+*/.vs
+*/*.user

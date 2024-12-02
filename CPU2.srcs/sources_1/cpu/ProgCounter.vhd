@@ -88,7 +88,7 @@ entity ProgCounter is
     Port ( 
         SYS_CLK               : IN STD_LOGIC;
         INSTRUCTION           : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-        cpuRegs               : IN reg_type;
+        cpuRegs               : IN REG_TYPE;
 
         fsm_inst_cycle_p      : IN CYCLETYPE_FSM;
         fsm_interrupt_cycle_p : IN INTERRUPT_FSM;
@@ -97,7 +97,7 @@ entity ProgCounter is
         MEM_ENA               : OUT STD_LOGIC := '1';
         MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-        ProgramCounter        : OUT unsigned(11 downto 0)
+        ProgramCounter        : OUT PCTYPE
     );
 end ProgCounter;
 
@@ -114,7 +114,7 @@ architecture Behavioral of ProgCounter is
     signal ireg2value : STD_LOGIC_VECTOR(31 DOWNTO 0) := X"00000000";
     signal ffimmop: IMMTYPE;
 
-    signal ProgCounterLocal : unsigned(11 downto 0);
+    signal ProgCounterLocal : PCTYPE;
 
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;

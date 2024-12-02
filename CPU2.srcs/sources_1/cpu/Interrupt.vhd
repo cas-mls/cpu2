@@ -117,7 +117,7 @@ entity Interrupt_Entity is
     port (
         SYS_CLK : in std_logic;
         INSTRUCTION : in std_logic_vector(31 downto 0);
-        cpuRegs : in reg_type;
+        cpuRegs : in REG_TYPE;
         fsm_inst_cycle_p : in CYCLETYPE_FSM;
         MEM_ARG : in std_logic_vector(31 downto 0);
         INTERRUPT : in std_logic_vector (31 downto 0);
