@@ -221,7 +221,7 @@ begin
                             end case;
                         when ABSOLUTE =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
+                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= immop(11 downto 0);
@@ -230,7 +230,7 @@ begin
 
                         when INDEX =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oRWIO =>
+                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
@@ -241,7 +241,7 @@ begin
                     end case;
 
                     when MEMFETCH2_S => -- XXX This only works on SIM hardware.  Comment out next line to work on SIM.
-                    when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
+                    -- when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
                     case ffmemop is
                         when REGREG =>
                             case ffopcode is

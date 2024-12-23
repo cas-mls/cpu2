@@ -167,59 +167,120 @@ begin
                         when oADD =>
                             case ffmemop is
                                 when REGREG =>
-                                    cpuRegs(ffiregop1) <=
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <=
                                                          std_logic_vector(to_signed(
                                                          to_integer(signed(ireg1value)) +
                                                          to_integer(signed(ireg2value)), 32));
-                                when IMMEDIATE =>
-                                    if ffiregop2 = 0 then
-                                        cpuRegs(ffiregop1) <=
-                                                             std_logic_vector(to_signed(to_integer(signed(ireg1value)) +
-                                                             to_integer(signed(ffimmop))
-                                                             , 32));
                                     else
                                         cpuRegs(ffiregop1) <=
-                                                             std_logic_vector(to_signed(
-                                                             to_integer(signed(ireg1value)) +
-                                                             to_integer(signed(ireg2value)) +
-                                                             to_integer(signed(ffimmop))
-                                                             , 32));
+                                                         std_logic_vector(to_unsigned(
+                                                         to_integer(unsigned(ireg1value)) +
+                                                         to_integer(unsigned(ireg2value)), 32));
+                                    end if;
+                                when IMMEDIATE =>
+                                    if ffflag = '0' then
+                                        if ffiregop2 = 0 then
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_signed(to_integer(signed(ireg1value)) +
+                                                                to_integer(signed(ffimmop))
+                                                                , 32));
+                                        else
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_unsigned(
+                                                                to_integer(unsigned(ireg1value)) +
+                                                                to_integer(unsigned(ireg2value)) +
+                                                                to_integer(unsigned(ffimmop))
+                                                                , 32));
+                                        end if;
+                                    else
+                                        if ffiregop2 = 0 then
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_unsigned(to_integer(unsigned(ireg1value)) +
+                                                                to_integer(unsigned(ffimmop))
+                                                                , 32));
+                                        else
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_unsigned(
+                                                                to_integer(unsigned(ireg1value)) +
+                                                                to_integer(unsigned(ireg2value)) +
+                                                                to_integer(unsigned(ffimmop))
+                                                                , 32));
+                                        end if;
                                     end if;
                                 when ABSOLUTE | INDEX =>
-                                    cpuRegs(ffiregop1) <=
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <=
                                                          std_logic_vector(to_signed(
                                                          to_integer(signed(ireg1value)) +
                                                          to_integer(signed(MEM_ARG)), 32));
+                                    else
+                                        cpuRegs(ffiregop1) <=
+                                                         std_logic_vector(to_unsigned(
+                                                         to_integer(unsigned(ireg1value)) +
+                                                         to_integer(unsigned(MEM_ARG)), 32));
+                                    end if;
                                 when others =>
                             end case;
 
                         when oSUB =>
                             case ffmemop is
                                 when REGREG =>
-                                    cpuRegs(ffiregop1) <=
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <=
                                                          std_logic_vector(to_signed(
                                                          to_integer(signed(ireg1value)) -
                                                          to_integer(signed(ireg2value)), 32));
-                                when IMMEDIATE =>
-                                    if ffiregop2 = 0 then
-                                        cpuRegs(ffiregop1) <=
-                                                             std_logic_vector(to_signed(
-                                                             to_integer(signed(ireg1value)) -
-                                                             to_integer(signed(ffimmop))
-                                                             , 32));
                                     else
                                         cpuRegs(ffiregop1) <=
-                                                             std_logic_vector(to_signed(
-                                                             to_integer(signed(ireg1value)) -
-                                                             to_integer(signed(ireg2value)) -
-                                                             to_integer(signed(ffimmop))
-                                                             , 32));
+                                                         std_logic_vector(to_unsigned(
+                                                         to_integer(unsigned(ireg1value)) -
+                                                         to_integer(unsigned(ireg2value)), 32));
+                                    end if;
+                                when IMMEDIATE =>
+                                    if ffflag = '0' then
+                                        if ffiregop2 = 0 then
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_signed(
+                                                                to_integer(signed(ireg1value)) -
+                                                                to_integer(signed(ffimmop))
+                                                                , 32));
+                                        else
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_signed(
+                                                                to_integer(signed(ireg1value)) -
+                                                                to_integer(signed(ireg2value)) -
+                                                                to_integer(signed(ffimmop))
+                                                                , 32));
+                                        end if;
+                                    else
+                                        if ffiregop2 = 0 then
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_unsigned(
+                                                                to_integer(unsigned(ireg1value)) -
+                                                                to_integer(unsigned(ffimmop))
+                                                                , 32));
+                                        else
+                                            cpuRegs(ffiregop1) <=
+                                                                std_logic_vector(to_unsigned(
+                                                                to_integer(unsigned(ireg1value)) -
+                                                                to_integer(unsigned(ireg2value)) -
+                                                                to_integer(unsigned(ffimmop))
+                                                                , 32));
+                                        end if;
                                     end if;
                                 when ABSOLUTE | INDEX =>
-                                    cpuRegs(ffiregop1) <=
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <=
                                                          std_logic_vector(to_signed(
                                                          to_integer(signed(ireg1value)) -
                                                          to_integer(signed(MEM_ARG)), 32));
+                                    else
+                                        cpuRegs(ffiregop1) <=
+                                                         std_logic_vector(to_unsigned(
+                                                         to_integer(unsigned(ireg1value)) -
+                                                         to_integer(unsigned(MEM_ARG)), 32));
+                                    end if;
                                 when others =>
                             end case;
 
@@ -304,31 +365,32 @@ begin
                                 when others =>
                             end case;
 
-                        when oSHL =>
+                        when oSHLR =>
                             case ffmemop is
                                 when REGREG =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          sll to_integer(unsigned(ireg2value(4 downto 0))));
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                        sll to_integer(unsigned(ireg2value(4 downto 0))));
+                                    else
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                        srl to_integer(unsigned(ireg2value(4 downto 0))));
+                                    end if;
                                 when IMMEDIATE =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          sll to_integer(unsigned(ffimmop(4 downto 0))));
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                        sll to_integer(unsigned(ffimmop(4 downto 0))));
+                                    else
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                        srl to_integer(unsigned(ffimmop(4 downto 0))));
+                                    end if;
                                 when ABSOLUTE | INDEX =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          sll to_integer(unsigned(MEM_ARG(4 downto 0))));
-                                when others =>
-                            end case;
-
-                        when oSHR =>
-                            case ffmemop is
-                                when REGREG =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          srl to_integer(unsigned(ireg2value(4 downto 0))));
-                                when IMMEDIATE =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          srl to_integer(unsigned(ffimmop(4 downto 0))));
-                                when ABSOLUTE | INDEX =>
-                                    cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
-                                                          srl to_integer(unsigned(MEM_ARG(4 downto 0))));
+                                    if ffflag = '0' then
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                            sll to_integer(unsigned(MEM_ARG(4 downto 0))));
+                                    else
+                                        cpuRegs(ffiregop1) <= std_logic_vector(unsigned(ireg1value)
+                                                            srl to_integer(unsigned(MEM_ARG(4 downto 0))));
+                                      end if;
                                 when others =>
                             end case;
 

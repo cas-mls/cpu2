@@ -537,14 +537,14 @@ begin
                         end case;
                     when ABSOLUTE =>
                         case opcode is
-                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
+                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when others =>
                                 fsm_inst_cycle_n <= EXECUTE_S;
                         end case;
                     when INDEX =>
                         case opcode is
-                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShl | oShr | oJMP | oRWIO =>
+                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when others =>
                                 fsm_inst_cycle_n <= EXECUTE_S;

@@ -40,25 +40,27 @@
 
     ; ADD
     add {op : operands}                             => 1`5  @ 0`1 @ op
+    uadd {op : operands}                            => 1`5  @ 1`1 @ op
 
     ; SUBTRACT
     sub {op : operands}                             => 3`5  @ 0`1 @ op
+    usub {op : operands}                            => 3`5  @ 1`1 @ op
 
     ; Logical AND/NAND
-    and {op : operands}                             => 5`5  @ 0`1 @ op
-    nand {op : operands}                             => 5`5  @ 1`1 @ op
+    and {op : operands}                             => 9`5  @ 0`1 @ op
+    nand {op : operands}                             => 9`5  @ 1`1 @ op
 
     ; Logical OR/NOR
-    or  {op : operands}                             => 7`5  @ 0`1 @ op
-    nor {op : operands}                             => 7`5  @ 1`1 @ op
+    or  {op : operands}                             => 11`5  @ 0`1 @ op
+    nor {op : operands}                             => 11`5  @ 1`1 @ op
     
     ; Logical XOR/NXOR
-    xor {op : operands}                             => 11`5  @ 0`1 @ op
-    xnor {op : operands}                             => 11`5  @ 1`1 @ op
+    xor {op : operands}                             => 13`5  @ 0`1 @ op
+    xnor {op : operands}                             => 13`5  @ 1`1 @ op
 
     ; Shift Register
-    sll {op : operands}                             => 13`5  @ 0`1 @ op
-    srl {op : operands}                             => 15`5  @ 0`1 @ op
+    sll {op : operands}                             => 15`5  @ 0`1 @ op
+    srl {op : operands}                             => 15`5  @ 1`1 @ op
 
     ; JUMP
     jmp r{r2: u4}                                   => 6`5  @ 0`1 @ 0`2 @ 0x0 @ r2 @ 0x0000

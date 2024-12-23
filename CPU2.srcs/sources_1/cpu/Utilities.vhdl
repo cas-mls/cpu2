@@ -94,12 +94,12 @@ package Utilities is
 
     constant oAdd   : OPCODETYPE  := "00001"; -- x01
     constant oSub   : OPCODETYPE  := "00011"; -- x03
-    constant oAnd   : OPCODETYPE  := "00101"; -- x05
-    constant oOr    : OPCODETYPE  := "00111"; -- x07
-    constant oEMPTY2: OPCODETYPE  := "01001"; -- x09
-    constant oXor   : OPCODETYPE  := "01011"; -- x0B
-    constant oShL   : OPCODETYPE  := "01101"; -- x0D
-    constant oShR   : OPCODETYPE  := "01111"; -- x0F
+    constant oMul   : OPCODETYPE  := "00101"; -- x05
+    constant oDiv   : OPCODETYPE  := "00111"; -- x07
+    constant oAnd   : OPCODETYPE  := "01001"; -- x09
+    constant oOr    : OPCODETYPE  := "01011"; -- x0B
+    constant oXor   : OPCODETYPE  := "01101"; -- x0D
+    constant oShLR  : OPCODETYPE  := "01111"; -- x0F
 
     constant REGREG : MEMTYPE := "00";
     constant IMMEDIATE : MEMTYPE := "01";

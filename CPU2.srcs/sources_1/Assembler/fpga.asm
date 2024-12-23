@@ -28,9 +28,8 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
-    jsr r SP1, WAITTEST
-    jsr r SP1, IOTESTS
-    jsr r SP1, INTERRUPTTEST
+    jsr r SP1, UADDTEST
+    jsr r SP1, USUBTEST
     jsr r SP1, STACKTESTS
     jsr r SP1, ANDTEST
     jsr r SP1, NANDTEST
@@ -46,7 +45,9 @@ LOOP:
     jsr r SP1, BRTEST2
     jsr r SP1, BRTEST
     jsr r SP1, JMPTEST
-    ; wio r ER, 0x03    
+    jsr r SP1, WAITTEST
+    jsr r SP1, IOTESTS
+    jsr r SP1, INTERRUPTTEST
     wio r tr, 0x03    
     jmp LOOP
 
@@ -357,6 +358,83 @@ SUBER:
 SUBCOMP:
     rtn r SP1
 
+UADDTEST:
+; Unsigned Add Instruction Tests
+uaddend1 = 12345
+uaddend2 = 23456
+usum = uaddend1 + uaddend2
+    ld r tr, 0x10
+    ld r1, uaddend1
+    ld r2, uaddend2
+    ld r3, usum
+    add r tr, 1
+    uadd r1, r2          ; Register
+    bne r1, r3, UADDERROR
+    ld r1, uaddend1
+    add r tr, 1
+    uadd r1, uaddend2     ; Immediate
+    bne r1, r3, UADDERROR
+    ld r1, uaddend1
+    add r tr, 1
+    uadd r1, mem[UAENDMEM]
+    bne r1, r3, UADDERROR
+    ld r1, uaddend1
+    add r tr, 1
+    ldl r4, UAENDMEM1 - UAENDMEM
+    uadd r1, r4, mem[UAENDMEM]
+    bne r1, r3, UADDERROR
+    add r tr, 1
+    jmp UADDCOMP
+
+UAENDMEM:
+    #d32 uaddend2
+    #res 2
+UAENDMEM1:
+    #d32 uaddend2
+UADDERROR:
+    add r ER, 1
+UADDCOMP:
+    rtn r SP1
+
+
+
+; Unsigned SUB Instruction Tests
+usubend1 = 12345
+usubend2 = 23456
+udifference = usubend1 - usubend2
+USUBTEST:
+    ld r tr, 0x20
+    ld r1, usubend1
+    ld r2, usubend2
+    ld r3, udifference
+    add r tr, 1
+    usub r1, r2          ; Register
+    bne r1, r3, USUBER
+    ld r1, usubend1
+    add r tr, 1
+    usub r1, usubend2     ; Immediate
+    bne r1, r3, USUBER
+    ld r1, usubend1
+    add r tr, 1
+    usub r1, mem[USENDMEM]
+    bne r1, r3, USUBER
+    ld r1, usubend1
+    add r tr, 1
+    ldl r4, USENDMEM1 - USENDMEM
+    usub r1, r4, mem[USENDMEM]
+    bne r1, r3, USUBER
+    add r tr, 1
+    jmp USUBCOMP
+
+USENDMEM:
+    #d32 usubend2
+    #res 2
+USENDMEM1:
+    #d32 usubend2
+USUBER:
+    add r ER, 1
+USUBCOMP:
+    rtn r SP1
 
 ANDTEST:
 ; AND Instruction Tests

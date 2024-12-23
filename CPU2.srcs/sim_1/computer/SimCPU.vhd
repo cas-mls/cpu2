@@ -65,7 +65,14 @@ architecture Behavioral of SimCPU is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')),
+                Break => '0', 
+                Step => '0', 
+                Continue => '0',
+                BWhenReg => 16,
+                BWhenValue => (others => '0'));
             DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
@@ -170,7 +177,15 @@ architecture Behavioral of SimCPU is
     signal r_xtr         : STD_LOGIC_VECTOR(7 downto 0);
 
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
+    -- Debug Items
+    signal DebugIn      : DEBUGINTYPE := 
+        (DebugMode => '0',
+        BreakPoints => (others => (others => '0')), 
+        Break => '0', 
+        Step => '0', 
+        Continue => '0',
+        BWhenReg => 16,
+        BWhenValue => (others => '0'));
     signal DebugOut     : DEBUGOUTTYPE;
 
     procedure InitRamFromFile
@@ -258,8 +273,8 @@ port map(
     MEM_ADDRB     => MEM_ADDRB,
     MEM_DINB      => MEM_DINB,
     MEM_DOUTB     => MEM_DOUTB,
-    DEBUGIN     => DebugIn,
-    DEBUGOUT    => DebugOut
+    DEBUGIN       => DebugIn,
+    DEBUGOUT      => DebugOut
 );
 
 uartCUT : UartDevice
