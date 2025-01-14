@@ -155,4 +155,26 @@ package Utilities is
     );
 
 
+    -- Status Word
+    -- | Bit   | Description                    |
+    -- | ----- | ------------------------------ |
+    -- | 0     | Illegal Operation              |
+    -- | 1     | Illegal Address                |
+    -- | 2     | Integer Overflow/Underflow     |
+    -- | 3     | Integer Divide by Zero         |
+    -- |       |                                |
+    -- |       |                                |
+    -- | 16    | IO Change to not Busy          |
+    -- | 17    | IO Error                       |
+    -- | 24-31 | IO Address Creating Interrupts |
+    signal status_word : STD_LOGIC_VECTOR(31 downto 0);
+    -- Status BIT location
+    constant IllegalOp      : integer := 0;
+    constant IllegalAddr    : integer := 1;
+    constant OverUnderflow  : integer := 2;
+    constant DivideByZero   : integer := 3;
+    constant IONotBusy      : integer := 16;
+    constant IOError        : integer := 17;
+
+
 end Package;

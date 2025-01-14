@@ -14,12 +14,12 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="6,440.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="14,090.001 ns"></ZoomEndTime>
-      <Cursor1Time time="12,815.000 ns"></Cursor1Time>
+      <ZoomStartTime time="19,958.666 ns"></ZoomStartTime>
+      <ZoomEndTime time="20,008.267 ns"></ZoomEndTime>
+      <Cursor1Time time="20,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="266"></NameColumnWidth>
+      <NameColumnWidth column_width="261"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="21" />
@@ -67,6 +67,73 @@
    <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs" type="array">
       <obj_property name="ElementShortName">cpuRegs[15:0][31:0]</obj_property>
       <obj_property name="ObjectShortName">cpuRegs[15:0][31:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[15]" type="array">
+         <obj_property name="ElementShortName">[15][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[15][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[14]" type="array">
+         <obj_property name="ElementShortName">[14][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[14][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[13]" type="array">
+         <obj_property name="ElementShortName">[13][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[13][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[12]" type="array">
+         <obj_property name="ElementShortName">[12][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[12][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[11]" type="array">
+         <obj_property name="ElementShortName">[11][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[11][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[10]" type="array">
+         <obj_property name="ElementShortName">[10][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[10][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[9]" type="array">
+         <obj_property name="ElementShortName">[9][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[9][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[8]" type="array">
+         <obj_property name="ElementShortName">[8][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[8][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[7]" type="array">
+         <obj_property name="ElementShortName">[7][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[7][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[6]" type="array">
+         <obj_property name="ElementShortName">[6][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[6][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[5]" type="array">
+         <obj_property name="ElementShortName">[5][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[5][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[4]" type="array">
+         <obj_property name="ElementShortName">[4][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[4][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[3]" type="array">
+         <obj_property name="ElementShortName">[3][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[3][31:0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[2]" type="array">
+         <obj_property name="ElementShortName">[2][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[2][31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[1]" type="array">
+         <obj_property name="ElementShortName">[1][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[1][31:0]</obj_property>
+         <obj_property name="Radix">HEXRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[0]" type="array">
+         <obj_property name="ElementShortName">[0][31:0]</obj_property>
+         <obj_property name="ObjectShortName">[0][31:0]</obj_property>
+      </wvobject>
    </wvobject>
    <wvobject fp_name="group949" type="group">
       <obj_property name="label">Mem A</obj_property>
@@ -508,10 +575,6 @@
             <obj_property name="ElementShortName">r_s_axi_awvalid</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_awvalid</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_awready" type="logic">
-            <obj_property name="ElementShortName">r_s_axi_awready</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_awready</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_wdata" type="array">
             <obj_property name="ElementShortName">r_s_axi_wdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_wdata[31:0]</obj_property>
@@ -523,14 +586,6 @@
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_wready" type="logic">
             <obj_property name="ElementShortName">r_s_axi_wready</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_wready</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bresp" type="array">
-            <obj_property name="ElementShortName">r_s_axi_bresp[1:0]</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_bresp[1:0]</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bvalid" type="logic">
-            <obj_property name="ElementShortName">r_s_axi_bvalid</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_bvalid</obj_property>
          </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bready" type="logic">
             <obj_property name="ElementShortName">r_s_axi_bready</obj_property>
@@ -580,10 +635,6 @@
             <obj_property name="ElementShortName">w_s_axi_awvalid</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_awvalid</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_awready" type="logic">
-            <obj_property name="ElementShortName">w_s_axi_awready</obj_property>
-            <obj_property name="ObjectShortName">w_s_axi_awready</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_wdata" type="array">
             <obj_property name="ElementShortName">w_s_axi_wdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_wdata[31:0]</obj_property>
@@ -624,10 +675,6 @@
             <obj_property name="ElementShortName">w_s_axi_rdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_rdata[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_rresp" type="array">
-            <obj_property name="ElementShortName">w_s_axi_rresp[1:0]</obj_property>
-            <obj_property name="ObjectShortName">w_s_axi_rresp[1:0]</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_rvalid" type="logic">
             <obj_property name="ElementShortName">w_s_axi_rvalid</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_rvalid</obj_property>
@@ -639,14 +686,6 @@
          <wvobject fp_name="/SimCPU/uartCUT/w_UART_RX" type="logic">
             <obj_property name="ElementShortName">w_UART_RX</obj_property>
             <obj_property name="ObjectShortName">w_UART_RX</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_write_processing" type="logic">
-            <obj_property name="ElementShortName">w_write_processing</obj_property>
-            <obj_property name="ObjectShortName">w_write_processing</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_status_processing" type="logic">
-            <obj_property name="ElementShortName">w_status_processing</obj_property>
-            <obj_property name="ObjectShortName">w_status_processing</obj_property>
          </wvobject>
       </wvobject>
       <wvobject fp_name="group220" type="group">
@@ -708,10 +747,6 @@
             <obj_property name="ElementShortName">r_s_axi_awvalid</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_awvalid</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_awready" type="logic">
-            <obj_property name="ElementShortName">r_s_axi_awready</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_awready</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_wdata" type="array">
             <obj_property name="ElementShortName">r_s_axi_wdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_wdata[31:0]</obj_property>
@@ -723,14 +758,6 @@
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_wready" type="logic">
             <obj_property name="ElementShortName">r_s_axi_wready</obj_property>
             <obj_property name="ObjectShortName">r_s_axi_wready</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bresp" type="array">
-            <obj_property name="ElementShortName">r_s_axi_bresp[1:0]</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_bresp[1:0]</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bvalid" type="logic">
-            <obj_property name="ElementShortName">r_s_axi_bvalid</obj_property>
-            <obj_property name="ObjectShortName">r_s_axi_bvalid</obj_property>
          </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/r_s_axi_bready" type="logic">
             <obj_property name="ElementShortName">r_s_axi_bready</obj_property>
@@ -780,10 +807,6 @@
             <obj_property name="ElementShortName">w_s_axi_awvalid</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_awvalid</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_awready" type="logic">
-            <obj_property name="ElementShortName">w_s_axi_awready</obj_property>
-            <obj_property name="ObjectShortName">w_s_axi_awready</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_wdata" type="array">
             <obj_property name="ElementShortName">w_s_axi_wdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_wdata[31:0]</obj_property>
@@ -824,10 +847,6 @@
             <obj_property name="ElementShortName">w_s_axi_rdata[31:0]</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_rdata[31:0]</obj_property>
          </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_rresp" type="array">
-            <obj_property name="ElementShortName">w_s_axi_rresp[1:0]</obj_property>
-            <obj_property name="ObjectShortName">w_s_axi_rresp[1:0]</obj_property>
-         </wvobject>
          <wvobject fp_name="/SimCPU/uartCUT/w_s_axi_rvalid" type="logic">
             <obj_property name="ElementShortName">w_s_axi_rvalid</obj_property>
             <obj_property name="ObjectShortName">w_s_axi_rvalid</obj_property>
@@ -839,14 +858,6 @@
          <wvobject fp_name="/SimCPU/uartCUT/w_UART_RX" type="logic">
             <obj_property name="ElementShortName">w_UART_RX</obj_property>
             <obj_property name="ObjectShortName">w_UART_RX</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_write_processing" type="logic">
-            <obj_property name="ElementShortName">w_write_processing</obj_property>
-            <obj_property name="ObjectShortName">w_write_processing</obj_property>
-         </wvobject>
-         <wvobject fp_name="/SimCPU/uartCUT/w_status_processing" type="logic">
-            <obj_property name="ElementShortName">w_status_processing</obj_property>
-            <obj_property name="ObjectShortName">w_status_processing</obj_property>
          </wvobject>
       </wvobject>
    </wvobject>

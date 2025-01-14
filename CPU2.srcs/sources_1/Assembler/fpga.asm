@@ -28,6 +28,8 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
+    jsr r SP1, ADDTEST
+    jsr r SP1, SUBTEST
     jsr r SP1, UADDTEST
     jsr r SP1, USUBTEST
     jsr r SP1, STACKTESTS
@@ -40,8 +42,6 @@ LOOP:
     jsr r SP1, SLLTEST
     jsr r SP1, SRLTEST
     jsr r SP1, LSTEST
-    jsr r SP1, ADDTEST
-    jsr r SP1, SUBTEST
     jsr r SP1, BRTEST2
     jsr r SP1, BRTEST
     jsr r SP1, JMPTEST
@@ -285,6 +285,15 @@ ADDTEST:
 addend1 = 12345
 addend2 = 23456
 sum = addend1 + addend2
+ovAddend1 = 0x7FFFFFFF
+ovAddend2 = 10
+ovSum = ovAddend1 + ovAddend2
+    ld r tr, 0x1f
+    ld r1, ovAddend1
+    ld r2, ovAddend2
+    ld r3, ovSum
+    add r1, r2          ; Register Overflow
+
     ld r tr, 0x10
     ld r1, addend1
     ld r2, addend2

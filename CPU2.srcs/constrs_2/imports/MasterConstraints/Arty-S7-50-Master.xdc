@@ -1,0 +1,234 @@
+## This file is a general .xdc for the Arty S7-50 Rev. E
+## To use it in a project:
+## - uncomment the lines corresponding to used pins
+## - rename the used ports (in each line, after get_ports) according to the top level signal names in the project
+
+## Clock Signals
+#set_property -dict { PACKAGE_PIN F14   IOSTANDARD LVCMOS33 } [get_ports { CLK12MHZ }]; #IO_L13P_T2_MRCC_15 Sch=uclk
+#create_clock -add -name sys_clk_pin -period 83.333 -waveform {0 41.667} [get_ports { CLK12MHZ }];
+#set_property -dict { PACKAGE_PIN R2    IOSTANDARD SSTL135 } [get_ports { CLK100MHZ }]; #IO_L12P_T1_MRCC_34 Sch=ddr3_clk[200]
+#create_clock -add -name sys_clk_pin -period 10.000 -waveform {0 5.000}  [get_ports { CLK100MHZ }];
+set_property -dict {PACKAGE_PIN R2 IOSTANDARD SSTL135} [get_ports SYS_CLK]
+create_clock -period 10.000 -name sys_clk_pin -waveform {0.000 5.000} -add [get_ports SYS_CLK]
+
+## Switches
+#set_property -dict { PACKAGE_PIN H14   IOSTANDARD LVCMOS33 } [get_ports { sw[0] }]; #IO_L20N_T3_A19_15 Sch=sw[0]
+#set_property -dict { PACKAGE_PIN H18   IOSTANDARD LVCMOS33 } [get_ports { sw[1] }]; #IO_L21P_T3_DQS_15 Sch=sw[1]
+#set_property -dict { PACKAGE_PIN G18   IOSTANDARD LVCMOS33 } [get_ports { sw[2] }]; #IO_L21N_T3_DQS_A18_15 Sch=sw[2]
+#set_property -dict { PACKAGE_PIN M5    IOSTANDARD SSTL135 } [get_ports { sw[3] }]; #IO_L6N_T0_VREF_34 Sch=sw[3]
+set_property -dict {PACKAGE_PIN M5 IOSTANDARD SSTL135} [get_ports dmode]
+
+## RGB LEDs
+#set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { led0_r }]; #IO_L23N_T3_FWE_B_15 Sch=led0_r
+#set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { led0_g }]; #IO_L14N_T2_SRCC_15 Sch=led0_g
+#set_property -dict { PACKAGE_PIN F15   IOSTANDARD LVCMOS33 } [get_ports { led0_b }]; #IO_L13N_T2_MRCC_15 Sch=led0_b
+#set_property -dict { PACKAGE_PIN E15   IOSTANDARD LVCMOS33 } [get_ports { led1_r }]; #IO_L15N_T2_DQS_ADV_B_15 Sch=led1_r
+#set_property -dict { PACKAGE_PIN F18   IOSTANDARD LVCMOS33 } [get_ports { led1_g }]; #IO_L16P_T2_A28_15 Sch=led1_g
+#set_property -dict { PACKAGE_PIN E14   IOSTANDARD LVCMOS33 } [get_ports { led1_b }]; #IO_L15P_T2_DQS_15 Sch=led1_b
+
+#set_property -dict { PACKAGE_PIN J15   IOSTANDARD LVCMOS33 } [get_ports { rgb[0] }]; #IO_L23N_T3_FWE_B_15 Sch=led0_r
+#set_property -dict { PACKAGE_PIN G17   IOSTANDARD LVCMOS33 } [get_ports { rgb[1] }]; #IO_L14N_T2_SRCC_15 Sch=led0_g
+#set_property -dict { PACKAGE_PIN F15   IOSTANDARD LVCMOS33 } [get_ports { rgb[2] }]; #IO_L13N_T2_MRCC_15 Sch=led0_b
+#set_property -dict { PACKAGE_PIN E15   IOSTANDARD LVCMOS33 } [get_ports { rgb[3] }]; #IO_L15N_T2_DQS_ADV_B_15 Sch=led1_r
+#set_property -dict { PACKAGE_PIN F18   IOSTANDARD LVCMOS33 } [get_ports { rgb[4] }]; #IO_L16P_T2_A28_15 Sch=led1_g
+#set_property -dict { PACKAGE_PIN E14   IOSTANDARD LVCMOS33 } [get_ports { rgb[5] }]; #IO_L15P_T2_DQS_15 Sch=led1_b
+
+## LEDs
+set_property -dict {PACKAGE_PIN E18 IOSTANDARD LVCMOS33} [get_ports {led[0]}]
+set_property -dict {PACKAGE_PIN F13 IOSTANDARD LVCMOS33} [get_ports {led[1]}]
+set_property -dict {PACKAGE_PIN E13 IOSTANDARD LVCMOS33} [get_ports {led[2]}]
+set_property -dict {PACKAGE_PIN H15 IOSTANDARD LVCMOS33} [get_ports {led[3]}]
+
+## Buttons
+set_property -dict {PACKAGE_PIN G15 IOSTANDARD LVCMOS33} [get_ports {{btn[0]} rst}]
+#set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS33 } [get_ports { btn[0] }]; #IO_L18N_T2_A23_15 Sch=btn[0]
+#set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports { btn[1] }]; #IO_L19P_T3_A22_15 Sch=btn[1]
+#set_property -dict { PACKAGE_PIN J16   IOSTANDARD LVCMOS33 } [get_ports { btn[2] }]; #IO_L19N_T3_A21_VREF_15 Sch=btn[2]
+#set_property -dict { PACKAGE_PIN H13   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L20P_T3_A20_15 Sch=btn[3]
+set_property -dict {PACKAGE_PIN K16 IOSTANDARD LVCMOS33} [get_ports dcont]
+set_property -dict {PACKAGE_PIN J16 IOSTANDARD LVCMOS33} [get_ports dstep]
+set_property -dict {PACKAGE_PIN H13 IOSTANDARD LVCMOS33} [get_ports dbreak]
+
+## Pmod Header JA
+#set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 } [get_ports { ja[0] }]; #IO_L4P_T0_D04_14 Sch=ja_p[1]
+#set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports { ja[1] }]; #IO_L4N_T0_D05_14 Sch=ja_n[1]
+#set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { ja[2] }]; #IO_L5P_T0_D06_14 Sch=ja_p[2]
+#set_property -dict { PACKAGE_PIN N14   IOSTANDARD LVCMOS33 } [get_ports { ja[3] }]; #IO_L5N_T0_D07_14 Sch=ja_n[2]
+#set_property -dict { PACKAGE_PIN M16   IOSTANDARD LVCMOS33 } [get_ports { ja[4] }]; #IO_L7P_T1_D09_14 Sch=ja_p[3]
+#set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports { ja[5] }]; #IO_L7N_T1_D10_14 Sch=ja_n[3]
+#set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports { ja[6] }]; #IO_L8P_T1_D11_14 Sch=ja_p[4]
+#set_property -dict { PACKAGE_PIN N18   IOSTANDARD LVCMOS33 } [get_ports { ja[7] }]; #IO_L8N_T1_D12_14 Sch=ja_n[4]
+
+## Pmod Header JB
+#set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { jb[0] }]; #IO_L9P_T1_DQS_14 Sch=jb_p[1]
+#set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { jb[1] }]; #IO_L9N_T1_DQS_D13_14 Sch=jb_n[1]
+#set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports { jb[2] }]; #IO_L10P_T1_D14_14 Sch=jb_p[2]
+#set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports { jb[3] }]; #IO_L10N_T1_D15_14 Sch=jb_n[2]
+#set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { jb[4] }]; #IO_L11P_T1_SRCC_14 Sch=jb_p[3]
+#set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { jb[5] }]; #IO_L11N_T1_SRCC_14 Sch=jb_n[3]
+#set_property -dict { PACKAGE_PIN N15   IOSTANDARD LVCMOS33 } [get_ports { jb[6] }]; #IO_L12P_T1_MRCC_14 Sch=jb_p[4]
+#set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { jb[7] }]; #IO_L12N_T1_MRCC_14 Sch=jb_n[4]
+
+## Pmod Header JC
+#set_property -dict { PACKAGE_PIN U15   IOSTANDARD LVCMOS33 } [get_ports { jc[0] }]; #IO_L18P_T2_A12_D28_14 Sch=jc1/ck_io[41]
+#set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { jc[1] }]; #IO_L18N_T2_A11_D27_14 Sch=jc2/ck_io[40]
+#set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 } [get_ports { jc[2] }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=jc3/ck_io[39]
+#set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { jc[3] }]; #IO_L15N_T2_DQS_DOUT_CSO_B_14 Sch=jc4/ck_io[38]
+#set_property -dict { PACKAGE_PIN U16   IOSTANDARD LVCMOS33 } [get_ports { jc[4] }]; #IO_L16P_T2_CSI_B_14 Sch=jc7/ck_io[37]
+#set_property -dict { PACKAGE_PIN P13   IOSTANDARD LVCMOS33 } [get_ports { jc[5] }]; #IO_L19P_T3_A10_D26_14 Sch=jc8/ck_io[36]
+#set_property -dict { PACKAGE_PIN R13   IOSTANDARD LVCMOS33 } [get_ports { jc[6] }]; #IO_L19N_T3_A09_D25_VREF_14 Sch=jc9/ck_io[35]
+#set_property -dict { PACKAGE_PIN V14   IOSTANDARD LVCMOS33 } [get_ports { jc[7] }]; #IO_L20P_T3_A08_D24_14 Sch=jc10/ck_io[34]
+
+## Pmod Header JD
+#set_property -dict { PACKAGE_PIN V15   IOSTANDARD LVCMOS33 } [get_ports { jd[0] }]; #IO_L20N_T3_A07_D23_14 Sch=jd1/ck_io[33]
+#set_property -dict { PACKAGE_PIN U12   IOSTANDARD LVCMOS33 } [get_ports { jd[1] }]; #IO_L21P_T3_DQS_14 Sch=jd2/ck_io[32]
+#set_property -dict { PACKAGE_PIN V13   IOSTANDARD LVCMOS33 } [get_ports { jd[2] }]; #IO_L21N_T3_DQS_A06_D22_14 Sch=jd3/ck_io[31]
+#set_property -dict { PACKAGE_PIN T12   IOSTANDARD LVCMOS33 } [get_ports { jd[3] }]; #IO_L22P_T3_A05_D21_14 Sch=jd4/ck_io[30]
+#set_property -dict { PACKAGE_PIN T13   IOSTANDARD LVCMOS33 } [get_ports { jd[4] }]; #IO_L22N_T3_A04_D20_14 Sch=jd7/ck_io[29]
+#set_property -dict { PACKAGE_PIN R11   IOSTANDARD LVCMOS33 } [get_ports { jd[5] }]; #IO_L23P_T3_A03_D19_14 Sch=jd8/ck_io[28]
+#set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { jd[6] }]; #IO_L23N_T3_A02_D18_14 Sch=jd9/ck_io[27]
+#set_property -dict { PACKAGE_PIN U11   IOSTANDARD LVCMOS33 } [get_ports { jd[7] }]; #IO_L24P_T3_A01_D17_14 Sch=jd10/ck_io[26]
+
+## USB-UART Interface
+# set_property -dict { PACKAGE_PIN R12   IOSTANDARD LVCMOS33 } [get_ports { uart_txd_out }]; #IO_25_14 Sch=uart_rxd_out
+# set_property -dict { PACKAGE_PIN V12   IOSTANDARD LVCMOS33 } [get_ports { uart_rxd_in }]; #IO_L24N_T3_A00_D16_14 Sch=uart_txd_in
+set_property -dict {PACKAGE_PIN R12 IOSTANDARD LVCMOS33} [get_ports uart_txd_out]
+set_property -dict {PACKAGE_PIN V12 IOSTANDARD LVCMOS33} [get_ports uart_rxd_in]
+
+## ChipKit Outer Digital Header
+#set_property -dict { PACKAGE_PIN L13   IOSTANDARD LVCMOS33 } [get_ports { ck_io0 }]; #IO_0_14 Sch=ck_io[0]
+#set_property -dict { PACKAGE_PIN N13   IOSTANDARD LVCMOS33 } [get_ports { ck_io1 }]; #IO_L6N_T0_D08_VREF_14   Sch=ck_io[1]
+#set_property -dict { PACKAGE_PIN L16   IOSTANDARD LVCMOS33 } [get_ports { ck_io2 }]; #IO_L3N_T0_DQS_EMCCLK_14 Sch=ck_io[2]
+#set_property -dict { PACKAGE_PIN R14   IOSTANDARD LVCMOS33 } [get_ports { ck_io3 }]; #IO_L13P_T2_MRCC_14      Sch=ck_io[3]
+#set_property -dict { PACKAGE_PIN T14   IOSTANDARD LVCMOS33 } [get_ports { ck_io4 }]; #IO_L13N_T2_MRCC_14      Sch=ck_io[4]
+#set_property -dict { PACKAGE_PIN R16   IOSTANDARD LVCMOS33 } [get_ports { ck_io5 }]; #IO_L14P_T2_SRCC_14      Sch=ck_io[5]
+#set_property -dict { PACKAGE_PIN R17   IOSTANDARD LVCMOS33 } [get_ports { ck_io6 }]; #IO_L14N_T2_SRCC_14      Sch=ck_io[6]
+#set_property -dict { PACKAGE_PIN V17   IOSTANDARD LVCMOS33 } [get_ports { ck_io7 }]; #IO_L16N_T2_A15_D31_14   Sch=ck_io[7]
+#set_property -dict { PACKAGE_PIN R15   IOSTANDARD LVCMOS33 } [get_ports { ck_io8 }]; #IO_L17P_T2_A14_D30_14   Sch=ck_io[8]
+#set_property -dict { PACKAGE_PIN T15   IOSTANDARD LVCMOS33 } [get_ports { ck_io9 }]; #IO_L17N_T2_A13_D29_14   Sch=ck_io[9]
+
+## ChipKit SPI Header
+## NOTE: The ChipKit SPI header ports can also be used as digital I/O and share FPGA pins with ck_io10-13. Do not use both at the same time.
+#set_property -dict { PACKAGE_PIN H16   IOSTANDARD LVCMOS33 } [get_ports { ck_io10_ss   }]; #IO_L22P_T3_A17_15   Sch=ck_io10_ss
+#set_property -dict { PACKAGE_PIN H17   IOSTANDARD LVCMOS33 } [get_ports { ck_io11_mosi }]; #IO_L22N_T3_A16_15   Sch=ck_io11_mosi
+#set_property -dict { PACKAGE_PIN K14   IOSTANDARD LVCMOS33 } [get_ports { ck_io12_miso }]; #IO_L23P_T3_FOE_B_15 Sch=ck_io12_miso
+#set_property -dict { PACKAGE_PIN G16   IOSTANDARD LVCMOS33 } [get_ports { ck_io13_sck  }]; #IO_L14P_T2_SRCC_15  Sch=ck_io13_sck
+
+## ChipKit Inner Digital Header
+## Note: these pins are shared with PMOD Headers JC and JD and cannot be used at the same time as the applicable PMOD interface(s)
+#set_property -dict { PACKAGE_PIN U11   IOSTANDARD LVCMOS33 } [get_ports { ck_io26 }]; #IO_L24P_T3_A01_D17_14        Sch=jd10/ck_io[26]
+#set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports { ck_io27 }]; #IO_L23N_T3_A02_D18_14        Sch=jd9/ck_io[27]
+#set_property -dict { PACKAGE_PIN R11   IOSTANDARD LVCMOS33 } [get_ports { ck_io28 }]; #IO_L23P_T3_A03_D19_14        Sch=jd8/ck_io[28]
+#set_property -dict { PACKAGE_PIN T13   IOSTANDARD LVCMOS33 } [get_ports { ck_io29 }]; #IO_L22N_T3_A04_D20_14        Sch=jd7/ck_io[29]
+#set_property -dict { PACKAGE_PIN T12   IOSTANDARD LVCMOS33 } [get_ports { ck_io30 }]; #IO_L22P_T3_A05_D21_14        Sch=jd4/ck_io[30]
+#set_property -dict { PACKAGE_PIN V13   IOSTANDARD LVCMOS33 } [get_ports { ck_io31 }]; #IO_L21N_T3_DQS_A06_D22_14    Sch=jd3/ck_io[31]
+#set_property -dict { PACKAGE_PIN U12   IOSTANDARD LVCMOS33 } [get_ports { ck_io32 }]; #IO_L21P_T3_DQS_14            Sch=jd2/ck_io[32]
+#set_property -dict { PACKAGE_PIN V15   IOSTANDARD LVCMOS33 } [get_ports { ck_io33 }]; #IO_L20N_T3_A07_D23_14        Sch=jd1/ck_io[33]
+#set_property -dict { PACKAGE_PIN V14   IOSTANDARD LVCMOS33 } [get_ports { ck_io34 }]; #IO_L20P_T3_A08_D24_14        Sch=jc10/ck_io[34]
+#set_property -dict { PACKAGE_PIN R13   IOSTANDARD LVCMOS33 } [get_ports { ck_io35 }]; #IO_L19N_T3_A09_D25_VREF_14   Sch=jc9/ck_io[35]
+#set_property -dict { PACKAGE_PIN P13   IOSTANDARD LVCMOS33 } [get_ports { ck_io36 }]; #IO_L19P_T3_A10_D26_14        Sch=jc8/ck_io[36]
+#set_property -dict { PACKAGE_PIN U16   IOSTANDARD LVCMOS33 } [get_ports { ck_io37 }]; #IO_L16P_T2_CSI_B_14          Sch=jc7/ck_io[37]
+#set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 } [get_ports { ck_io38 }]; #IO_L15N_T2_DQS_DOUT_CSO_B_14 Sch=jc4/ck_io[38]
+#set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 } [get_ports { ck_io39 }]; #IO_L15P_T2_DQS_RDWR_B_14     Sch=jc3/ck_io[39]
+#set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports { ck_io40 }]; #IO_L18N_T2_A11_D27_14        Sch=jc2/ck_io[40]
+#set_property -dict { PACKAGE_PIN U15   IOSTANDARD LVCMOS33 } [get_ports { ck_io41 }]; #IO_L18P_T2_A12_D28_14        Sch=jc1/ck_io[41]
+
+## Dedicated Analog Inputs
+#set_property -dict { PACKAGE_PIN J10   } [get_ports { vp_in }]; #IO_L1P_T0_AD4P_35 Sch=v_p
+#set_property -dict { PACKAGE_PIN K9    } [get_ports { vn_in }]; #IO_L1N_T0_AD4N_35 Sch=v_n
+
+## ChipKit Outer Analog Header - as Single-Ended Analog Inputs
+## NOTE: These ports can be used as single-ended analog inputs with voltages from 0-3.3V (ChipKit analog pins A0-A5) or as digital I/O.
+## WARNING: Do not use both sets of constraints at the same time!
+## NOTE: The following constraints should be used with the XADC IP core when using these ports as analog inputs.
+#set_property -dict { PACKAGE_PIN B13   IOSTANDARD LVCMOS33 } [get_ports { vaux0_p  }]; #IO_L1P_T0_AD0P_15     Sch=ck_an_p[0]   ChipKit pin=A0
+#set_property -dict { PACKAGE_PIN A13   IOSTANDARD LVCMOS33 } [get_ports { vaux0_n  }]; #IO_L1N_T0_AD0N_15     Sch=ck_an_n[0]   ChipKit pin=A0
+#set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVCMOS33 } [get_ports { vaux1_p  }]; #IO_L3P_T0_DQS_AD1P_15 Sch=ck_an_p[1]   ChipKit pin=A1
+#set_property -dict { PACKAGE_PIN A15   IOSTANDARD LVCMOS33 } [get_ports { vaux1_n  }]; #IO_L3N_T0_DQS_AD1N_15 Sch=ck_an_n[1]   ChipKit pin=A1
+#set_property -dict { PACKAGE_PIN E12   IOSTANDARD LVCMOS33 } [get_ports { vaux9_p  }]; #IO_L5P_T0_AD9P_15     Sch=ck_an_p[2]   ChipKit pin=A2
+#set_property -dict { PACKAGE_PIN D12   IOSTANDARD LVCMOS33 } [get_ports { vaux9_n  }]; #IO_L5N_T0_AD9N_15     Sch=ck_an_n[2]   ChipKit pin=A2
+#set_property -dict { PACKAGE_PIN B17   IOSTANDARD LVCMOS33 } [get_ports { vaux2_p  }]; #IO_L7P_T1_AD2P_15     Sch=ck_an_p[3]   ChipKit pin=A3
+#set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS33 } [get_ports { vaux2_n  }]; #IO_L7N_T1_AD2N_15     Sch=ck_an_n[3]   ChipKit pin=A3
+#set_property -dict { PACKAGE_PIN C17   IOSTANDARD LVCMOS33 } [get_ports { vaux10_p }]; #IO_L8P_T1_AD10P_15    Sch=ck_an_p[4]   ChipKit pin=A4
+#set_property -dict { PACKAGE_PIN B18   IOSTANDARD LVCMOS33 } [get_ports { vaux10_n }]; #IO_L8N_T1_AD10N_15    Sch=ck_an_n[4]   ChipKit pin=A4
+#set_property -dict { PACKAGE_PIN E16   IOSTANDARD LVCMOS33 } [get_ports { vaux11_p }]; #IO_L10P_T1_AD11P_15   Sch=ck_an_p[5]   ChipKit pin=A5
+#set_property -dict { PACKAGE_PIN E17   IOSTANDARD LVCMOS33 } [get_ports { vaux11_n }]; #IO_L10N_T1_AD11N_15   Sch=ck_an_n[5]   ChipKit pin=A5
+## ChipKit Outer Analog Header - as Digital I/O
+## NOTE: The following constraints should be used when using these ports as digital I/O.
+#set_property -dict { PACKAGE_PIN G13   IOSTANDARD LVCMOS33 } [get_ports { ck_a0 }]; #IO_0_15            Sch=ck_a[0]
+#set_property -dict { PACKAGE_PIN B16   IOSTANDARD LVCMOS33 } [get_ports { ck_a1 }]; #IO_L4P_T0_15       Sch=ck_a[1]
+#set_property -dict { PACKAGE_PIN A16   IOSTANDARD LVCMOS33 } [get_ports { ck_a2 }]; #IO_L4N_T0_15       Sch=ck_a[2]
+#set_property -dict { PACKAGE_PIN C13   IOSTANDARD LVCMOS33 } [get_ports { ck_a3 }]; #IO_L6P_T0_15       Sch=ck_a[3]
+#set_property -dict { PACKAGE_PIN C14   IOSTANDARD LVCMOS33 } [get_ports { ck_a4 }]; #IO_L6N_T0_VREF_15  Sch=ck_a[4]
+#set_property -dict { PACKAGE_PIN D18   IOSTANDARD LVCMOS33 } [get_ports { ck_a5 }]; #IO_L11P_T1_SRCC_15 Sch=ck_a[5]
+
+## ChipKit Inner Analog Header - as Differential Analog Inputs
+## NOTE: These ports can be used as differential analog inputs with voltages from 0-1.0V (ChipKit analog pins A6-A11) or as digital I/O.
+## WARNING: Do not use both sets of constraints at the same time!
+## NOTE: The following constraints should be used with the XADC core when using these ports as analog inputs.
+#set_property -dict { PACKAGE_PIN B14   IOSTANDARD LVCMOS33 } [get_ports { vaux8_p }]; #IO_L2P_T0_AD8P_15     Sch=ad_p[8]   ChipKit pin=A6
+#set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports { vaux8_n }]; #IO_L2N_T0_AD8N_15     Sch=ad_n[8]   ChipKit pin=A7
+#set_property -dict { PACKAGE_PIN D16   IOSTANDARD LVCMOS33 } [get_ports { vaux3_p }]; #IO_L9P_T1_DQS_AD3P_15 Sch=ad_p[3]   ChipKit pin=A8
+#set_property -dict { PACKAGE_PIN D17   IOSTANDARD LVCMOS33 } [get_ports { vaux3_n }]; #IO_L9N_T1_DQS_AD3N_15 Sch=ad_n[3]   ChipKit pin=A9
+## ChipKit Inner Analog Header - as Digital I/O
+## NOTE: The following constraints should be used when using the inner analog header ports as digital I/O.
+#set_property -dict { PACKAGE_PIN B14   IOSTANDARD LVCMOS33 } [get_ports { ck_a6  }]; #IO_L2P_T0_AD8P_15     Sch=ad_p[8]
+#set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports { ck_a7  }]; #IO_L2N_T0_AD8N_15     Sch=ad_n[8]
+#set_property -dict { PACKAGE_PIN D16   IOSTANDARD LVCMOS33 } [get_ports { ck_a8  }]; #IO_L9P_T1_DQS_AD3P_15 Sch=ad_p[3]
+#set_property -dict { PACKAGE_PIN D17   IOSTANDARD LVCMOS33 } [get_ports { ck_a9  }]; #IO_L9N_T1_DQS_AD3N_15 Sch=ad_n[3]
+#set_property -dict { PACKAGE_PIN D14   IOSTANDARD LVCMOS33 } [get_ports { ck_a10 }]; #IO_L12P_T1_MRCC_15    Sch=ck_a10_r   (Cannot be used as an analog input)
+#set_property -dict { PACKAGE_PIN D15   IOSTANDARD LVCMOS33 } [get_ports { ck_a11 }]; #IO_L12N_T1_MRCC_15    Sch=ck_a11_r   (Cannot be used as an analog input)
+
+## ChipKit I2C
+#set_property -dict { PACKAGE_PIN J14   IOSTANDARD LVCMOS33 } [get_ports { ck_scl }]; #IO_L24N_T3_RS0_15 Sch=ck_scl
+#set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS33 } [get_ports { ck_sda }]; #IO_L24P_T3_RS1_15 Sch=ck_sda
+
+## Misc. ChipKit Ports
+#set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS33 } [get_ports { ck_ioa }]; #IO_25_15 Sch=ck_ioa
+#set_property -dict { PACKAGE_PIN C18   IOSTANDARD LVCMOS33 } [get_ports { ck_rst }]; #IO_L11N_T1_SRCC_15
+
+## Quad SPI Flash
+## Note: the SCK clock signal can be driven using the STARTUPE2 primitive
+#set_property -dict { PACKAGE_PIN M13   IOSTANDARD LVCMOS33 } [get_ports { qspi_cs }]; #IO_L6P_T0_FCS_B_14 Sch=qspi_cs
+#set_property -dict { PACKAGE_PIN K17   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[0] }]; #IO_L1P_T0_D00_MOSI_14 Sch=qspi_dq[0]
+#set_property -dict { PACKAGE_PIN K18   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[1] }]; #IO_L1N_T0_D01_DIN_14 Sch=qspi_dq[1]
+#set_property -dict { PACKAGE_PIN L14   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[2] }]; #IO_L2P_T0_D02_14 Sch=qspi_dq[2]
+#set_property -dict { PACKAGE_PIN M15   IOSTANDARD LVCMOS33 } [get_ports { qspi_dq[3] }]; #IO_L2N_T0_D03_14 Sch=qspi_dq[3]
+
+## Configuration options, can be used for all designs
+set_property BITSTREAM.CONFIG.CONFIGRATE 50 [current_design]
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+set_property CFGBVS VCCO [current_design]
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
+set_property CONFIG_MODE SPIx4 [current_design]
+
+## SW3 is assigned to a pin M5 in the 1.35v bank. This pin can also be used as
+## the VREF for BANK 34. To ensure that SW3 does not define the reference voltage
+## and to be able to use this pin as an ordinary I/O the following property must
+## be set to enable an internal VREF for BANK 34. Since a 1.35v supply is being
+## used the internal reference is set to half that value (i.e. 0.675v). Note that
+## this property must be set even if SW3 is not used in the design.
+set_property INTERNAL_VREF 0.675 [get_iobanks 34]
+
+
+
+set_operating_conditions -design_power_budget 10.0
+
+connect_debug_port u_ila_0/probe0 [get_nets [list {cpu1/cpuRegs[0]_15[0]} {cpu1/cpuRegs[0]_15[1]} {cpu1/cpuRegs[0]_15[2]} {cpu1/cpuRegs[0]_15[3]} {cpu1/cpuRegs[0]_15[4]} {cpu1/cpuRegs[0]_15[5]} {cpu1/cpuRegs[0]_15[6]} {cpu1/cpuRegs[0]_15[7]} {cpu1/cpuRegs[0]_15[8]} {cpu1/cpuRegs[0]_15[9]} {cpu1/cpuRegs[0]_15[10]} {cpu1/cpuRegs[0]_15[11]} {cpu1/cpuRegs[0]_15[12]} {cpu1/cpuRegs[0]_15[13]} {cpu1/cpuRegs[0]_15[14]} {cpu1/cpuRegs[0]_15[15]} {cpu1/cpuRegs[0]_15[16]} {cpu1/cpuRegs[0]_15[17]} {cpu1/cpuRegs[0]_15[18]} {cpu1/cpuRegs[0]_15[19]} {cpu1/cpuRegs[0]_15[20]} {cpu1/cpuRegs[0]_15[21]} {cpu1/cpuRegs[0]_15[22]} {cpu1/cpuRegs[0]_15[23]} {cpu1/cpuRegs[0]_15[24]} {cpu1/cpuRegs[0]_15[25]} {cpu1/cpuRegs[0]_15[26]} {cpu1/cpuRegs[0]_15[27]} {cpu1/cpuRegs[0]_15[28]} {cpu1/cpuRegs[0]_15[29]} {cpu1/cpuRegs[0]_15[30]} {cpu1/cpuRegs[0]_15[31]}]]
+connect_debug_port u_ila_0/probe2 [get_nets [list {cpu1/cpuRegs[10]_5[0]} {cpu1/cpuRegs[10]_5[1]} {cpu1/cpuRegs[10]_5[2]} {cpu1/cpuRegs[10]_5[3]} {cpu1/cpuRegs[10]_5[4]} {cpu1/cpuRegs[10]_5[5]} {cpu1/cpuRegs[10]_5[6]} {cpu1/cpuRegs[10]_5[7]} {cpu1/cpuRegs[10]_5[8]} {cpu1/cpuRegs[10]_5[9]} {cpu1/cpuRegs[10]_5[10]} {cpu1/cpuRegs[10]_5[11]} {cpu1/cpuRegs[10]_5[12]} {cpu1/cpuRegs[10]_5[13]} {cpu1/cpuRegs[10]_5[14]} {cpu1/cpuRegs[10]_5[15]} {cpu1/cpuRegs[10]_5[16]} {cpu1/cpuRegs[10]_5[17]} {cpu1/cpuRegs[10]_5[18]} {cpu1/cpuRegs[10]_5[19]} {cpu1/cpuRegs[10]_5[20]} {cpu1/cpuRegs[10]_5[21]} {cpu1/cpuRegs[10]_5[22]} {cpu1/cpuRegs[10]_5[23]} {cpu1/cpuRegs[10]_5[24]} {cpu1/cpuRegs[10]_5[25]} {cpu1/cpuRegs[10]_5[26]} {cpu1/cpuRegs[10]_5[27]} {cpu1/cpuRegs[10]_5[28]} {cpu1/cpuRegs[10]_5[29]} {cpu1/cpuRegs[10]_5[30]} {cpu1/cpuRegs[10]_5[31]}]]
+connect_debug_port u_ila_0/probe3 [get_nets [list {cpu1/cpuRegs[11]_4[0]} {cpu1/cpuRegs[11]_4[1]} {cpu1/cpuRegs[11]_4[2]} {cpu1/cpuRegs[11]_4[3]} {cpu1/cpuRegs[11]_4[4]} {cpu1/cpuRegs[11]_4[5]} {cpu1/cpuRegs[11]_4[6]} {cpu1/cpuRegs[11]_4[7]} {cpu1/cpuRegs[11]_4[8]} {cpu1/cpuRegs[11]_4[9]} {cpu1/cpuRegs[11]_4[10]} {cpu1/cpuRegs[11]_4[11]} {cpu1/cpuRegs[11]_4[12]} {cpu1/cpuRegs[11]_4[13]} {cpu1/cpuRegs[11]_4[14]} {cpu1/cpuRegs[11]_4[15]} {cpu1/cpuRegs[11]_4[16]} {cpu1/cpuRegs[11]_4[17]} {cpu1/cpuRegs[11]_4[18]} {cpu1/cpuRegs[11]_4[19]} {cpu1/cpuRegs[11]_4[20]} {cpu1/cpuRegs[11]_4[21]} {cpu1/cpuRegs[11]_4[22]} {cpu1/cpuRegs[11]_4[23]} {cpu1/cpuRegs[11]_4[24]} {cpu1/cpuRegs[11]_4[25]} {cpu1/cpuRegs[11]_4[26]} {cpu1/cpuRegs[11]_4[27]} {cpu1/cpuRegs[11]_4[28]} {cpu1/cpuRegs[11]_4[29]} {cpu1/cpuRegs[11]_4[30]} {cpu1/cpuRegs[11]_4[31]}]]
+connect_debug_port u_ila_0/probe4 [get_nets [list {cpu1/cpuRegs[12]_3[0]} {cpu1/cpuRegs[12]_3[1]} {cpu1/cpuRegs[12]_3[2]} {cpu1/cpuRegs[12]_3[3]} {cpu1/cpuRegs[12]_3[4]} {cpu1/cpuRegs[12]_3[5]} {cpu1/cpuRegs[12]_3[6]} {cpu1/cpuRegs[12]_3[7]} {cpu1/cpuRegs[12]_3[8]} {cpu1/cpuRegs[12]_3[9]} {cpu1/cpuRegs[12]_3[10]} {cpu1/cpuRegs[12]_3[11]} {cpu1/cpuRegs[12]_3[12]} {cpu1/cpuRegs[12]_3[13]} {cpu1/cpuRegs[12]_3[14]} {cpu1/cpuRegs[12]_3[15]} {cpu1/cpuRegs[12]_3[16]} {cpu1/cpuRegs[12]_3[17]} {cpu1/cpuRegs[12]_3[18]} {cpu1/cpuRegs[12]_3[19]} {cpu1/cpuRegs[12]_3[20]} {cpu1/cpuRegs[12]_3[21]} {cpu1/cpuRegs[12]_3[22]} {cpu1/cpuRegs[12]_3[23]} {cpu1/cpuRegs[12]_3[24]} {cpu1/cpuRegs[12]_3[25]} {cpu1/cpuRegs[12]_3[26]} {cpu1/cpuRegs[12]_3[27]} {cpu1/cpuRegs[12]_3[28]} {cpu1/cpuRegs[12]_3[29]} {cpu1/cpuRegs[12]_3[30]} {cpu1/cpuRegs[12]_3[31]}]]
+connect_debug_port u_ila_0/probe5 [get_nets [list {cpu1/cpuRegs[14]_1[0]} {cpu1/cpuRegs[14]_1[1]} {cpu1/cpuRegs[14]_1[2]} {cpu1/cpuRegs[14]_1[3]} {cpu1/cpuRegs[14]_1[4]} {cpu1/cpuRegs[14]_1[5]} {cpu1/cpuRegs[14]_1[6]} {cpu1/cpuRegs[14]_1[7]} {cpu1/cpuRegs[14]_1[8]} {cpu1/cpuRegs[14]_1[9]} {cpu1/cpuRegs[14]_1[10]} {cpu1/cpuRegs[14]_1[11]} {cpu1/cpuRegs[14]_1[12]} {cpu1/cpuRegs[14]_1[13]} {cpu1/cpuRegs[14]_1[14]} {cpu1/cpuRegs[14]_1[15]} {cpu1/cpuRegs[14]_1[16]} {cpu1/cpuRegs[14]_1[17]} {cpu1/cpuRegs[14]_1[18]} {cpu1/cpuRegs[14]_1[19]} {cpu1/cpuRegs[14]_1[20]} {cpu1/cpuRegs[14]_1[21]} {cpu1/cpuRegs[14]_1[22]} {cpu1/cpuRegs[14]_1[23]} {cpu1/cpuRegs[14]_1[24]} {cpu1/cpuRegs[14]_1[25]} {cpu1/cpuRegs[14]_1[26]} {cpu1/cpuRegs[14]_1[27]} {cpu1/cpuRegs[14]_1[28]} {cpu1/cpuRegs[14]_1[29]} {cpu1/cpuRegs[14]_1[30]} {cpu1/cpuRegs[14]_1[31]}]]
+connect_debug_port u_ila_0/probe6 [get_nets [list {cpu1/cpuRegs[13]_2[0]} {cpu1/cpuRegs[13]_2[1]} {cpu1/cpuRegs[13]_2[2]} {cpu1/cpuRegs[13]_2[3]} {cpu1/cpuRegs[13]_2[4]} {cpu1/cpuRegs[13]_2[5]} {cpu1/cpuRegs[13]_2[6]} {cpu1/cpuRegs[13]_2[7]} {cpu1/cpuRegs[13]_2[8]} {cpu1/cpuRegs[13]_2[9]} {cpu1/cpuRegs[13]_2[10]} {cpu1/cpuRegs[13]_2[11]} {cpu1/cpuRegs[13]_2[12]} {cpu1/cpuRegs[13]_2[13]} {cpu1/cpuRegs[13]_2[14]} {cpu1/cpuRegs[13]_2[15]} {cpu1/cpuRegs[13]_2[16]} {cpu1/cpuRegs[13]_2[17]} {cpu1/cpuRegs[13]_2[18]} {cpu1/cpuRegs[13]_2[19]} {cpu1/cpuRegs[13]_2[20]} {cpu1/cpuRegs[13]_2[21]} {cpu1/cpuRegs[13]_2[22]} {cpu1/cpuRegs[13]_2[23]} {cpu1/cpuRegs[13]_2[24]} {cpu1/cpuRegs[13]_2[25]} {cpu1/cpuRegs[13]_2[26]} {cpu1/cpuRegs[13]_2[27]} {cpu1/cpuRegs[13]_2[28]} {cpu1/cpuRegs[13]_2[29]} {cpu1/cpuRegs[13]_2[30]} {cpu1/cpuRegs[13]_2[31]}]]
+connect_debug_port u_ila_0/probe7 [get_nets [list {cpu1/cpuRegs[15]_0[0]} {cpu1/cpuRegs[15]_0[1]} {cpu1/cpuRegs[15]_0[2]} {cpu1/cpuRegs[15]_0[3]} {cpu1/cpuRegs[15]_0[4]} {cpu1/cpuRegs[15]_0[5]} {cpu1/cpuRegs[15]_0[6]} {cpu1/cpuRegs[15]_0[7]} {cpu1/cpuRegs[15]_0[8]} {cpu1/cpuRegs[15]_0[9]} {cpu1/cpuRegs[15]_0[10]} {cpu1/cpuRegs[15]_0[11]} {cpu1/cpuRegs[15]_0[12]} {cpu1/cpuRegs[15]_0[13]} {cpu1/cpuRegs[15]_0[14]} {cpu1/cpuRegs[15]_0[15]} {cpu1/cpuRegs[15]_0[16]} {cpu1/cpuRegs[15]_0[17]} {cpu1/cpuRegs[15]_0[18]} {cpu1/cpuRegs[15]_0[19]} {cpu1/cpuRegs[15]_0[20]} {cpu1/cpuRegs[15]_0[21]} {cpu1/cpuRegs[15]_0[22]} {cpu1/cpuRegs[15]_0[23]} {cpu1/cpuRegs[15]_0[24]} {cpu1/cpuRegs[15]_0[25]} {cpu1/cpuRegs[15]_0[26]} {cpu1/cpuRegs[15]_0[27]} {cpu1/cpuRegs[15]_0[28]} {cpu1/cpuRegs[15]_0[29]} {cpu1/cpuRegs[15]_0[30]} {cpu1/cpuRegs[15]_0[31]}]]
+connect_debug_port u_ila_0/probe8 [get_nets [list {cpu1/cpuRegs[1]_14[0]} {cpu1/cpuRegs[1]_14[1]} {cpu1/cpuRegs[1]_14[2]} {cpu1/cpuRegs[1]_14[3]} {cpu1/cpuRegs[1]_14[4]} {cpu1/cpuRegs[1]_14[5]} {cpu1/cpuRegs[1]_14[6]} {cpu1/cpuRegs[1]_14[7]} {cpu1/cpuRegs[1]_14[8]} {cpu1/cpuRegs[1]_14[9]} {cpu1/cpuRegs[1]_14[10]} {cpu1/cpuRegs[1]_14[11]} {cpu1/cpuRegs[1]_14[12]} {cpu1/cpuRegs[1]_14[13]} {cpu1/cpuRegs[1]_14[14]} {cpu1/cpuRegs[1]_14[15]} {cpu1/cpuRegs[1]_14[16]} {cpu1/cpuRegs[1]_14[17]} {cpu1/cpuRegs[1]_14[18]} {cpu1/cpuRegs[1]_14[19]} {cpu1/cpuRegs[1]_14[20]} {cpu1/cpuRegs[1]_14[21]} {cpu1/cpuRegs[1]_14[22]} {cpu1/cpuRegs[1]_14[23]} {cpu1/cpuRegs[1]_14[24]} {cpu1/cpuRegs[1]_14[25]} {cpu1/cpuRegs[1]_14[26]} {cpu1/cpuRegs[1]_14[27]} {cpu1/cpuRegs[1]_14[28]} {cpu1/cpuRegs[1]_14[29]} {cpu1/cpuRegs[1]_14[30]} {cpu1/cpuRegs[1]_14[31]}]]
+connect_debug_port u_ila_0/probe9 [get_nets [list {cpu1/cpuRegs[2]_13[0]} {cpu1/cpuRegs[2]_13[1]} {cpu1/cpuRegs[2]_13[2]} {cpu1/cpuRegs[2]_13[3]} {cpu1/cpuRegs[2]_13[4]} {cpu1/cpuRegs[2]_13[5]} {cpu1/cpuRegs[2]_13[6]} {cpu1/cpuRegs[2]_13[7]} {cpu1/cpuRegs[2]_13[8]} {cpu1/cpuRegs[2]_13[9]} {cpu1/cpuRegs[2]_13[10]} {cpu1/cpuRegs[2]_13[11]} {cpu1/cpuRegs[2]_13[12]} {cpu1/cpuRegs[2]_13[13]} {cpu1/cpuRegs[2]_13[14]} {cpu1/cpuRegs[2]_13[15]} {cpu1/cpuRegs[2]_13[16]} {cpu1/cpuRegs[2]_13[17]} {cpu1/cpuRegs[2]_13[18]} {cpu1/cpuRegs[2]_13[19]} {cpu1/cpuRegs[2]_13[20]} {cpu1/cpuRegs[2]_13[21]} {cpu1/cpuRegs[2]_13[22]} {cpu1/cpuRegs[2]_13[23]} {cpu1/cpuRegs[2]_13[24]} {cpu1/cpuRegs[2]_13[25]} {cpu1/cpuRegs[2]_13[26]} {cpu1/cpuRegs[2]_13[27]} {cpu1/cpuRegs[2]_13[28]} {cpu1/cpuRegs[2]_13[29]} {cpu1/cpuRegs[2]_13[30]} {cpu1/cpuRegs[2]_13[31]}]]
+connect_debug_port u_ila_0/probe10 [get_nets [list {cpu1/cpuRegs[3]_12[0]} {cpu1/cpuRegs[3]_12[1]} {cpu1/cpuRegs[3]_12[2]} {cpu1/cpuRegs[3]_12[3]} {cpu1/cpuRegs[3]_12[4]} {cpu1/cpuRegs[3]_12[5]} {cpu1/cpuRegs[3]_12[6]} {cpu1/cpuRegs[3]_12[7]} {cpu1/cpuRegs[3]_12[8]} {cpu1/cpuRegs[3]_12[9]} {cpu1/cpuRegs[3]_12[10]} {cpu1/cpuRegs[3]_12[11]} {cpu1/cpuRegs[3]_12[12]} {cpu1/cpuRegs[3]_12[13]} {cpu1/cpuRegs[3]_12[14]} {cpu1/cpuRegs[3]_12[15]} {cpu1/cpuRegs[3]_12[16]} {cpu1/cpuRegs[3]_12[17]} {cpu1/cpuRegs[3]_12[18]} {cpu1/cpuRegs[3]_12[19]} {cpu1/cpuRegs[3]_12[20]} {cpu1/cpuRegs[3]_12[21]} {cpu1/cpuRegs[3]_12[22]} {cpu1/cpuRegs[3]_12[23]} {cpu1/cpuRegs[3]_12[24]} {cpu1/cpuRegs[3]_12[25]} {cpu1/cpuRegs[3]_12[26]} {cpu1/cpuRegs[3]_12[27]} {cpu1/cpuRegs[3]_12[28]} {cpu1/cpuRegs[3]_12[29]} {cpu1/cpuRegs[3]_12[30]} {cpu1/cpuRegs[3]_12[31]}]]
+connect_debug_port u_ila_0/probe11 [get_nets [list {cpu1/cpuRegs[4]_11[0]} {cpu1/cpuRegs[4]_11[1]} {cpu1/cpuRegs[4]_11[2]} {cpu1/cpuRegs[4]_11[3]} {cpu1/cpuRegs[4]_11[4]} {cpu1/cpuRegs[4]_11[5]} {cpu1/cpuRegs[4]_11[6]} {cpu1/cpuRegs[4]_11[7]} {cpu1/cpuRegs[4]_11[8]} {cpu1/cpuRegs[4]_11[9]} {cpu1/cpuRegs[4]_11[10]} {cpu1/cpuRegs[4]_11[11]} {cpu1/cpuRegs[4]_11[12]} {cpu1/cpuRegs[4]_11[13]} {cpu1/cpuRegs[4]_11[14]} {cpu1/cpuRegs[4]_11[15]} {cpu1/cpuRegs[4]_11[16]} {cpu1/cpuRegs[4]_11[17]} {cpu1/cpuRegs[4]_11[18]} {cpu1/cpuRegs[4]_11[19]} {cpu1/cpuRegs[4]_11[20]} {cpu1/cpuRegs[4]_11[21]} {cpu1/cpuRegs[4]_11[22]} {cpu1/cpuRegs[4]_11[23]} {cpu1/cpuRegs[4]_11[24]} {cpu1/cpuRegs[4]_11[25]} {cpu1/cpuRegs[4]_11[26]} {cpu1/cpuRegs[4]_11[27]} {cpu1/cpuRegs[4]_11[28]} {cpu1/cpuRegs[4]_11[29]} {cpu1/cpuRegs[4]_11[30]} {cpu1/cpuRegs[4]_11[31]}]]
+connect_debug_port u_ila_0/probe12 [get_nets [list {cpu1/cpuRegs[5]_10[0]} {cpu1/cpuRegs[5]_10[1]} {cpu1/cpuRegs[5]_10[2]} {cpu1/cpuRegs[5]_10[3]} {cpu1/cpuRegs[5]_10[4]} {cpu1/cpuRegs[5]_10[5]} {cpu1/cpuRegs[5]_10[6]} {cpu1/cpuRegs[5]_10[7]} {cpu1/cpuRegs[5]_10[8]} {cpu1/cpuRegs[5]_10[9]} {cpu1/cpuRegs[5]_10[10]} {cpu1/cpuRegs[5]_10[11]} {cpu1/cpuRegs[5]_10[12]} {cpu1/cpuRegs[5]_10[13]} {cpu1/cpuRegs[5]_10[14]} {cpu1/cpuRegs[5]_10[15]} {cpu1/cpuRegs[5]_10[16]} {cpu1/cpuRegs[5]_10[17]} {cpu1/cpuRegs[5]_10[18]} {cpu1/cpuRegs[5]_10[19]} {cpu1/cpuRegs[5]_10[20]} {cpu1/cpuRegs[5]_10[21]} {cpu1/cpuRegs[5]_10[22]} {cpu1/cpuRegs[5]_10[23]} {cpu1/cpuRegs[5]_10[24]} {cpu1/cpuRegs[5]_10[25]} {cpu1/cpuRegs[5]_10[26]} {cpu1/cpuRegs[5]_10[27]} {cpu1/cpuRegs[5]_10[28]} {cpu1/cpuRegs[5]_10[29]} {cpu1/cpuRegs[5]_10[30]} {cpu1/cpuRegs[5]_10[31]}]]
+connect_debug_port u_ila_0/probe13 [get_nets [list {cpu1/cpuRegs[7]_8[0]} {cpu1/cpuRegs[7]_8[1]} {cpu1/cpuRegs[7]_8[2]} {cpu1/cpuRegs[7]_8[3]} {cpu1/cpuRegs[7]_8[4]} {cpu1/cpuRegs[7]_8[5]} {cpu1/cpuRegs[7]_8[6]} {cpu1/cpuRegs[7]_8[7]} {cpu1/cpuRegs[7]_8[8]} {cpu1/cpuRegs[7]_8[9]} {cpu1/cpuRegs[7]_8[10]} {cpu1/cpuRegs[7]_8[11]} {cpu1/cpuRegs[7]_8[12]} {cpu1/cpuRegs[7]_8[13]} {cpu1/cpuRegs[7]_8[14]} {cpu1/cpuRegs[7]_8[15]} {cpu1/cpuRegs[7]_8[16]} {cpu1/cpuRegs[7]_8[17]} {cpu1/cpuRegs[7]_8[18]} {cpu1/cpuRegs[7]_8[19]} {cpu1/cpuRegs[7]_8[20]} {cpu1/cpuRegs[7]_8[21]} {cpu1/cpuRegs[7]_8[22]} {cpu1/cpuRegs[7]_8[23]} {cpu1/cpuRegs[7]_8[24]} {cpu1/cpuRegs[7]_8[25]} {cpu1/cpuRegs[7]_8[26]} {cpu1/cpuRegs[7]_8[27]} {cpu1/cpuRegs[7]_8[28]} {cpu1/cpuRegs[7]_8[29]} {cpu1/cpuRegs[7]_8[30]} {cpu1/cpuRegs[7]_8[31]}]]
+connect_debug_port u_ila_0/probe14 [get_nets [list {cpu1/cpuRegs[6]_9[0]} {cpu1/cpuRegs[6]_9[1]} {cpu1/cpuRegs[6]_9[2]} {cpu1/cpuRegs[6]_9[3]} {cpu1/cpuRegs[6]_9[4]} {cpu1/cpuRegs[6]_9[5]} {cpu1/cpuRegs[6]_9[6]} {cpu1/cpuRegs[6]_9[7]} {cpu1/cpuRegs[6]_9[8]} {cpu1/cpuRegs[6]_9[9]} {cpu1/cpuRegs[6]_9[10]} {cpu1/cpuRegs[6]_9[11]} {cpu1/cpuRegs[6]_9[12]} {cpu1/cpuRegs[6]_9[13]} {cpu1/cpuRegs[6]_9[14]} {cpu1/cpuRegs[6]_9[15]} {cpu1/cpuRegs[6]_9[16]} {cpu1/cpuRegs[6]_9[17]} {cpu1/cpuRegs[6]_9[18]} {cpu1/cpuRegs[6]_9[19]} {cpu1/cpuRegs[6]_9[20]} {cpu1/cpuRegs[6]_9[21]} {cpu1/cpuRegs[6]_9[22]} {cpu1/cpuRegs[6]_9[23]} {cpu1/cpuRegs[6]_9[24]} {cpu1/cpuRegs[6]_9[25]} {cpu1/cpuRegs[6]_9[26]} {cpu1/cpuRegs[6]_9[27]} {cpu1/cpuRegs[6]_9[28]} {cpu1/cpuRegs[6]_9[29]} {cpu1/cpuRegs[6]_9[30]} {cpu1/cpuRegs[6]_9[31]}]]
+connect_debug_port u_ila_0/probe15 [get_nets [list {cpu1/cpuRegs[9]_6[0]} {cpu1/cpuRegs[9]_6[1]} {cpu1/cpuRegs[9]_6[2]} {cpu1/cpuRegs[9]_6[3]} {cpu1/cpuRegs[9]_6[4]} {cpu1/cpuRegs[9]_6[5]} {cpu1/cpuRegs[9]_6[6]} {cpu1/cpuRegs[9]_6[7]} {cpu1/cpuRegs[9]_6[8]} {cpu1/cpuRegs[9]_6[9]} {cpu1/cpuRegs[9]_6[10]} {cpu1/cpuRegs[9]_6[11]} {cpu1/cpuRegs[9]_6[12]} {cpu1/cpuRegs[9]_6[13]} {cpu1/cpuRegs[9]_6[14]} {cpu1/cpuRegs[9]_6[15]} {cpu1/cpuRegs[9]_6[16]} {cpu1/cpuRegs[9]_6[17]} {cpu1/cpuRegs[9]_6[18]} {cpu1/cpuRegs[9]_6[19]} {cpu1/cpuRegs[9]_6[20]} {cpu1/cpuRegs[9]_6[21]} {cpu1/cpuRegs[9]_6[22]} {cpu1/cpuRegs[9]_6[23]} {cpu1/cpuRegs[9]_6[24]} {cpu1/cpuRegs[9]_6[25]} {cpu1/cpuRegs[9]_6[26]} {cpu1/cpuRegs[9]_6[27]} {cpu1/cpuRegs[9]_6[28]} {cpu1/cpuRegs[9]_6[29]} {cpu1/cpuRegs[9]_6[30]} {cpu1/cpuRegs[9]_6[31]}]]
+connect_debug_port u_ila_0/probe16 [get_nets [list {cpu1/cpuRegs[8]_7[0]} {cpu1/cpuRegs[8]_7[1]} {cpu1/cpuRegs[8]_7[2]} {cpu1/cpuRegs[8]_7[3]} {cpu1/cpuRegs[8]_7[4]} {cpu1/cpuRegs[8]_7[5]} {cpu1/cpuRegs[8]_7[6]} {cpu1/cpuRegs[8]_7[7]} {cpu1/cpuRegs[8]_7[8]} {cpu1/cpuRegs[8]_7[9]} {cpu1/cpuRegs[8]_7[10]} {cpu1/cpuRegs[8]_7[11]} {cpu1/cpuRegs[8]_7[12]} {cpu1/cpuRegs[8]_7[13]} {cpu1/cpuRegs[8]_7[14]} {cpu1/cpuRegs[8]_7[15]} {cpu1/cpuRegs[8]_7[16]} {cpu1/cpuRegs[8]_7[17]} {cpu1/cpuRegs[8]_7[18]} {cpu1/cpuRegs[8]_7[19]} {cpu1/cpuRegs[8]_7[20]} {cpu1/cpuRegs[8]_7[21]} {cpu1/cpuRegs[8]_7[22]} {cpu1/cpuRegs[8]_7[23]} {cpu1/cpuRegs[8]_7[24]} {cpu1/cpuRegs[8]_7[25]} {cpu1/cpuRegs[8]_7[26]} {cpu1/cpuRegs[8]_7[27]} {cpu1/cpuRegs[8]_7[28]} {cpu1/cpuRegs[8]_7[29]} {cpu1/cpuRegs[8]_7[30]} {cpu1/cpuRegs[8]_7[31]}]]
+connect_debug_port u_ila_0/probe17 [get_nets [list {cpu1/fsm_inst_cycle_p[0]} {cpu1/fsm_inst_cycle_p[1]} {cpu1/fsm_inst_cycle_p[2]} {cpu1/fsm_inst_cycle_p[3]}]]
+

@@ -6,16 +6,16 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 ## Specifications
 
-|                                  |            |
-| -------------------------------- | ---------- |
-| Word size                        | 32 Bits    |
-| Memory                           | 4096 Words |
-| Average Instructions per second. | 16.6KIPS   |
-| Cache                            | 0          |
-| Cores                            | 1          |
-| Registers                        | 16         |
-| Interrupt                        | 32         |
-| IO Addresses                     | 256        |
+| Description                      | Specifiction |
+| -------------------------------- | ------------ |
+| Word size                        | 32 Bits      |
+| Memory                           | 4096 Words   |
+| Average Instructions per second. | 16.6KIPS     |
+| Cache                            | 0            |
+| Cores                            | 1            |
+| Registers                        | 16           |
+| Interrupt                        | 32           |
+| IO Addresses                     | 256          |
 
 
 
@@ -110,6 +110,10 @@ This is a simple CPU architecture that I used to verify that I understand how to
 1. No internal Tri-State Logic
 
 ## Instruction Format
+
+```mermaid
+
+```
 
 |              | Opcode | Flag         | Access <br />(Memory)                                        | Register 1                | Register 2     | Immediate / <br />Address |
 | ------------ | ------ | ------------ | ------------------------------------------------------------ | ------------------------- | -------------- | ------------------------- |
@@ -1061,6 +1065,29 @@ Return from interrupt processing:
 | MEMR      | Wait                                     |
 | EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
 | MEMW      | DoutB → IntEna                           |
+
+#### Special Interrupts
+
+| Interrupt Number | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| 0                | Restart -- Restart the computer like when powering up.  Registers are set to 0.  CPU state is set as startup.  The CPU starts at the address identified in address 0.  This interrupt is not maskable. |
+| 1                | Status Trap -- This interrupt will happen when the CPU status word is "and" with the CPU Interrupt Status Mask. |
+
+#### Status Word
+
+| Bit   | Description                    |
+| ----- | ------------------------------ |
+| 0     | Illegal Operation              |
+| 1     | Illegal Address                |
+| 2     | Integer Overflow/Underflow     |
+| 3     | Integer Divide by Zero         |
+|       |                                |
+|       |                                |
+| 16    | IO Change to not Busy          |
+| 17    | IO Error                       |
+| 24-31 | IO Address Creating Interrupts |
+
+
 
 ## Serial Device
 
