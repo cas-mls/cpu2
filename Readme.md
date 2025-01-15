@@ -472,7 +472,6 @@ Note:  Reading the IO (IOR_DATA) is not performed in this process. it is used by
 | cpuRegs          | The fast CPU registers.                                      |
 
 #### Internal Wires:
-
 | Signal                   | Description                                      |
 | ------------------------ | ------------------------------------------------ |
 | flag/ffflag              | Multiple use flag (e.g., negative logic)         |
@@ -702,24 +701,24 @@ stateDiagram
 | e    | <sub>`uadd  r1, mem[addr]`</sub> | <sub>`usub r1, mem[addr]`</sub> |                |               | <sub>`nand r1, mem[addr]`</sub> | <sub>`nor r1, mem[addr]`</sub> | <sub>`xnor r1, mem[addr]`</sub> | <sub>`sll r1, mem[addr]`</sub> |
 | f    | <sub>`uadd r1, r2, mem[addr]`</sub> | <sub>`usub r1, r2, mem[addr]`</sub> |  |  | <sub>`nand r1, r2, mem[addr]`</sub> | <sub>`nor r1, r2, mem[addr]`</sub> | <sub>`xnor r1, r2, mem[addr]`</sub> | <sub>`sll r1, r2, mem[addr]`</sub> |
 
-|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e               | f                    |
-| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | --------------- | -------------------- |
-| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`        | `iena r1, r2`        |
-| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`       | `iena r1, imm`       |
-| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]` | `iena r1, mem[addr]` |
-| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                 |                      |
-| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       |                 |                      |
-| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       |                 |                      |
-| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       |                 |                      |
-| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                 |                      |
-| 8    |                                                   |                |                                      |                         |                |       |                 |                      |
-| 9    |                                                   |                |                                      |                         |                |       |                 |                      |
-| a    |                                                   |                |                                      |                         |                |       |                 |                      |
-| b    |                                                   |                |                                      |                         |                |       |                 |                      |
-| c    |                                                   |                |                                      |                         |                |       |                 |                      |
-| d    |                                                   |                |                                      |                         |                |       |                 |                      |
-| e    |                                                   |                |                                      |                         |                |       |                 |                      |
-| f    |                                                   |                |                                      |                         |                |       |                 |                      |
+|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e                              | f                                 |
+| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | ------------------------------ | --------------------------------- |
+| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`                       | `iena r1, r2`                     |
+| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`                      | `iena r1, imm`                    |
+| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]`                | `iena r1, mem[addr]`              |
+| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                                |                                   |
+| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       | <u>***swd - status word***</u> | <u>***swm status word mask***</u> |
+| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       |                                |                                   |
+| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       |                                |                                   |
+| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                                |                                   |
+| 8    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| 9    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| a    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| b    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| c    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| d    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| e    |                                                   |                |                                      |                         |                |       |                                |                                   |
+| f    |                                                   |                |                                      |                         |                |       |                                |                                   |
 
 ## Instruction Detail
 
@@ -855,32 +854,32 @@ Performs 2-complement addition.  This does not support carry.
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------- | ----------------- | ---- | ------------ | --------------------- |
 | add r1, r2                | Register/Register | 08   | 5            | R1 + R2 → R1          |
-| add r1, r2, Imm           | Immediate         | 09   | 5            | R1 + R2 + Imm → R1    |
+| add r1, r2, Imm           | Immediate         | 09   | 5            | R2 + Imm → R1         |
 | add r1, Imm               | Immediate         | 09x0 | 5            | R1 + Imm → R1         |
 | add  r1, mem[address]     | Absolute          | 0a   | 7            | R1 + mem(imm) → R1    |
 | add r1, r2, mem[address]  | Index             | 0b   | 7            | R1 + mem(r2+imm) → R1 |
 | uadd r1, r2               | Register/Register | 0c   | 5            | R1 + R2 → R1          |
-| uadd r1, r2, Imm          | Immediate         | 0d   | 5            | R1 + R2 + Imm → R1    |
+| uadd r1, r2, Imm          | Immediate         | 0d   | 5            | R2 + Imm → R1         |
 | uadd r1, Imm              | Immediate         | 0dx0 | 5            | R1 + Imm → R1         |
 | uadd  r1, mem[address]    | Absolute          | 0e   | 7            | R1 + mem(imm) → R1    |
 | uadd r1, r2, mem[address] | Index             | 0f   | 7            | R1 + mem(r2+imm) → R1 |
 
 ### Subtract
 
-Performs a 2-complement subtraction.  This does not support overflow and carry.
+Performs a sub is 2-complement subtraction, and usub is unsigned subtraction.  This does not support overflow and carry.
 
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------- | ----------------- | ---- | ------------ | --------------------- |
-| sub r1, r2                | Register/Register | 18   | 5            | R1 + R2 → R1          |
-| sub r1, r2, Imm           | Immediate         | 19   | 5            | R1 + R2 + Imm → R1    |
-| sub r1, Imm               | Immediate         | 19x0 | 5            | R1 + Imm → R1         |
-| sub r1, mem[address]      | Absolute          | 1a   | 7            | R1 + mem(imm) → R1    |
-| sub r1, r2, mem[address]  | Index             | 1b   | 7            | R1 + mem(r2+imm) → R1 |
-| usub r1, r2               | Register/Register | 1c   | 5            | R1 + R2 → R1          |
-| usub r1, r2, Imm          | Immediate         | 1d   | 5            | R1 + R2 + Imm → R1    |
-| usub r1, Imm              | Immediate         | 1dx0 | 5            | R1 + Imm → R1         |
-| usub r1, mem[address]     | Absolute          | 1e   | 7            | R1 + mem(imm) → R1    |
-| usub r1, r2, mem[address] | Index             | 1f   | 7            | R1 + mem(r2+imm) → R1 |
+| sub r1, r2                | Register/Register | 18   | 5            | R1 - R2 → R1          |
+| sub r1, r2, Imm           | Immediate         | 19   | 5            | R2 - Imm → R1         |
+| sub r1, Imm               | Immediate         | 19x0 | 5            | R1 - Imm → R1         |
+| sub r1, mem[address]      | Absolute          | 1a   | 7            | R1 - mem(imm) → R1    |
+| sub r1, r2, mem[address]  | Index             | 1b   | 7            | R1 - mem(r2+imm) → R1 |
+| usub r1, r2               | Register/Register | 1c   | 5            | R1 - R2 → R1          |
+| usub r1, r2, Imm          | Immediate         | 1d   | 5            | R2 - Imm → R1         |
+| usub r1, Imm              | Immediate         | 1dx0 | 5            | R1 - Imm → R1         |
+| usub r1, mem[address]     | Absolute          | 1e   | 7            | R1 - mem(imm) → R1    |
+| usub r1, r2, mem[address] | Index             | 1f   | 7            | R1 - mem(r2+imm) → R1 |
 
 ### And/Nand
 
@@ -889,12 +888,12 @@ Performs the logical "and" or "nand" to the accumulator.
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------- | ----------------- | ---- | ------------ | --------------------- |
 | and r1, r2                | Register/Register | 48   | 5            | R1 ∧ mem(imm) → R1    |
-| and r1, r2, Imm           | Immediate         | 49   | 5            | R1 ∧ R2 ∧ Imm → R1    |
+| and r1, r2, Imm           | Immediate         | 49   | 5            | R2 ∧ Imm → R1         |
 | and r1, Imm               | Immediate         | 49x0 | 5            | R1 ∧ Imm → R1         |
 | and r1, mem[address]      | Absolute          | 4a   | 7            | R1 ∧ mem(imm) → R1    |
 | and r1, r2, mem[address]  | Index             | 4b   | 7            | R1 ∧ mem(r2+imm) → R1 |
 | nand r1, r2               | Register/Register | 4c   | 5            | R1 ⊼ mem(imm) → R1    |
-| nand r1, r2, Imm          | Immediate         | 4d   | 5            | R1 ⊼ R2 ⊼ Imm → R1    |
+| nand r1, r2, Imm          | Immediate         | 4d   | 5            | R2 ⊼ Imm → R1         |
 | nand r1, Imm              | Immediate         | 4dx0 | 5            | R1 ⊼ Imm → R1         |
 | nand r1, mem[address]     | Absolute          | 4e   | 7            | R1 ⊼ mem(imm) → R1    |
 | nand r1, r2, mem[address] | Index             | 4f   | 7            | R1 ⊼ mem(r2+imm) → R1 |
@@ -906,12 +905,12 @@ Performs the logical "or" or "nor" to the accumulator.
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
 | or r1, r2                | Register/Register | 58   | 5            | R1 ∨ mem(imm) → R1    |
-| or r1, r2, Imm           | Immediate         | 59   | 5            | R1 ∨ R2 ∨ Imm → R1    |
+| or r1, r2, Imm           | Immediate         | 59   | 5            | R2 ∨ Imm → R1         |
 | or r1, Imm               | Immediate         | 59x0 | 5            | R1 ∨ Imm → R1         |
 | or r1, mem[address]      | Absolute          | 5a   | 7            | R1 ∨ mem(imm) → R1    |
 | or r1, r2, mem[address]  | Index             | 5b   | 7            | R1 ∨ mem(r2+imm) → R1 |
 | nor r1, r2               | Register/Register | 5c   | 5            | R1 ⊽ mem(imm) → R1    |
-| nor r1, r2, Imm          | Immediate         | 5d   | 5            | R1 ⊽ R2 ⊽ Imm → R1    |
+| nor r1, r2, Imm          | Immediate         | 5d   | 5            | R2 ⊽ Imm → R1         |
 | nor r1, Imm              | Immediate         | 5dx0 | 5            | R1 ⊽ Imm → R1         |
 | nor r1, mem[address]     | Absolute          | 5e   | 7            | R1 ⊽ mem(imm) → R1    |
 | nor r1, r2, mem[address] | Index             | 5f   | 7            | R1 ⊽ mem(r2+imm) → R1 |
@@ -923,12 +922,12 @@ Performs the logical "xor" or "xnor" to the accumulator.
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation              |
 | ------------------------- | ----------------- | ---- | ------------ | ---------------------- |
 | xor r1, r2                | Register/Register | 68   | 5            | R1 ⊕ mem(imm) → R1     |
-| xor r1, r2, Imm           | Immediate         | 69   | 5            | R1 ⊕ R2 ⊕ Imm → R1     |
+| xor r1, r2, Imm           | Immediate         | 69   | 5            | R2 ⊕ Imm → R1          |
 | xor r1, Imm               | Immediate         | 69x0 | 5            | R1 ⊕ Imm → R1          |
 | xor r1, mem[address]      | Absolute          | 6a   | 7            | R1 ⊕ mem(imm) → R1     |
 | xor r1, r2, mem[address]  | Index             | 6b   | 7            | R1 ⊕ mem(r2+imm) → R1  |
 | xnor r1, r2               | Register/Register | 6c   | 5            | R1 ⊙ mem(imm) → R1     |
-| xnor r1, r2, Imm          | Immediate         | 6d   | 5            | R1 ⊙ R2 ⊙ Imm → R1     |
+| xnor r1, r2, Imm          | Immediate         | 6d   | 5            | R2 ⊙ Imm → R1          |
 | xnor r1, Imm              | Immediate         | 6dx0 | 5            | R1 ⊙ Imm → R1          |
 | xnor r1, mem[address]     | Absolute          | 6e   | 7            | R1 ⊙ mem(imm) → R1     |
 | xnor r1, r2, mem[address] | Index             | 6f   | 7            | R1 ⊙  mem(r2+imm) → R1 |
@@ -940,7 +939,7 @@ Performs the shift left logical to the accumulator.
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
 | sll r1, r2               | Register/Register | 78   | 5            | R1《 mem(imm) → R1    |
-| sll r1, r2, Imm          | Immediate         | 79   | 5            | R1《 R2《 Imm → R1    |
+| sll r1, r2, Imm          | Immediate         | 79   | 5            | R2《 Imm → R1         |
 | sll r1, Imm              | Immediate         | 79x0 | 5            | R1《 Imm → R1         |
 | sll r1, mem[address]     | Absolute          | 7a   | 7            | R1《 mem(imm) → R1    |
 | sll r1, r2, mem[address] | Index             | 7b   | 7            | R1《 mem(r2+imm) → R1 |
@@ -952,7 +951,7 @@ Performs the shift right logical to the accumulator.
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
 | srl r1, r2               | Register/Register | 7c   | 5            | R1 》mem(imm) → R1    |
-| srl r1, r2, Imm          | Immediate         | 7d   | 5            | R1 》R2 》Imm → R1    |
+| srl r1, r2, Imm          | Immediate         | 7d   | 5            | R2 》Imm → R1         |
 | srl r1, Imm              | Immediate         | 7dx0 | 5            | R1 》Imm → R1         |
 | srl r1, mem[address]     | Absolute          | 7e   | 7            | R1 》mem(imm) → R1    |
 | srl r1, r2, mem[address] | Index             | 7f   | 7            | R1 》mem(r2+imm) → R1 |

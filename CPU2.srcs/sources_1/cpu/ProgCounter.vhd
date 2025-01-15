@@ -106,6 +106,7 @@ architecture Behavioral of ProgCounter is
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
     signal ffopcode : OPCODETYPE := "00000";
+    signal flag : STD_LOGIC := '0';
     signal ffflag : STD_LOGIC :='0';
     signal ffmemop : MEMTYPE;
     signal ffiregop1 : integer range 0 to regOpMax;
@@ -125,6 +126,7 @@ architecture Behavioral of ProgCounter is
 begin
 
     opcode <= INSTRUCTION(31 downto 27);
+    flag <= INSTRUCTION(26);
 
     -- Output Values
     ProgramCounter <= ProgCounterLocal;
@@ -157,19 +159,19 @@ begin
                     ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20))));
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16))));
 
-                    if      opcode /= oJMP 
-                        and opcode /= oBE 
-                        and opcode /= oBLT 
-                        and opcode /= oBGT 
-                        and opcode /= oJSR 
-                        and opcode /= oRTN 
-                        and opcode /= oRTI 
-                        and opcode /= oSWI
-                    then -- ignore all Jump operations.
+                    if     opcode = oJMP 
+                        or opcode = oBE 
+                        or opcode = oBLT 
+                        or opcode = oBGT 
+                        or opcode = oJSR 
+                        or opcode = oRTN 
+                        or opcode = oRTI 
+                        or (opcode = oSWIENA and flag = SWIFLAG)
+                    then -- Branch / Jump operations.
+                        MEM_ENA <= '0';
+                    else -- ignore all Jump operations.
                         MEM_ENA <= '1';
                         MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
-                    else
-                        MEM_ENA <= '0';
                     end if;
 
                 when EXECUTE_S    =>

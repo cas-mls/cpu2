@@ -537,7 +537,7 @@ begin
                         end case;
                     when ABSOLUTE =>
                         case opcode is
-                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
+                            when oLD | oSTR | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when others =>
                                 fsm_inst_cycle_n <= EXECUTE_S;
@@ -594,22 +594,22 @@ begin
                 then
                     fsm_inst_cycle_n <= ADDRESS_S;
 
-                elsif ffopcode /= oJMP
-                    and ffopcode /= oBE
-                    and ffopcode /= oBLT
-                    and ffopcode /= oBGT
-                    and ffopcode /= oJSR
-                    and ffopcode /= oRTN
-                    and ffopcode /= oRTI
-                    and ffopcode /= oSWI
-                then
+                elsif  ffopcode = oJMP
+                    or ffopcode = oBE
+                    or ffopcode = oBLT
+                    or ffopcode = oBGT
+                    or ffopcode = oJSR
+                    or ffopcode = oRTN
+                    or ffopcode = oRTI
+                    or (ffopcode = oSWIENA and ffflag = SWIFLAG)
+                then -- Jump / Branch go back to the Address state.
+                    fsm_inst_cycle_n <= ADDRESS_S;
+                else -- All other operations.
                     if ffmemop = ABSOLUTE or ffmemop = INDEX then
                         fsm_inst_cycle_n <= DECODE_S;
                     else
                         fsm_inst_cycle_n <= INSTFETCH2_S;
                     end if;
-                else
-                    fsm_inst_cycle_n <= ADDRESS_S;
                 end if;
 
             when WAITS_S =>

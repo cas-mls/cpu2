@@ -221,7 +221,7 @@ begin
                             end case;
                         when ABSOLUTE =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWI | oIENA | oRWIO =>
+                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= immop(11 downto 0);

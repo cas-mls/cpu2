@@ -115,9 +115,9 @@
     SWI r{r1: u4}                                   => 28`5  @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
     SWI {imm: u16}                                  => 28`5  @ 0`1 @ 1`2 @ 0x0 @ 0x0 @ imm
     SWI mem[{address: u16}]                         => 28`5  @ 0`1 @ 2`2 @ 0x0 @ 0x0 @ address
-    IENA r{r1: u4}, r{r2: u4}                       => 30`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
-    IENA r{r1: u4}, {imm: u16}                      => 30`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    IENA r{r1: u4}, mem[{address: u16}]             => 30`5  @ 0`1 @ 2`2 @ r1 @ 0x0 @ address
+    IENA r{r1: u4}, r{r2: u4}                       => 28`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
+    IENA r{r1: u4}, {imm: u16}                      => 28`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
+    IENA r{r1: u4}, mem[{address: u16}]             => 28`5  @ 1`1 @ 2`2 @ r1 @ 0x0 @ address
 
     ; WAIT/TIMER & CANCEL
     wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm

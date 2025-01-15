@@ -89,8 +89,10 @@ package Utilities is
 
     constant oIOST  : OPCODETYPE  := "11000"; -- x18
     constant oRTI   : OPCODETYPE  := "11010"; -- x1A
-    constant oSWI   : OPCODETYPE  := "11100"; -- x1C
-    constant oIENA  : OPCODETYPE  := "11110"; -- x1E
+    constant oSWIENA: OPCODETYPE  := "11100"; -- x1C
+    constant SWIFLAG: STD_LOGIC   := '0';
+    constant ENAFLAG: STD_LOGIC   := '1';
+    -- constant oIENA  : OPCODETYPE  := "11110"; -- x1E
 
     constant oAdd   : OPCODETYPE  := "00001"; -- x01
     constant oSub   : OPCODETYPE  := "00011"; -- x03
