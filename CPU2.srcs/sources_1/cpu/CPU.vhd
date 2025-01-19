@@ -171,6 +171,7 @@ architecture Behavioral of CPU is
             ireg1value : in std_logic_vector(31 downto 0);
             ireg2value : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
+            statusWord : out STATUS_WORD_TYPE;
             cpuRegs : out REG_TYPE
         );
 
@@ -259,13 +260,15 @@ architecture Behavioral of CPU is
             INTERRUPT : in std_logic_vector (31 downto 0);
             timerAlarm : in std_logic;
             timerInt : in unsigned (4 downto 0);
+            statusWord : in STATUS_WORD_TYPE;
 
             fsm_interrupt_cycle_p : out INTERRUPT_FSM;
             interruptRun : out std_logic := '0';
             interruptNum : out integer range 0 to interruptNums := 0;
             interruptMask : out std_logic_vector(interruptNums downto 0) := X"00000000";
             interruptSpNum : out integer range 0 to interruptNums;
-            interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1
+            interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
+            interruptReset : out STD_LOGIC := '0'
         );
     end component Interrupt_Entity;
 
@@ -302,6 +305,7 @@ architecture Behavioral of CPU is
     signal interruptMask : std_logic_vector(interruptNums downto 0) := X"00000000";
     signal interruptSpNum : integer range 0 to interruptNums;
     signal interruptSpAddrValue : integer range 0 to 2 ** MEM_ADDRB'length - 1;
+    signal interruptReset : STD_LOGIC := '0';
 
     signal waitRun : std_logic := '0';
     signal waitAlarm : std_logic := '0';
@@ -309,6 +313,9 @@ architecture Behavioral of CPU is
 
     signal timerAlarm : std_logic := '0';
     signal timerInt : unsigned (4 downto 0) := "00000";
+
+    -- Status Word
+    signal statusWord  : STATUS_WORD_TYPE;
 
     -- DEBUG 
     signal StepWait : STD_LOGIC := '0';
@@ -349,6 +356,7 @@ begin
         ireg1value => ireg1value,
         ireg2value => ireg2value,
         interruptSpAddrValue => interruptSpAddrValue,
+        statusWord => statusWord,
         cpuRegs => cpuRegs
     );
 
@@ -431,19 +439,21 @@ begin
         INTERRUPT => INTERRUPT,
         timerAlarm => timerAlarm,
         timerInt => timerInt,
+        statusWord => statusWord,
 
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
         interruptRun => interruptRun,
         interruptNum => interruptNum,
         interruptMask => interruptMask,
         interruptSpNum => interruptSpNum,
-        interruptSpAddrValue => interruptSpAddrValue
+        interruptSpAddrValue => interruptSpAddrValue,
+        interruptReset => interruptReset
     );
 
     instruction_fsm_Proc : process (SYS_CLK)
     begin
         if rising_edge (SYS_CLK) then
-            if (INTERRUPT = RESET) then
+            if (INTERRUPT = RESET or interruptReset = '1') then
                 fsm_inst_cycle_p <= RESET_STATE_S;
             else
                 if interruptRun = '1' then
@@ -717,20 +727,15 @@ begin
                         if  DEBUGOUT.Stopped /= '1' 
                         then
                             DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
-                            if DEBUGIN.Break = '1' 
+                            DEBUGOUT.ProgCounter <= ProgramCounter;
+                            DEBUGOUT.Regs <= cpuRegs;
+                            DEBUGOUT.Instruction <= MEM_DOUTA;
+                            if  DEBUGIN.Break = '1' 
+                                or StepWait = '1'
                             then
                                 JmpAddrState <= '1';
-                                DEBUGOUT.ProgCounter <= ProgramCounter;
-                                DEBUGOUT.Regs <= cpuRegs;
-                                DEBUGOUT.Instruction <= MEM_DOUTA;
-                            elsif StepWait = '1'
-                            then
-                                JmpAddrState <= '1';
-                                DEBUGOUT.ProgCounter <= ProgramCounter;
-                                DEBUGOUT.Regs <= cpuRegs;
-                                DEBUGOUT.Instruction <= MEM_DOUTA;
-                        end if;
-                        end if;
+                            end if;
+                    end if;
                     end if;
             end case;
         end if;

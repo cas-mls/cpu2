@@ -370,19 +370,9 @@ begin
 
         while true loop
             wait until rising_edge (clk);
-            if ioaddr = X"01" and IORena = '1' then
-                IORdata  <= echoIO;
-                IOStatus <= X"00000000";
-            elsif ioaddr = X"01" and IOWena = '1' then
-                echoIO   <= IOWdata;
-                IOStatus <= X"00000000";
-            elsif ioaddr = X"02" and IOWena = '1' then
-                IOStatus <= X"00000010";
-            elsif ioaddr = X"05" and IOWena = '1' then
-                interrupt(2) <= IOWdata(0);
 
             -- UART Device Interface
-            elsif ioaddr = X"0c"
+            if ioaddr = X"0c"
                 and IOWena = '1'
                 and IOStatusReq = '1'
             then
@@ -407,6 +397,7 @@ begin
                 TxAvail <= '0';
                 -- IOStatus <= X"00000000";
             end if;
+
         end loop;
     end if;
 

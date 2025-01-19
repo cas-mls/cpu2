@@ -123,13 +123,15 @@ entity Interrupt_Entity is
         INTERRUPT : in std_logic_vector (31 downto 0);
         timerAlarm : in std_logic;
         timerInt : in unsigned (4 downto 0);
+        statusWord : in STATUS_WORD_TYPE;
 
         fsm_interrupt_cycle_p : out INTERRUPT_FSM;
         interruptRun : out std_logic := '0';
         interruptNum : out integer range 0 to interruptNums := 0;
         interruptMask : out std_logic_vector(interruptNums downto 0) := X"00000000";
         interruptSpNum : out integer range 0 to interruptNums;
-        interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1
+        interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
+        interruptReset : out STD_LOGIC := '0'
     );
 
 end Interrupt_Entity;
@@ -142,6 +144,9 @@ architecture Behavioral of Interrupt_Entity is
     signal interBitNum : integer range 0 to interruptNums := 0;
     signal interruptMaskLocal : std_logic_vector(interruptNums downto 0) := X"00000000";
     signal interruptSpNumLocal : integer range 0 to interruptNums;
+
+    -- Software Status Mask
+    signal softwareStatusMask : std_logic_vector(31 downto 0) := X"00000000";
 
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
@@ -179,45 +184,23 @@ architecture Behavioral of Interrupt_Entity is
     -- attribute MARK_DEBUG of interruptMaskLocal : signal is "TRUE";
     -- attribute MARK_DEBUG of interruptSpNumLocal : signal is "TRUE";
     
+    -- Function to determine the interrupt bit number
+    function get_interBitNum(INTERRUPT : std_logic_vector) return integer is
+        variable bitNum : integer := 0;
+    begin
+        for i in 0 to INTERRUPT'length-1 loop
+            if INTERRUPT(i) = '1' then
+                bitNum := i;
+                exit;
+            end if;
+        end loop;
+        return bitNum;
+    end function;
+
 begin
 
     opcode <= INSTRUCTION(31 downto 27);
     memop <= INSTRUCTION(25 downto 24);
-
-    interBitNum <=
-                  0 when INTERRUPT = RESET else
-                  1 when INTERRUPT = X"00000002" else
-                  2 when INTERRUPT = X"00000004" else
-                  3 when INTERRUPT = X"00000008" else
-                  4 when INTERRUPT = X"00000010" else
-                  5 when INTERRUPT = X"00000020" else
-                  6 when INTERRUPT = X"00000040" else
-                  7 when INTERRUPT = X"00000080" else
-                  8 when INTERRUPT = X"00000100" else
-                  9 when INTERRUPT = X"00000200" else
-                  10 when INTERRUPT = X"00000400" else
-                  11 when INTERRUPT = X"00000800" else
-                  12 when INTERRUPT = X"00001000" else
-                  13 when INTERRUPT = X"00002000" else
-                  14 when INTERRUPT = X"00004000" else
-                  15 when INTERRUPT = X"00008000" else
-                  16 when INTERRUPT = X"00000001" else
-                  17 when INTERRUPT = X"00000002" else
-                  18 when INTERRUPT = X"00040000" else
-                  19 when INTERRUPT = X"00080000" else
-                  20 when INTERRUPT = X"00100000" else
-                  21 when INTERRUPT = X"00200000" else
-                  22 when INTERRUPT = X"00400000" else
-                  23 when INTERRUPT = X"00800000" else
-                  24 when INTERRUPT = X"01000000" else
-                  25 when INTERRUPT = X"02000000" else
-                  26 when INTERRUPT = X"04000000" else
-                  27 when INTERRUPT = X"08000000" else
-                  28 when INTERRUPT = X"10000000" else
-                  29 when INTERRUPT = X"20000000" else
-                  30 when INTERRUPT = X"40000000" else
-                  31 when INTERRUPT = X"80000000" else
-                  31;
 
     -- Output Values
     fsm_interrupt_cycle_p <= fsm_interrupt_cycle_p_local;
@@ -227,12 +210,14 @@ begin
     interrupt_fsm_Proc : process (SYS_CLK)
 
         variable interruptVar : integer range 0 to interruptNums;
+        variable interruptNumVar : integer range 0 to interruptNums;
 
     begin
         if rising_edge (SYS_CLK) then
-            if INTERRUPT = RESET then
+            if fsm_inst_cycle_p = RESET_STATE_S then
                 interruptSpAddrValue <= 0;
                 fsm_interrupt_cycle_p_local <= JMPADDR_S;
+                interruptReset <= '0';
             elsif fsm_inst_cycle_p = DECODE_S
                 then
                 if opcode = oRTI
@@ -255,20 +240,24 @@ begin
                 if fsm_inst_cycle_p = EXECUTE_S 
                     or fsm_inst_cycle_p = WAITS_S
                 then
+                    case ffmemop is
+                        when REGREG =>
+                            interruptVar := to_integer(unsigned(ireg1value));
+                        when IMMEDIATE =>
+                            interruptVar := to_integer(unsigned(ffimmop(4 downto 0)));
+                        when ABSOLUTE | INDEX =>
+                            interruptVar := to_integer(unsigned(MEM_ARG(4 downto 0)));
+                        when others =>
+                            fsm_interrupt_cycle_p_local <= INTRWAIT_S; -- This should not happen.
+                    end case;
+            
                     if ffopcode = oSWIENA then
                         if ffflag = SWIFLAG then -- Software Interrupt
-                            case ffmemop is
-                                when REGREG =>
-                                    interruptVar := to_integer(unsigned(ireg1value));
-                                when IMMEDIATE =>
-                                    interruptVar := to_integer(unsigned(ffimmop(4 downto 0)));
-                                when ABSOLUTE | INDEX =>
-                                    interruptVar := to_integer(unsigned(MEM_ARG(4 downto 0)));
-                                when others =>
-                                    fsm_interrupt_cycle_p_local <= INTRWAIT_S; -- This should not happen.
-                            end case;
-                            if interruptMaskLocal(interruptVar) = '1'
-                                then
+                            if  interruptVar = 0 
+                            then
+                                interruptReset <= '1';
+                            elsif interruptMaskLocal(interruptVar) = '1'
+                            then
                                 interruptNum <= interruptVar;
                                 fsm_interrupt_cycle_p_local <= SAVEENA_S;
                                 interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
@@ -291,11 +280,34 @@ begin
                                     fsm_interrupt_cycle_p_local <= INTRWAIT_S;
                             end case;
                         end if;
+                    elsif ffopcode = oSWDM then
+                        if ffflag = SWMFLAG then
+                            case ffmemop is
+                                when REGREG =>
+                                    softwareStatusMask <= ireg2value;
+                                when IMMEDIATE =>
+                                    softwareStatusMask <= X"0000" & ffimmop;
+                                when ABSOLUTE | INDEX =>
+                                    softwareStatusMask <= MEM_ARG;
+                                when others =>
+                                    fsm_interrupt_cycle_p_local <= INTRWAIT_S;
+                            end case;
+                        end if;
                     end if;
 
                     if unsigned(INTERRUPT and interruptMaskLocal) /= 0
-                        then
-                        interruptNum <= interBitNum;
+                    then
+                        interruptNumVar := get_interBitNum(INTERRUPT);
+                    elsif unsigned(statusWord and softwareStatusMask) /= 0 
+                    then
+                        interruptNumVar := 1;
+                    else
+                        interruptNumVar := 0;
+                    end if;
+
+                    if interruptNumVar /= 0
+                    then
+                        interruptNum <= interruptNumVar;
                         fsm_interrupt_cycle_p_local <= SAVEENA_S;
                         interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
                         interruptRun <= '1';
@@ -305,7 +317,7 @@ begin
                     or fsm_inst_cycle_p = WAITS_S)
                     and (timerAlarm = '1'
                     and interruptMaskLocal(to_integer(unsigned(timerInt))) = '1')
-                    then
+                then
                     interruptNum <= to_integer(unsigned(timerInt));
                     fsm_interrupt_cycle_p_local <= SAVEENA_S;
                     interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));

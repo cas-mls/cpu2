@@ -89,10 +89,14 @@ package Utilities is
 
     constant oIOST  : OPCODETYPE  := "11000"; -- x18
     constant oRTI   : OPCODETYPE  := "11010"; -- x1A
+
     constant oSWIENA: OPCODETYPE  := "11100"; -- x1C
     constant SWIFLAG: STD_LOGIC   := '0';
     constant ENAFLAG: STD_LOGIC   := '1';
-    -- constant oIENA  : OPCODETYPE  := "11110"; -- x1E
+
+    constant oSWDM  : OPCODETYPE  := "11110"; -- x1E
+    constant SWDFLAG: STD_LOGIC   := '0';
+    constant SWMFLAG: STD_LOGIC   := '1';
 
     constant oAdd   : OPCODETYPE  := "00001"; -- x01
     constant oSub   : OPCODETYPE  := "00011"; -- x03
@@ -169,7 +173,7 @@ package Utilities is
     -- | 16    | IO Change to not Busy          |
     -- | 17    | IO Error                       |
     -- | 24-31 | IO Address Creating Interrupts |
-    signal status_word : STD_LOGIC_VECTOR(31 downto 0);
+    subtype STATUS_WORD_TYPE is STD_LOGIC_VECTOR(31 downto 0);
     -- Status BIT location
     constant IllegalOp      : integer := 0;
     constant IllegalAddr    : integer := 1;

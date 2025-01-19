@@ -96,6 +96,7 @@ entity ALU is
         ireg1value : in std_logic_vector(31 downto 0);
         ireg2value : in std_logic_vector(31 downto 0);
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
+        statusWord : out STATUS_WORD_TYPE;
         cpuRegs : out REG_TYPE
     );
 
@@ -216,23 +217,23 @@ begin
                                 if ffflag = '0' then
                                     results_reg_s := a_reg_s + b_reg_s;
                                     cpuRegs(ffiregop1) <= std_logic_vector(results_reg_s);
-                                    status_word(OverUnderflow) <=  (a_reg_s(31) xnor b_reg_s(31)) and (a_reg_s(31) xor results_reg_s(31));
+                                    statusWord(OverUnderflow) <=  (a_reg_s(31) xnor b_reg_s(31)) and (a_reg_s(31) xor results_reg_s(31));
                                 else
                                     results_reg_u := a_reg_u + b_reg_u;
                                     cpuRegs(ffiregop1) <= std_logic_vector(resize(results_reg_u,32));
-                                    status_word(OverUnderflow) <= results_reg_u(32);
+                                    statusWord(OverUnderflow) <= results_reg_u(32);
                                 end if;
                             elsif ffopcode = oSub then
                                 if ffflag = '0' then
                                     results_reg_s := a_reg_s - b_reg_s;
                                     cpuRegs(ffiregop1) <= std_logic_vector(results_reg_s);
-                                    status_word(OverUnderflow) <= 
+                                    statusWord(OverUnderflow) <= 
                                             '1' when a_reg_s < 0 and  b_reg_s > 0 and results_reg_s < a_reg_s
                                                 else '0';
                                 else
                                     results_reg_u := a_reg_u - b_reg_u;
                                     cpuRegs(ffiregop1) <= std_logic_vector(resize(results_reg_u,32));
-                                    status_word(OverUnderflow) <=  
+                                    statusWord(OverUnderflow) <=  
                                             '1' when b_reg_u > a_reg_u
                                                 else '0';
                                 end if;
@@ -315,7 +316,15 @@ begin
                                     end if;
                                 when others =>
                             end case;
-
+                        
+                        when  oSWDM =>
+                            if  ffflag = SWDFLAG 
+                                and ffmemop = REGREG
+                            then
+                                cpuRegs(ffiregop1) <= statusWord;
+                                statusWord <= (others => '0');
+                            end if;
+    
                         when others =>
                     end case;
 
