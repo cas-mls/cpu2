@@ -143,7 +143,8 @@ architecture Behavioral of Interrupt_Entity is
     signal fsm_interrupt_cycle_n : INTERRUPT_FSM := INTRWAIT_S;
     signal interBitNum : integer range 0 to interruptNums := 0;
     signal interruptMaskLocal : std_logic_vector(interruptNums downto 0) := X"00000000";
-    signal interruptSpNumLocal : integer range 0 to interruptNums;
+    signal interruptSpNumLocal : integer range 0 to regOpMax;
+    signal startInterrupt : std_logic := '0';
 
     -- Software Status Mask
     signal softwareStatusMask : std_logic_vector(31 downto 0) := X"00000000";
@@ -201,6 +202,7 @@ begin
 
     opcode <= INSTRUCTION(31 downto 27);
     memop <= INSTRUCTION(25 downto 24);
+    interBitNum <= get_interBitNum(INTERRUPT);
 
     -- Output Values
     fsm_interrupt_cycle_p <= fsm_interrupt_cycle_p_local;
@@ -209,22 +211,74 @@ begin
 
     interrupt_fsm_Proc : process (SYS_CLK)
 
-        variable interruptVar : integer range 0 to interruptNums;
-        variable interruptNumVar : integer range 0 to interruptNums;
-
     begin
         if rising_edge (SYS_CLK) then
             if fsm_inst_cycle_p = RESET_STATE_S then
-                interruptSpAddrValue <= 0;
                 fsm_interrupt_cycle_p_local <= JMPADDR_S;
-                interruptReset <= '0';
-            elsif fsm_inst_cycle_p = DECODE_S
+            else
+                fsm_interrupt_cycle_p_local <= fsm_interrupt_cycle_n;
+            end if;
+        end if;
+    end process;
+
+    intrrupt_Proc : process (
+        fsm_interrupt_cycle_p_local,
+        fsm_inst_cycle_p,
+        startInterrupt
+        )
+    begin
+        case fsm_interrupt_cycle_p_local is
+            when INTRWAIT_S =>
+                if startInterrupt = '1'
                 then
-                if opcode = oRTI
+                    fsm_interrupt_cycle_n <= SAVEENA_S;
+                    interruptRun <= '1';
+                else
+                    fsm_interrupt_cycle_n <= INTRWAIT_S;
+                end if;
+            when SAVEENA_S =>
+                fsm_interrupt_cycle_n <= DISABLEINT_S;
+                interruptRun <= '1';
+            when DISABLEINT_S =>
+                fsm_interrupt_cycle_n <= JMPADDR_S;
+            when JMPADDR_S =>
+                fsm_interrupt_cycle_n <= JMPFETCH1_S;
+                interruptRun <= '1';
+            when JMPFETCH1_S =>
+                fsm_interrupt_cycle_n <= JMPFETCH2_S;
+            when JMPFETCH2_S =>
+                fsm_interrupt_cycle_n <= JUMP_S;
+            when JUMP_S =>
+                fsm_interrupt_cycle_n <= DONE_S;
+            when DONE_S =>
+                fsm_interrupt_cycle_n <= INTRWAIT_S;
+                interruptRun <= '0';
+            when others =>
+                fsm_interrupt_cycle_n <= INTRWAIT_S;
+                interruptRun <= '0';
+            end case;
+    end process intrrupt_Proc;
+
+process (SYS_CLK)
+
+    variable interruptVar : integer range 0 to interruptNums;
+    variable maskedInterrupt : std_logic_vector(interruptNums downto 0);
+
+begin
+    if rising_edge(SYS_CLK) then
+        case fsm_inst_cycle_p is 
+            when RESET_STATE_S =>
+                interruptSpAddrValue <= 0;
+                interruptReset <= '0';
+                startInterrupt <= '0';
+            when DECODE_S =>
+
+                if  opcode = oRTI
                     and memop = REGREG
-                    then
+                then
                     interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
                 end if;
+
                 -- Maintain Flip-Flop (Memory) protions of the instruction.
                 -- This removes the timing violations and make the processor faster.
                 -- Might remove the combinatorial logic which should not be used after this cycle.
@@ -236,156 +290,108 @@ begin
                 ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20))));
                 ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16))));
 
-            elsif fsm_interrupt_cycle_n = INTRWAIT_S then
-                if fsm_inst_cycle_p = EXECUTE_S 
-                    or fsm_inst_cycle_p = WAITS_S
-                then
-                    case ffmemop is
-                        when REGREG =>
-                            interruptVar := to_integer(unsigned(ireg1value));
-                        when IMMEDIATE =>
-                            interruptVar := to_integer(unsigned(ffimmop(4 downto 0)));
-                        when ABSOLUTE | INDEX =>
-                            interruptVar := to_integer(unsigned(MEM_ARG(4 downto 0)));
-                        when others =>
-                            fsm_interrupt_cycle_p_local <= INTRWAIT_S; -- This should not happen.
-                    end case;
-            
-                    if ffopcode = oSWIENA then
-                        if ffflag = SWIFLAG then -- Software Interrupt
-                            if  interruptVar = 0 
-                            then
-                                interruptReset <= '1';
-                            elsif interruptMaskLocal(interruptVar) = '1'
-                            then
-                                interruptNum <= interruptVar;
-                                fsm_interrupt_cycle_p_local <= SAVEENA_S;
-                                interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-                                interruptRun <= '1';
-                            else
-                                fsm_interrupt_cycle_p_local <= INTRWAIT_S;
-                            end if;
-                        else -- Enable Mask
-                            case ffmemop is
-                                when REGREG =>
-                                    interruptSpNumLocal <= ffiregop1;
-                                    interruptMaskLocal <= ireg2value;
-                                when IMMEDIATE =>
-                                    interruptSpNumLocal <= ffiregop1;
-                                    interruptMaskLocal <= X"0000" & ffimmop;
-                                when ABSOLUTE | INDEX =>
-                                    interruptSpNumLocal <= ffiregop1;
-                                    interruptMaskLocal <= MEM_ARG;
-                                when others =>
-                                    fsm_interrupt_cycle_p_local <= INTRWAIT_S;
+            when EXECUTE_S | WAITS_S =>
+                if ffopcode = oSWDM then
+                    if ffflag = SWMFLAG then -- Status Mask
+                        case ffmemop is
+                            when REGREG =>
+                                softwareStatusMask <= ireg2value;
+                            when IMMEDIATE =>
+                                softwareStatusMask <= X"0000" & ffimmop;
+                            when ABSOLUTE | INDEX =>
+                                softwareStatusMask <= MEM_ARG;
+                            when others =>
+                        end case;
+                    else -- Obtain status word
+
+                    end if;
+                elsif ffopcode = oSWIENA then
+                    if ffflag = ENAFLAG then -- Enable Mask
+                        case ffmemop is
+                            when REGREG =>
+                                interruptSpNumLocal <= ffiregop1;
+                                interruptMaskLocal <= ireg2value;
+                            when IMMEDIATE =>
+                                interruptSpNumLocal <= ffiregop1;
+                                interruptMaskLocal <= X"0000" & ffimmop;
+                            when ABSOLUTE | INDEX =>
+                                interruptSpNumLocal <= ffiregop1;
+                                interruptMaskLocal <= MEM_ARG;
+                            when others =>
                             end case;
-                        end if;
-                    elsif ffopcode = oSWDM then
-                        if ffflag = SWMFLAG then
-                            case ffmemop is
-                                when REGREG =>
-                                    softwareStatusMask <= ireg2value;
-                                when IMMEDIATE =>
-                                    softwareStatusMask <= X"0000" & ffimmop;
-                                when ABSOLUTE | INDEX =>
-                                    softwareStatusMask <= MEM_ARG;
-                                when others =>
-                                    fsm_interrupt_cycle_p_local <= INTRWAIT_S;
-                            end case;
+                    end if;
+
+                end if;
+
+                -- Check for Software Interrupt
+                if ffopcode = oSWIENA then
+                    if ffflag = SWIFLAG then -- Enable Mask
+                        case ffmemop is
+                            when REGREG =>
+                                interruptVar := to_integer(unsigned(ireg1value));
+                            when IMMEDIATE =>
+                                interruptVar := to_integer(unsigned(ffimmop(4 downto 0)));
+                            when ABSOLUTE | INDEX =>
+                                interruptVar := to_integer(unsigned(MEM_ARG(4 downto 0)));
+                            when others =>
+                        end case;
+                        if interruptVar = 0 
+                        then
+                            interruptReset <= '1';
+                        elsif interruptMaskLocal(interruptVar) = '1'
+                        then
+                            interruptNum <= interruptVar;
+                            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+                            startInterrupt <= '1';
                         end if;
                     end if;
+                end if;
 
-                    if unsigned(INTERRUPT and interruptMaskLocal) /= 0
-                    then
-                        interruptNumVar := get_interBitNum(INTERRUPT);
-                    elsif unsigned(statusWord and softwareStatusMask) /= 0 
-                    then
-                        interruptNumVar := 1;
-                    else
-                        interruptNumVar := 0;
-                    end if;
-
-                    if interruptNumVar /= 0
-                    then
-                        interruptNum <= interruptNumVar;
-                        fsm_interrupt_cycle_p_local <= SAVEENA_S;
-                        interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-                        interruptRun <= '1';
-                    end if;
-
-                elsif (fsm_inst_cycle_p = EXECUTE_S
-                    or fsm_inst_cycle_p = WAITS_S)
-                    and (timerAlarm = '1'
-                    and interruptMaskLocal(to_integer(unsigned(timerInt))) = '1')
+            when CLEANUP_S =>
+                if ffopcode = oRTI
                 then
-                    interruptNum <= to_integer(unsigned(timerInt));
-                    fsm_interrupt_cycle_p_local <= SAVEENA_S;
-                    interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-                    interruptRun <= '1';
-                elsif fsm_inst_cycle_p = CLEANUP_S
-                    and ffopcode = oRTI
-                    then
                     interruptMaskLocal <= MEM_ARG;
                 end if;
-            else
-                -- Clear the interrupt, so changing the mask does not inadvertently case an interrupt.
-                case fsm_interrupt_cycle_n is
-                    when SAVEENA_S
-                        | JMPADDR_S
-                        | JMPFETCH1_S
-                        | JMPFETCH2_S
-                        | JUMP_S =>
-                        interruptRun <= '1';
-                    when DISABLEINT_S =>
-                        interruptRun <= '1';
-                        interruptMaskLocal <= (others => '0');
-                    when DONE_S =>
-                        interruptNum <= 0;
-                        interruptRun <= '0';
-                    when others =>
-                end case;
-
-                fsm_interrupt_cycle_p_local <= fsm_interrupt_cycle_n;
-            end if;
-        end if;
-    end process;
-
-    intrrupt_Proc : process (
-        fsm_interrupt_cycle_p_local,
-        fsm_inst_cycle_p,
-        INTERRUPT
-        )
-    begin
-        case fsm_interrupt_cycle_p_local is
-            when INTRWAIT_S =>
-                if INTERRUPT /= NOINTERRUPT then
-                    fsm_interrupt_cycle_n <= CYCLEWAIT_S;
-                else
-                    fsm_interrupt_cycle_n <= INTRWAIT_S;
-                end if;
-            when CYCLEWAIT_S =>
-                if fsm_inst_cycle_p = EXECUTE_S then
-                    fsm_interrupt_cycle_n <= SAVEENA_S;
-                else
-                    fsm_interrupt_cycle_n <= CYCLEWAIT_S;
-                end if;
-            when SAVEENA_S =>
-                fsm_interrupt_cycle_n <= DISABLEINT_S;
-            when DISABLEINT_S =>
-                fsm_interrupt_cycle_n <= JMPADDR_S;
-            when JMPADDR_S =>
-                fsm_interrupt_cycle_n <= JMPFETCH1_S;
-            when JMPFETCH1_S =>
-                fsm_interrupt_cycle_n <= JMPFETCH2_S;
-            when JMPFETCH2_S =>
-                fsm_interrupt_cycle_n <= JUMP_S;
-            when JUMP_S =>
-                fsm_interrupt_cycle_n <= DONE_S;
-            when DONE_S =>
-                fsm_interrupt_cycle_n <= INTRWAIT_S;
             when others =>
-                fsm_interrupt_cycle_n <= INTRWAIT_S;
         end case;
-    end process intrrupt_Proc;
+
+        -- Check for Timer Interrupt
+        if (timerAlarm = '1'
+            and interruptMaskLocal(to_integer(unsigned(timerInt))) = '1')
+        then
+            interruptNum <= to_integer(unsigned(timerInt));
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            startInterrupt <= '1';
+        end if;
+
+        -- Check for Hardware Interrupt
+        maskedInterrupt := INTERRUPT and interruptMaskLocal;
+        if unsigned(maskedInterrupt) /= 0
+        then
+            interruptNum <= get_interBitNum(maskedInterrupt);
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            startInterrupt <= '1';
+        end if;
+        
+        -- Check for Status Interrupt
+        if unsigned(statusWord and softwareStatusMask) /= 0 
+            and interruptMaskLocal(1) = '1'
+        then
+            interruptNum <= 1;
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            startInterrupt <= '1';
+        end if;
+
+        case fsm_interrupt_cycle_n is
+            when DISABLEINT_S =>    
+                interruptMaskLocal <= (others => '0');
+            when DONE_S =>
+                interruptNum <= 0;
+                startInterrupt <= '0';
+            when others =>
+                null;
+        end case;
+    end if;
+end process;
 
 end Behavioral;

@@ -96,7 +96,7 @@ entity ALU is
         ireg1value : in std_logic_vector(31 downto 0);
         ireg2value : in std_logic_vector(31 downto 0);
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
-        statusWord : out STATUS_WORD_TYPE;
+        statusWord : out STATUS_WORD_TYPE := (others => '0');
         cpuRegs : out REG_TYPE
     );
 
@@ -126,6 +126,7 @@ begin
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
                     cpuRegs <= (others => (others => '0'));
+                    statusWord <= (others => '0');
                 when DECODE_S =>
 
                     -- Maintain Flip-Flop (Memory) protions of the instruction.

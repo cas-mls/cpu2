@@ -127,6 +127,10 @@ package Utilities is
         ProgCounter : PCTYPE;
         Regs        : REG_TYPE;
         Instruction : INSTRUCTIONTYPE;
+        Interrupt   : STD_LOGIC_VECTOR(interruptNums downto 0);
+        interruptMask
+                    : STD_LOGIC_VECTOR(31 downto 0);
+        Status      : STD_LOGIC_VECTOR(31 downto 0);
     end record;
 
     constant NumBreakPoint : integer := 4;

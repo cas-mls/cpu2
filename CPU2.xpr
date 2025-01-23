@@ -48,7 +48,7 @@
     <Option Name="BoardPart" Val="digilentinc.com:arty-s7-50:part0:1.1"/>
     <Option Name="BoardPartRepoPaths" Val="C:/Users/Craig/AppData/Roaming/Xilinx/Vivado/2023.2/xhub/board_store/xilinx_board_store"/>
     <Option Name="SourceMgmtMode" Val="DisplayOnly"/>
-    <Option Name="ActiveSimSet" Val="sim_1"/>
+    <Option Name="ActiveSimSet" Val="sim_ioInterrupts"/>
     <Option Name="DefaultLib" Val="xil_defaultlib"/>
     <Option Name="ProjectType" Val="Default"/>
     <Option Name="IPOutputRepo" Val="$PCACHEDIR/ip"/>
@@ -63,20 +63,20 @@
     <Option Name="EnableBDX" Val="FALSE"/>
     <Option Name="DSABoardId" Val="arty-s7-50"/>
     <Option Name="FeatureSet" Val="FeatureSet_Classic"/>
-    <Option Name="WTXSimLaunchSim" Val="1983"/>
+    <Option Name="WTXSimLaunchSim" Val="2079"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="105"/>
-    <Option Name="WTModelSimExportSim" Val="105"/>
-    <Option Name="WTQuestaExportSim" Val="105"/>
+    <Option Name="WTXSimExportSim" Val="109"/>
+    <Option Name="WTModelSimExportSim" Val="109"/>
+    <Option Name="WTQuestaExportSim" Val="109"/>
     <Option Name="WTIesExportSim" Val="0"/>
-    <Option Name="WTVcsExportSim" Val="105"/>
-    <Option Name="WTRivieraExportSim" Val="105"/>
-    <Option Name="WTActivehdlExportSim" Val="105"/>
+    <Option Name="WTVcsExportSim" Val="109"/>
+    <Option Name="WTRivieraExportSim" Val="109"/>
+    <Option Name="WTActivehdlExportSim" Val="109"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>

@@ -178,6 +178,7 @@ begin
                 timerReg <= 0;
                 timerAlarm <= '0';
                 timerRun <= '0';
+                timerInt <= (others => '0');
 
             elsif fsm_inst_cycle_p = DECODE_S
                 then

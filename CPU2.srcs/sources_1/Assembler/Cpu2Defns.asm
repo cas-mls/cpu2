@@ -119,6 +119,12 @@
     IENA r{r1: u4}, {imm: u16}                      => 28`5  @ 1`1 @ 1`2 @ r1 @ 0x0 @ imm
     IENA r{r1: u4}, mem[{address: u16}]             => 28`5  @ 1`1 @ 2`2 @ r1 @ 0x0 @ address
 
+    ; Status word
+    SWD r{r1: u4}                                   => 30`5  @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
+    SWM r{r2: u4}                                   => 30`5  @ 1`1 @ 0`2 @ 0x0 @ r2 @ 0x0000
+    SWM {imm: u16}                                  => 30`5  @ 1`1 @ 1`2 @ 0x0 @ 0x0 @ imm
+    SWM mem[{address: u16}]                         => 30`5  @ 1`1 @ 2`2 @ 0x0 @ 0x0 @ address
+
     ; WAIT/TIMER & CANCEL
     wait r{r1: u4}, {imm: u16}                      => 20`5 @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
     time r{r1: u4}, r{r2: u4}, {imm: u16}           => 20`5 @ 0`1 @ 1`2 @ r1 @ r2 @ imm

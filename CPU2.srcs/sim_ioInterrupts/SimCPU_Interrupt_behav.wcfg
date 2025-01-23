@@ -7,22 +7,20 @@
          <top_modules>
             <top_module name="SimCPU_Interrupt" />
             <top_module name="glbl" />
-            <top_module name="ipif_pkg" />
-            <top_module name="lib_pkg" />
             <top_module name="utilities" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="250.001 ns"></ZoomEndTime>
-      <Cursor1Time time="15.000 ns"></Cursor1Time>
+      <ZoomStartTime time="10,055.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="10,159.001 ns"></ZoomEndTime>
+      <Cursor1Time time="10,315.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="256"></NameColumnWidth>
+      <NameColumnWidth column_width="236"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="24" />
+   <WVObjectSize size="39" />
    <wvobject fp_name="/SimCPU_Interrupt/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -114,31 +112,69 @@
    <wvobject fp_name="/SimCPU_Interrupt/DebugOut" type="array">
       <obj_property name="ElementShortName">DebugOut</obj_property>
       <obj_property name="ObjectShortName">DebugOut</obj_property>
-      <obj_property name="isExpanded"></obj_property>
-      <wvobject fp_name="/SimCPU_Interrupt/DebugOut.Stopped" type="logic">
-         <obj_property name="ElementShortName">.Stopped</obj_property>
-         <obj_property name="ObjectShortName">.Stopped</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/DebugOut.CycleCount" type="array">
-         <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
-         <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/DebugOut.ProgCounter" type="array">
-         <obj_property name="ElementShortName">.ProgCounter[11:0]</obj_property>
-         <obj_property name="ObjectShortName">.ProgCounter[11:0]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/DebugOut.Regs" type="array">
-         <obj_property name="ElementShortName">.Regs[15:0][31:0]</obj_property>
-         <obj_property name="ObjectShortName">.Regs[15:0][31:0]</obj_property>
-         <obj_property name="isExpanded"></obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/DebugOut.Instruction" type="array">
-         <obj_property name="ElementShortName">.Instruction[31:0]</obj_property>
-         <obj_property name="ObjectShortName">.Instruction[31:0]</obj_property>
-      </wvobject>
    </wvobject>
    <wvobject fp_name="/SimCPU_Interrupt/HALF_PERIOD" type="other">
       <obj_property name="ElementShortName">HALF_PERIOD</obj_property>
       <obj_property name="ObjectShortName">HALF_PERIOD</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/fsm_inst_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/fsm_inst_cycle_n" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_n</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/fsm_interrupt_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_interrupt_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_interrupt_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/fsm_interrupt_cycle_p_local" type="other">
+      <obj_property name="ElementShortName">fsm_interrupt_cycle_p_local</obj_property>
+      <obj_property name="ObjectShortName">fsm_interrupt_cycle_p_local</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/fsm_interrupt_cycle_n" type="other">
+      <obj_property name="ElementShortName">fsm_interrupt_cycle_n</obj_property>
+      <obj_property name="ObjectShortName">fsm_interrupt_cycle_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptRun" type="logic">
+      <obj_property name="ElementShortName">interruptRun</obj_property>
+      <obj_property name="ObjectShortName">interruptRun</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptMaskLocal" type="array">
+      <obj_property name="ElementShortName">interruptMaskLocal[31:0]</obj_property>
+      <obj_property name="ObjectShortName">interruptMaskLocal[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/startInterrupt" type="logic">
+      <obj_property name="ElementShortName">startInterrupt</obj_property>
+      <obj_property name="ObjectShortName">startInterrupt</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptReset" type="logic">
+      <obj_property name="ElementShortName">interruptReset</obj_property>
+      <obj_property name="ObjectShortName">interruptReset</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/timerInt" type="array">
+      <obj_property name="ElementShortName">timerInt[4:0]</obj_property>
+      <obj_property name="ObjectShortName">timerInt[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/timerAlarm" type="logic">
+      <obj_property name="ElementShortName">timerAlarm</obj_property>
+      <obj_property name="ObjectShortName">timerAlarm</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptNum" type="other">
+      <obj_property name="ElementShortName">interruptNum</obj_property>
+      <obj_property name="ObjectShortName">interruptNum</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptSpAddrValue" type="other">
+      <obj_property name="ElementShortName">interruptSpAddrValue</obj_property>
+      <obj_property name="ObjectShortName">interruptSpAddrValue</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptSpNum" type="other">
+      <obj_property name="ElementShortName">interruptSpNum</obj_property>
+      <obj_property name="ObjectShortName">interruptSpNum</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/Interrupt_enty/interruptSpNumLocal" type="other">
+      <obj_property name="ElementShortName">interruptSpNumLocal</obj_property>
+      <obj_property name="ObjectShortName">interruptSpNumLocal</obj_property>
    </wvobject>
 </wave_config>

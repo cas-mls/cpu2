@@ -675,11 +675,14 @@ begin
             case fsm_inst_cycle_p is
                 -- CPU RESET
                 when RESET_STATE_S =>
-                    DEBUGOUT.Stopped     <= '0';
-                    DEBUGOUT.CycleCount  <= (others => '0');
-                    DEBUGOUT.ProgCounter <= (others => '0');
-                    DEBUGOUT.Regs        <= (others => (others => '0'));
-                    DEBUGOUT.Instruction <= (others =>'0');
+                    DEBUGOUT.Stopped        <= '0';
+                    DEBUGOUT.CycleCount     <= (others => '0');
+                    DEBUGOUT.ProgCounter    <= (others => '0');
+                    DEBUGOUT.Regs           <= (others => (others => '0'));
+                    DEBUGOUT.Instruction    <= (others =>'0');
+                    DEBUGOUT.Status         <= (others => '0');
+                    DEBUGOUT.Interrupt      <= (others => '0');
+                    DEBUGOUT.interruptMask  <= (others => '0');
                     stepWait <= '0';
                     JmpAddrState <= '0';
                     addrDelayCount <= 0;
@@ -704,6 +707,9 @@ begin
                                 DEBUGOUT.ProgCounter <= ProgramCounter;
                                 DEBUGOUT.Regs <= cpuRegs;
                                 DEBUGOUT.Instruction <= MEM_DOUTA;
+                                DEBUGOUT.Status <= statusWord;
+                                DEBUGOUT.Interrupt <= INTERRUPT;
+                                DEBUGOUT.interruptMask  <= interruptMask;
                             else
                                 addrDelayCount <= addrDelayCount + 1;
                             end if;
@@ -730,6 +736,9 @@ begin
                             DEBUGOUT.ProgCounter <= ProgramCounter;
                             DEBUGOUT.Regs <= cpuRegs;
                             DEBUGOUT.Instruction <= MEM_DOUTA;
+                            DEBUGOUT.Status <= statusWord;
+                            DEBUGOUT.Interrupt <= INTERRUPT;
+                            DEBUGOUT.interruptMask  <= interruptMask;
                             if  DEBUGIN.Break = '1' 
                                 or StepWait = '1'
                             then

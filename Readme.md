@@ -600,15 +600,20 @@ Note:   Limitations 1) The interrupt is read when instruction in execute state.
 
 #### Interrupt State Diagram
 
-| Cycle      | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-|            | Interrupt Processing                                         |
-| SAVEENA    | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1         |
-| DISABLEINT | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
-| JMPADDR    | reg(InterSP) → reg(InterSP) – 1 <br />InterNum → addrB       |
-| JMPFETCH1  | Wait                                                         |
-| JMPFETCH2  | Wait                                                         |
-| JUMP       | DoutB → PC                                                   |
+| Cycle      | Description                                                  | Processing                                                   |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|            |                                                              | Interrupt Processing                                         |
+| INTRWAIT   | Initial state waiting for an interrupt.                      |                                                              |
+| CYCLEWAIT  | Wait for the instruction cycle to Execute.                   |                                                              |
+| SAVEENA    | Save the Interrupt Mask to the stack and update the stack pointer. | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1<br />interruptRun <= '1' |
+| DISABLEINT | Disable the interrupt and save the Program Counter to the stack.  Update the stack pointer. | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
+| JMPADDR    | Set the jump vector address which contains the Interrupt Handler address.<br /><br />Interrupt 0 - Reset will start the process here. | reg(InterSP) → reg(InterSP) – 1 <br />InterNum → addrB<br />interruptRun <= '1' |
+| JMPFETCH1  | Wait for the Interrupt Handler Address.                      | Wait<br />interruptRun <= '1'                                |
+| JMPFETCH2  | Wait for the Interrupt Handler Address.                      | Wait<br />interruptRun <= '1'                                |
+| JUMP       | Update the program counter with the Interrupt Handler address. | DoutB → PC                                                   |
+| DONE       |                                                              | interruptRun <= '0'<br />interruptNum <= 0;                  |
+
+
 
 ```mermaid
 stateDiagram

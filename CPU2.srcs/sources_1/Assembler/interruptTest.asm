@@ -33,13 +33,14 @@ LOOP:
     jsr r SP1, WAITTEST
     jsr r SP1, IOTESTS
     jsr r SP1, INTERRUPTTEST
+    jsr r SP1, OVERFLOWTEST
     wio r tr, 0x03    
-    swi 0
+    ;swi 0
     jmp LOOP
 
 STATUSHANDLER:
-    add r tr, 310
-    ld r4, SWIntTestValue
+    swd r4              ; Get Status Word
+    add r tr, 10
     RTI
 
 SWINT:
@@ -221,3 +222,36 @@ IOERR:
 IOCOMPLETE:
     rtn r SP1
 
+OVERFLOWTEST:
+ovAddend1 = 0x7FFFFFFF
+ovAddend2 = 10
+ovSum = ovAddend1 + ovAddend2
+    ld r tr, 0x20
+    ld r1, ovAddend1
+    ld r2, ovAddend2
+    ld r3, ovSum
+    ld r4, 0b000        ; Status Word
+    ld r5, 0b100        ; Overflow Bit
+    add r1, r2          ; Register Overflow
+    swd r4              ; Get Status Word
+
+    bne r1, r3, OVERERROR ; check Add Result
+    add r tr, 1
+    bne r4, r5, OVERERROR   ; Check Overlow Status Bit
+    add r tr, 1
+
+    ld r4, 0b000        ; Status Word
+    IENA r SP1, 0b10    ; Status Interrupt
+    swm 0b100           ; Overflow Interrupt
+    ld r1, ovAddend1
+    add r1, r2          ; Register Overflow
+    bne r4, r5, OVERERROR   ; Check Overlow Status Bit
+    ld r1, ovAddend1
+
+    jmp OVERFLOWCOMPLETE
+
+OVERERROR:
+    add r ER, 1
+
+OVERFLOWCOMPLETE:
+    rtn r SP1
