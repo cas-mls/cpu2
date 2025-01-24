@@ -141,10 +141,8 @@ architecture Behavioral of Interrupt_Entity is
     -- interrupts
     signal fsm_interrupt_cycle_p_local : INTERRUPT_FSM;
     signal fsm_interrupt_cycle_n : INTERRUPT_FSM := INTRWAIT_S;
-    signal interBitNum : integer range 0 to interruptNums := 0;
     signal interruptMaskLocal : std_logic_vector(interruptNums downto 0) := X"00000000";
     signal interruptSpNumLocal : integer range 0 to regOpMax;
-    signal startInterrupt : std_logic := '0';
 
     -- Software Status Mask
     signal softwareStatusMask : std_logic_vector(31 downto 0) := X"00000000";
@@ -163,27 +161,26 @@ architecture Behavioral of Interrupt_Entity is
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;
 
-    -- attribute keep of fsm_interrupt_cycle_p : signal is "TRUE";
-    -- attribute keep of fsm_interrupt_cycle_n : signal is "TRUE";
-    -- attribute keep of INTERRUPT : signal is "TRUE";
+    -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute keep of        INTERRUPT : signal is "TRUE";
+    -- attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
 
-    -- attribute keep of timerAlarm : signal is "TRUE";
-    -- attribute keep of timerInt : signal is "TRUE";
+    -- attribute keep of        timerAlarm : signal is "TRUE";
+    -- attribute MARK_DEBUG of  timerAlarm : signal is "TRUE";
+    -- attribute keep of        timerInt : signal is "TRUE";
+    -- attribute MARK_DEBUG of  timerInt : signal is "TRUE";
 
-    -- attribute keep of interruptRun : signal is "TRUE";
-    -- attribute keep of interruptMaskLocal : signal is "TRUE";
-    -- attribute keep of interruptSpNumLocal : signal is "TRUE";
-
-    -- attribute MARK_DEBUG of fsm_interrupt_cycle_p : signal is "TRUE";
-    -- attribute MARK_DEBUG of fsm_interrupt_cycle_n : signal is "TRUE";
-    -- attribute MARK_DEBUG of INTERRUPT : signal is "TRUE";
-
-    -- attribute MARK_DEBUG of timerAlarm : signal is "TRUE";
-    -- attribute MARK_DEBUG of timerInt : signal is "TRUE";
-
-    -- attribute MARK_DEBUG of interruptRun : signal is "TRUE";
-    -- attribute MARK_DEBUG of interruptMaskLocal : signal is "TRUE";
-    -- attribute MARK_DEBUG of interruptSpNumLocal : signal is "TRUE";
+    -- attribute keep of        interruptRun : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptRun : signal is "TRUE";
+    -- attribute keep of        interruptMaskLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptMaskLocal : signal is "TRUE";
+    -- attribute keep of        interruptSpNumLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptSpNumLocal : signal is "TRUE";
+    -- attribute keep of        interruptSpAddrValue : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptSpAddrValue : signal is "TRUE";
     
     -- Function to determine the interrupt bit number
     function get_interBitNum(INTERRUPT : std_logic_vector) return integer is
@@ -202,7 +199,6 @@ begin
 
     opcode <= INSTRUCTION(31 downto 27);
     memop <= INSTRUCTION(25 downto 24);
-    interBitNum <= get_interBitNum(INTERRUPT);
 
     -- Output Values
     fsm_interrupt_cycle_p <= fsm_interrupt_cycle_p_local;
@@ -224,26 +220,23 @@ begin
     intrrupt_Proc : process (
         fsm_interrupt_cycle_p_local,
         fsm_inst_cycle_p,
-        startInterrupt
+        interruptRun
         )
     begin
         case fsm_interrupt_cycle_p_local is
             when INTRWAIT_S =>
-                if startInterrupt = '1'
+                if interruptRun = '1'
                 then
                     fsm_interrupt_cycle_n <= SAVEENA_S;
-                    interruptRun <= '1';
                 else
                     fsm_interrupt_cycle_n <= INTRWAIT_S;
                 end if;
             when SAVEENA_S =>
                 fsm_interrupt_cycle_n <= DISABLEINT_S;
-                interruptRun <= '1';
             when DISABLEINT_S =>
                 fsm_interrupt_cycle_n <= JMPADDR_S;
             when JMPADDR_S =>
                 fsm_interrupt_cycle_n <= JMPFETCH1_S;
-                interruptRun <= '1';
             when JMPFETCH1_S =>
                 fsm_interrupt_cycle_n <= JMPFETCH2_S;
             when JMPFETCH2_S =>
@@ -252,10 +245,8 @@ begin
                 fsm_interrupt_cycle_n <= DONE_S;
             when DONE_S =>
                 fsm_interrupt_cycle_n <= INTRWAIT_S;
-                interruptRun <= '0';
             when others =>
                 fsm_interrupt_cycle_n <= INTRWAIT_S;
-                interruptRun <= '0';
             end case;
     end process intrrupt_Proc;
 
@@ -270,7 +261,7 @@ begin
             when RESET_STATE_S =>
                 interruptSpAddrValue <= 0;
                 interruptReset <= '0';
-                startInterrupt <= '0';
+                interruptRun <= '0';
             when DECODE_S =>
 
                 if  opcode = oRTI
@@ -342,7 +333,7 @@ begin
                         then
                             interruptNum <= interruptVar;
                             interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-                            startInterrupt <= '1';
+                            interruptRun <= '1';
                         end if;
                     end if;
                 end if;
@@ -361,7 +352,7 @@ begin
         then
             interruptNum <= to_integer(unsigned(timerInt));
             interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-            startInterrupt <= '1';
+            interruptRun <= '1';
         end if;
 
         -- Check for Hardware Interrupt
@@ -370,7 +361,7 @@ begin
         then
             interruptNum <= get_interBitNum(maskedInterrupt);
             interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-            startInterrupt <= '1';
+            interruptRun <= '1';
         end if;
         
         -- Check for Status Interrupt
@@ -379,17 +370,23 @@ begin
         then
             interruptNum <= 1;
             interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
-            startInterrupt <= '1';
+            interruptRun <= '1';
         end if;
 
         case fsm_interrupt_cycle_n is
+            when INTRWAIT_S =>
+            when SAVEENA_S =>
+            when JMPADDR_S =>
+            when JMPFETCH1_S =>
+            when JMPFETCH2_S =>
+            when JUMP_S =>
             when DISABLEINT_S =>    
                 interruptMaskLocal <= (others => '0');
             when DONE_S =>
                 interruptNum <= 0;
-                startInterrupt <= '0';
+                interruptRun <= '0';
             when others =>
-                null;
+                interruptRun <= '0';
         end case;
     end if;
 end process;

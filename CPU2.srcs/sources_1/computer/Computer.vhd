@@ -326,6 +326,18 @@ architecture Behavioral of Computer is
     -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
 
+    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
+
+    -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+
 begin
 
     memory : cpumemory
@@ -355,11 +367,6 @@ begin
         IO_STATUS     => IOStatus,
         IO_STATUS_REQ => IOStatusReq,
         INTERRUPT     => interrupt,
-        -- MEM_ENA   => MEM_ENA,
-        -- MEM_WEA   => MEM_WEA,
-        -- MEM_ADDRA => MEM_ADDRA,
-        -- MEM_DINA  => MEM_DINA,
-        -- MEM_DOUTA => MEM_DOUTA,
         MEM_ENA   => CPU_MEM_ENA,
         MEM_WEA   => CPU_MEM_WEA,
         MEM_ADDRA => CPU_MEM_ADDRA,
@@ -656,7 +663,7 @@ begin
                 elsif ioaddr = X"02" and IOWena = '1' then
                     IOStatus <= X"00000010";
                 elsif ioaddr = X"05" and IOWena = '1' then
-                    interrupt_L(2) <= IOWdata(0);
+                    interrupt_L(3) <= IOWdata(0);
 
                     -- UART Device Interface
                 elsif ioaddr = X"0c"

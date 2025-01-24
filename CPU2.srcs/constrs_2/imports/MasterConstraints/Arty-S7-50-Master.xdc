@@ -214,5 +214,3 @@ set_property INTERNAL_VREF 0.675 [get_iobanks 34]
 
 set_operating_conditions -design_power_budget 10.0
 
-
-

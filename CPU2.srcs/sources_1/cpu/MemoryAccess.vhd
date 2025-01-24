@@ -240,8 +240,7 @@ begin
                         when others =>
                     end case;
 
-                    when MEMFETCH2_S => -- XXX This only works on SIM hardware.  Comment out next line to work on SIM.
-                    when MEMFETCH1_S  => -- XXX This only works on Real Hardware Comment out for SIM
+                when MEMFETCH1_S  =>
                     case ffmemop is
                         when REGREG =>
                             case ffopcode is
