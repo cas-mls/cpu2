@@ -118,9 +118,12 @@ begin
         variable a_reg_s        : signed(31 downto 0);
         variable b_reg_s        : signed(31 downto 0);
         variable results_reg_s  : signed(31 downto 0);
+        variable results_mult_s : signed(63 downto 0);
         variable a_reg_u        : unsigned(32 downto 0);
         variable b_reg_u        : unsigned(32 downto 0);
         variable results_reg_u  : unsigned(32 downto 0);
+        variable results_mult_u : unsigned(63 downto 0);
+        variable results_ov     : integer;
     begin
         if rising_edge (SYS_CLK) then
             case fsm_inst_cycle_p is
@@ -191,7 +194,7 @@ begin
                                                                interruptSpAddrValue + 2, 32));
                             end if;
 
-                        when oADD | oSUB=>
+                        when oADD | oSUB | oMul | oDiv =>
                             if ffflag = '0' then
                                 case ffmemop is
                                     when REGREG =>
@@ -237,6 +240,32 @@ begin
                                     statusWord(OverUnderflow) <=  
                                             '1' when b_reg_u > a_reg_u
                                                 else '0';
+                                end if;
+                            elsif ffopcode = oMul then
+                                if ffflag = '0' then
+                                    results_mult_s := a_reg_s * b_reg_s;
+                                    results_ov := to_integer(results_mult_s(63 downto 32));
+                                    cpuRegs(ffiregop1) <= std_logic_vector(resize(results_mult_s,32));
+                                    statusWord(OverUnderflow) <= 
+                                            '0' when results_mult_s(63 downto 0) = 0 
+                                                    or results_mult_s(63 downto 0) = -1 
+                                                else '1';
+                                else
+                                    results_mult_u := a_reg_u * b_reg_u;
+                                    cpuRegs(ffiregop1) <= std_logic_vector(resize(results_mult_u,32));
+                                    results_ov := to_integer(results_mult_s(63 downto 32));
+                                    statusWord(OverUnderflow) <= 
+                                            '0' when results_mult_u(63 downto 32) = 0
+                                                else '1';
+                                end if;
+
+                            elsif ffopcode = oDiv then
+                                if ffflag = '0' then
+                                    results_reg_s := a_reg_s / b_reg_s;
+                                    cpuRegs(ffiregop1) <= std_logic_vector(resize(results_reg_s,32));
+                                else
+                                    results_reg_u := a_reg_u / b_reg_u;
+                                    cpuRegs(ffiregop1) <= std_logic_vector(resize(results_reg_u,32));
                                 end if;
                             end if;
 

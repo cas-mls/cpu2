@@ -1,0 +1,23 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../CPU2.gen/sources_1/ip/SerialDevice115k/sim/SerialDevice115k.vhd" \
+"../../../../CPU2.gen/sources_1/ip/cpumemory/cpumemory_sim_netlist.vhdl" \
+"../../../../CPU2.srcs/sources_1/computer/uart2wbm.vhd" \
+
+vhdl2008 xil_defaultlib  \
+"../../../../CPU2.srcs/sources_1/cpu/Utilities.vhdl" \
+"../../../../CPU2.srcs/sources_1/cpu/ALU.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/CPU.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/Interrupt.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/IoProcess.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/MemoryAccess.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/ProgCounter.vhd" \
+"../../../../CPU2.srcs/sources_1/computer/UartDevice.vhd" \
+"../../../../CPU2.srcs/sources_1/cpu/WaitTimer.vhd" \
+"../../../../CPU2.srcs/sources_1/computer/Computer.vhd" \
+
+vhdl xil_defaultlib  \
+"../../../../CPU2.srcs/sim_debugger/new/SimDebugger.vhd" \
+
+# Do not sort compile order
+nosort

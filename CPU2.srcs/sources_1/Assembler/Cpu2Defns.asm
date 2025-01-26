@@ -46,6 +46,14 @@
     sub {op : operands}                             => 3`5  @ 0`1 @ op
     usub {op : operands}                            => 3`5  @ 1`1 @ op
 
+    ; MULTIPLY
+    mult {op : operands}                             => 5`5  @ 0`1 @ op
+    umult {op : operands}                            => 5`5  @ 1`1 @ op
+
+    ; DIVIDE
+    div {op : operands}                             => 7`5  @ 0`1 @ op
+    udiv {op : operands}                            => 7`5  @ 1`1 @ op
+
     ; Logical AND/NAND
     and {op : operands}                             => 9`5  @ 0`1 @ op
     nand {op : operands}                             => 9`5  @ 1`1 @ op

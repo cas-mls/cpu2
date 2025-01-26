@@ -21,6 +21,8 @@ START:
     ldl r ER, 0
 LOOP:
     ldl r ER, 0
+    jsr r SP1, MULTTEST
+    jsr r SP1, DIVTEST
     jsr r SP1, ADDTEST
     jsr r SP1, SUBTEST
     jsr r SP1, UADDTEST
@@ -266,6 +268,93 @@ USUBER:
     add r ER, 1
 USUBCOMP:
     rtn r SP1
+
+MULTTEST:
+; MULT Instruction Tests
+multend1 = 12345
+multend2 = 23456
+prod = multend1 * multend2
+ovmultend1 = 0x7FFFFFFF
+ovmultend2 = 10
+ovprod = ovmultend1 * ovmultend2
+    ld r tr, 0x1f
+    ld r1, ovmultend1
+    ld r2, ovmultend2
+    ld r3, ovprod[31:0]
+    mult r1, r2          ; Register Overflow
+
+    ld r tr, 0x210
+    ld r1, multend1
+    ld r2, multend2
+    ld r3, prod
+    add r tr, 1
+    mult r1, r2          ; Register
+    bne r1, r3, MULTERROR
+    ld r1, multend1
+    add r tr, 1
+    mult r1, multend2     ; Immediate
+    bne r1, r3, MULTERROR
+    ld r1, multend1
+    add r tr, 1
+    mult r1, mem[PRODMEM]
+    bne r1, r3, MULTERROR
+    ld r1, multend1
+    add r tr, 1
+    ldl r4, PRODMEM1 - PRODMEM
+    mult r1, r4, mem[PRODMEM]
+    bne r1, r3, MULTERROR
+    mult r tr, 1
+    jmp MULTCOMP
+
+PRODMEM:
+    #d32 multend2
+    #res 2
+PRODMEM1:
+    #d32 multend2
+MULTERROR:
+    add r ER, 1
+MULTCOMP:
+    rtn r SP1
+
+DIVTEST:
+; DIV Instruction Tests
+divend1 = 12345 * 23456
+divisor2 = 23456
+quot = divend1 / divisor2
+
+    ld r tr, 0x210
+    ld r1, divend1
+    ld r2, divisor2
+    ld r3, quot
+    add r tr, 1
+    div r1, r2          ; Register
+    bne r1, r3, DIVERROR
+    ld r1, divend1
+    add r tr, 1
+    div r1, divisor2     ; Immediate
+    bne r1, r3, DIVERROR
+    ld r1, divend1
+    add r tr, 1
+    div r1, mem[QUOTMEM]
+    bne r1, r3, DIVERROR
+    ld r1, divend1
+    add r tr, 1
+    ldl r4, QUOTMEM1 - QUOTMEM
+    div r1, r4, mem[QUOTMEM]
+    bne r1, r3, DIVERROR
+    div r tr, 1
+    jmp DIVCOMP
+
+QUOTMEM:
+    #d32 divisor2
+    #res 2
+QUOTMEM1:
+    #d32 divisor2
+DIVERROR:
+    add r ER, 1
+DIVCOMP:
+    rtn r SP1
+
 
 ANDTEST:
 ; AND Instruction Tests

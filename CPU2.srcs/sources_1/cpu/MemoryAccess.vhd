@@ -221,7 +221,7 @@ begin
                             end case;
                         when ABSOLUTE =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
+                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= immop(11 downto 0);
@@ -230,7 +230,7 @@ begin
 
                         when INDEX =>
                             case opcode is
-                                when oLD | oADD | oSUB | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
+                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
                                     MEM_ENB <= '1';
                                     MEM_WEB <= "0";
                                     MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +

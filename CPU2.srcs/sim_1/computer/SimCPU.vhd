@@ -403,29 +403,4 @@ begin
 
 end process;
 
-debug : process
-begin
-    wait for 1us;
-    DebugIn.DebugMode <= '1';
-    DebugIn.BreakPoints(0) <= x"063";
-    wait for 5us;
-    wait until rising_edge (clk);
-    DebugIn.Break <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Break <= '0';
-
-    wait for 1us;
-    wait until rising_edge (clk);
-    DebugIn.Step <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Step <= '0';
-
-    wait for 5us;
-    wait until rising_edge (clk);
-    DebugIn.Continue <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Continue <= '0';
-
-end process;
-
 end Behavioral;
