@@ -89,12 +89,13 @@ LSTEST:
     bne r0, r1, LSERROR
     ldl r4, testdata3           ; Load immediate for store
     ldl r3, dataIndex           ; Index number
-    st  r4, mem[DATA1]          ; store address
-    ld  r5, mem[DATA1]          ; Absolute address
+    st  r4, [DATA1]          ; store address
+    ld  r5, [DATA1]          ; Absolute address
     ldl r tr, 2
     bne r4, r5, LSERROR
-    st  r5, r3, mem[DATA2-dataIndex]  ; Index + offset
-    ld  r6, r3, mem[DATA2-dataIndex]  ; Index + offset
+lsOffset = DATA2-dataIndex
+    st  r5, [lsOffset+r3]  ; Index + offset
+    ld  r6, [lsOffset+r3]  ; Index + offset
     ldl r tr, 3
     bne r5, r6, LSERROR
     ldl r tr, 4

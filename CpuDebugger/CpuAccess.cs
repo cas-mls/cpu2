@@ -9,7 +9,17 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace CpuDebugger
 {
-    enum CmdStatusAddr { Status = 0, ProgCounter, Instruction, Cycles };
+    enum CmdStatusAddr { 
+            Status = 0, 
+            ProgCounter, 
+            Instruction, 
+            Cycles,
+            Interrupt,
+            InterruptMask,
+            SwStatus,
+            StatusMask,
+            MemoryArg
+    };
 
     enum DebugCmd { 
             Status      = 0,

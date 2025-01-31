@@ -613,8 +613,6 @@ Note:   Limitations 1) The interrupt is read when instruction in execute state.
 | JUMP       | Update the program counter with the Interrupt Handler address. | DoutB → PC                                                   |
 | DONE       |                                                              | interruptRun <= '0'<br />interruptNum <= 0;                  |
 
-
-
 ```mermaid
 stateDiagram
 
@@ -1160,21 +1158,27 @@ Wishbone/UART interconnect where UART is the master and the Computer.vhd is the 
 
 
 
-Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (bit 0) and TGA_O (bits 1-7) signals.
+Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (CMD bit 0) and TGA_O (CMD bits 1-7) signals.  Address is 16 bits and Data is 32 bits.
 
-| CMD           | WE_O | Address                 | Data                                    | Description                 |
-| ------------- | ---- | ----------------------- | --------------------------------------- | --------------------------- |
-| 0 = Status    | R    | 0 (Status)              | 0 = Running<br />1 = Stopped            |                             |
-|               |      | 1 = Program Counter     | The current program counter.            |                             |
-|               |      | 2 = Instruction         | Next instruction which will be executed |                             |
-|               |      | 3 = Cycles              | Number of Cycles from the last reset.   |                             |
-| 1 = Step      | W    | 0                       | 0                                       |                             |
-| 2 = Continue  | W    | 0                       | 0                                       |                             |
-| 3 = Break     | W    | 0                       | 0                                       |                             |
-| 4 = Break At  | W    | 1-4 = Break At Location | Break At Address                        |                             |
-| 5= Break When | W    | Register (0-15)         | Value                                   | >15 will disable the break. |
-| 8 = Register  | RW   | Register Number (0-15)  | Register Content                        | Write Not Implemented       |
-| 16 = Memory   | RW   | Memory Address          | Memory Data                             | Not Implemented             |
+| CMD           | WE_O | Address (16 bits)                                            | Data (32 bits)                              | Description           |
+| ------------- | ---- | ------------------------------------------------------------ | ------------------------------------------- | --------------------- |
+| 0 = Status    | R    | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                       |
+|               |      | 1 = Program Counter                                          | The current program counter.                |                       |
+|               |      | 2 = Instruction                                              | The next instruction which will be executed |                       |
+|               |      | 3 = Cycles                                                   | Number of Cycles from the last reset.       |                       |
+|               |      | 4 = Interrupt Word                                           |                                             |                       |
+|               |      | 5 = Interrupt Mask Word                                      |                                             |                       |
+|               |      | 6 = Status Word                                              |                                             |                       |
+|               |      | 7 = Status Mask Word                                         |                                             |                       |
+|               |      | 8 = Memory Argument                                          |                                             |                       |
+|               |      |                                                              |                                             |                       |
+| 1 = Step      | W    | 0                                                            | 0                                           |                       |
+| 2 = Continue  | W    | 0                                                            | 0                                           |                       |
+| 3 = Break     | W    | 0                                                            | 0                                           |                       |
+| 4 = Break At  | W    | 1-4 = Break At Location                                      | Break At Address                            |                       |
+| 5= Break When | W    | bits 0-3: Register (0-15)<br />bit 4: X<br />bit 5-7: Operation:<br />0 = Nothing, 1 = Equal, 2 = Less than, 3= Greater than, 4 = Change, 5 = Not Equal, 6 = Greater Equal, 7 = Less Equal | Value                                       |                       |
+| 8 = Register  | RW   | Register Number (0-15)                                       | Register Content                            | Write Not Implemented |
+| 16 = Memory   | RW   | Memory Address                                               | Memory Data                                 | Not Implemented       |
 
 ### Serial  Protocol
 
@@ -1241,3 +1245,6 @@ wait_on_run cpumemory_synth_1
 export_simulation -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -directory D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/sim_scripts -ip_user_files_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files -ipstatic_source_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/ipstatic -lib_map_path [list {modelsim=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/modelsim} {questa=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/questa} {riviera=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/riviera} {activehdl=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/activehdl}] -use_ip_compiled_libs -force -quiet
 ```
 
+
+
+add_condition -name stop06d -radix hex {/SimCPU/cpuCUT/ProgramCounter == 06d} {stop}

@@ -42,13 +42,15 @@ package Utilities is
         MEMFETCH2_S,    -- State 6
         EXECUTE_S,      -- State 7
         CLEANUP_S,      -- State 8
-        WAITS_S         -- State 9
+        WAITS_S,        -- State 9
+        DEBUGSTABLEIZE_S,-- State 10
+        DEBUGWAIT_S     -- State 11
         );
     
 
     type INTERRUPT_FSM is (
         INTRWAIT_S,     -- State 0
-        CYCLEWAIT_S,    -- State 1
+        DUMMY_S,        -- State 1
         SAVEENA_S,      -- State 2
         DISABLEINT_S,   -- State 3
         JMPADDR_S,      -- State 4
@@ -121,6 +123,24 @@ package Utilities is
     constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
     constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
+    ---------------------------------------------------------------------------
+    -- Debug Information
+
+    -- Register compare types
+    type REG_COMPARE is (
+        REG_NOTHING,        -- Value 0
+        REG_EQUAL,          -- Value 1
+        REG_LESS,           -- Value 2
+        REG_GREATER,        -- Value 3
+        REG_CHANGE,         -- Value 4
+        REG_NOT_EQUAL,      -- Value 5
+        REG_GREATER_EQUAL,  -- Value 6
+        REG_LESS_EQUAL     -- Value 7
+        );
+
+        constant NumBreakPoint : integer := 4;
+        type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
+    
     type DEBUGOUTTYPE is record
         Stopped     : STD_LOGIC;
         CycleCount  : unsigned(63 downto 0);
@@ -131,10 +151,9 @@ package Utilities is
         interruptMask
                     : STD_LOGIC_VECTOR(31 downto 0);
         Status      : STD_LOGIC_VECTOR(31 downto 0);
+        StatusMask  : STD_LOGIC_VECTOR(31 downto 0);
+        MEMORY_ARG  : STD_LOGIC_VECTOR(31 downto 0);
     end record;
-
-    constant NumBreakPoint : integer := 4;
-    type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
 
     type DEBUGINTYPE is record
         DebugMode   : STD_LOGIC;
@@ -144,6 +163,7 @@ package Utilities is
         Continue    : STD_LOGIC;
         BWhenReg    : integer;
         BWhenValue  : STD_LOGIC_VECTOR(31 downto 0);
+        BWhenOp     : REG_COMPARE;
     end record;
 
     subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);
@@ -161,7 +181,12 @@ package Utilities is
         DBG_STATE,              -- VALUE 0
         DBG_PROG_COUNTER,       -- VALUE 1
         DBG_INSTRUCTION,        -- VALUE 2
-        DBG_CYCLES              -- VALUE 3
+        DBG_CYCLES,             -- VALUE 3
+        DBG_INTERRUPT,          -- VALUE 4
+        DGB_INTERRUPT_MASK,     -- VALUE 5
+        DBG_STATUS,             -- VALUE 6
+        DBG_STATUS_MASK,        -- VALUE 7
+        DBG_MEMORY_ARG          -- VALUE 8
     );
 
 

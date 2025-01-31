@@ -149,8 +149,9 @@ entity CPU is
             Break => '0', 
             Step => '0', 
             Continue => '0',
-            BWhenReg => 16,
-            BWhenValue => (others => '0'));
+            BWhenReg => 0,
+            BWhenValue => (others => '0'),
+            BWhenOp => REG_NOTHING);
         DEBUGOUT    : out DEBUGOUTTYPE
     );
 
@@ -213,7 +214,9 @@ architecture Behavioral of CPU is
             MEM_ENA : out std_logic := '1';
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
             MEM_ADDRA : out std_logic_vector(11 downto 0);
-            ProgramCounter : out PCTYPE
+            ProgramCounter : out PCTYPE;
+            JumpDisablePipline : out std_logic := '0'
+
         );
     end component ProgCounter;
 
@@ -268,14 +271,17 @@ architecture Behavioral of CPU is
             interruptMask : out std_logic_vector(interruptNums downto 0) := X"00000000";
             interruptSpNum : out integer range 0 to interruptNums;
             interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
-            interruptReset : out STD_LOGIC := '0'
-        );
+            interruptReset : out STD_LOGIC := '0';
+            statusMask : out std_logic_vector(31 downto 0) := X"00000000"
+            );
     end component Interrupt_Entity;
 
 
     signal ProgramCounter : PCTYPE := X"000";
     signal fsm_inst_cycle_p : CYCLETYPE_FSM := RESET_STATE_S;
     signal fsm_inst_cycle_n : CYCLETYPE_FSM := RESET_STATE_S;
+    signal JumpDisablePipline : std_logic := '0';
+
 
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
@@ -306,6 +312,7 @@ architecture Behavioral of CPU is
     signal interruptSpNum : integer range 0 to interruptNums;
     signal interruptSpAddrValue : integer range 0 to 2 ** MEM_ADDRB'length - 1;
     signal interruptReset : STD_LOGIC := '0';
+    signal statusMask : std_logic_vector(31 downto 0) := X"00000000";
 
     signal waitRun : std_logic := '0';
     signal waitAlarm : std_logic := '0';
@@ -319,18 +326,55 @@ architecture Behavioral of CPU is
 
     -- DEBUG 
     signal StepWait : STD_LOGIC := '0';
-    signal JmpAddrState : STD_LOGIC := '0';
-    signal addrDelayCount : integer range 0 to 7 := 0;
+    signal ProgCounterLast : PCTYPE := X"000";
+    signal RegsLast : REG_TYPE := (others => (others => '0'));
+    signal DebugDisablePipline : STD_LOGIC := '0';
+    signal DebugStart : STD_LOGIC := '0';
 
     -- Help with ILA debugging by flattening the Wires.
-    -- attribute keep : string;
-    -- attribute MARK_DEBUG : string;
+    attribute keep : string;
+    attribute MARK_DEBUG : string;
     -- attribute keep of cpuRegs : signal is "TRUE";
     -- attribute MARK_DEBUG of cpuRegs : signal is "TRUE";
-    -- attribute keep of fsm_inst_cycle_p : signal is "TRUE";
-    -- attribute MARK_DEBUG of fsm_inst_cycle_p : signal is "TRUE";
-    -- attribute keep of ProgramCounter : signal is "TRUE";
-    -- attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
+    attribute keep of fsm_inst_cycle_p : signal is "TRUE";
+    attribute MARK_DEBUG of fsm_inst_cycle_p : signal is "TRUE";
+    attribute keep of ProgramCounter : signal is "TRUE";
+    attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
+    attribute keep of DebugDisablePipline : signal is "TRUE";
+    attribute MARK_DEBUG of DebugDisablePipline : signal is "TRUE";
+    attribute keep of DebugStart : signal is "TRUE";
+    attribute MARK_DEBUG of DebugStart : signal is "TRUE";
+
+    function debug_reg_compare(
+        RegLast : std_logic_vector;
+        Reg : std_logic_vector;
+        RegDebug : std_logic_vector;
+        Op : REG_COMPARE) return boolean is
+    begin
+        if (Op = REG_NOTHING) then
+            return false;
+        elsif Reg /= RegLast then
+            case Op is
+                when REG_EQUAL =>
+                    return RegDebug = Reg;
+                when REG_LESS =>
+                    return RegDebug < Reg;
+                when REG_GREATER =>
+                    return RegDebug > Reg;
+                when REG_CHANGE =>
+                    return true;
+                when REG_NOT_EQUAL =>
+                    return RegDebug /= Reg;
+                when REG_GREATER_EQUAL =>
+                    return RegDebug >= Reg;
+                when REG_LESS_EQUAL =>
+                    return RegDebug <= Reg;
+                when others =>
+                    return false;
+            end case;
+        end if;
+        return false;
+    end function;
 
 begin
 
@@ -395,7 +439,8 @@ begin
         MEM_ENA => MEM_ENA,
         MEM_WEA => MEM_WEA,
         MEM_ADDRA => MEM_ADDRA,
-        ProgramCounter => ProgramCounter
+        ProgramCounter => ProgramCounter,
+        JumpDisablePipline => JumpDisablePipline
     );
 
     IoProcess_enty : IoProcess
@@ -447,7 +492,8 @@ begin
         interruptMask => interruptMask,
         interruptSpNum => interruptSpNum,
         interruptSpAddrValue => interruptSpAddrValue,
-        interruptReset => interruptReset
+        interruptReset => interruptReset,
+        statusMask => statusMask
     );
 
     instruction_fsm_Proc : process (SYS_CLK)
@@ -476,7 +522,7 @@ begin
         waitCancel,
         interruptRun,
         DEBUGOUT.Stopped,
-        JmpAddrState,
+        DebugStart,
         fsm_interrupt_cycle_p
         )
     begin
@@ -489,8 +535,7 @@ begin
                 ----------------------------------------------------------------
                 -- This sets up the instruction address to read.
             when ADDRESS_S =>
-                if DEBUGOUT.Stopped = '1' 
-                    or JmpAddrState = '1' then
+                if interruptRun = '1' then
                     fsm_inst_cycle_n <= ADDRESS_S;
                 else
                     fsm_inst_cycle_n <= INSTFETCH1_S;
@@ -516,51 +561,87 @@ begin
                     when REGREG =>
                         case opcode is
                             when oJSR =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                             when oRTN | oRTI =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when oRWIO | oIOST =>
                                 fsm_inst_cycle_n <= MEMFETCH2_S;
                             when oPUSHPOP =>
                                 if flag = '0' then
-                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
                                 else
                                     fsm_inst_cycle_n <= MEMFETCH1_S;
                                 end if;
                             when others =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                         end case;
                     when IMMEDIATE =>
                         case opcode is
                             when oJSR =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                             when oRWIO | oIOST=>
                                 fsm_inst_cycle_n <= MEMFETCH2_S;
                             when oPUSHPOP =>
                                 if flag = '0' then
-                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
                                 else
                                     fsm_inst_cycle_n <= ADDRESS_S; -- Should not happen
                                 end if;
                             when others =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                         end case;
                     when ABSOLUTE =>
                         case opcode is
                             when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when others =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                         end case;
                     when INDEX =>
                         case opcode is
                             when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
                                 fsm_inst_cycle_n <= MEMFETCH1_S;
                             when others =>
-                                fsm_inst_cycle_n <= EXECUTE_S;
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
                         end case;
                     when others =>
-                        fsm_inst_cycle_n <= EXECUTE_S;
+                        if DebugStart = '1' then
+                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                        else
+                            fsm_inst_cycle_n <= EXECUTE_S;
+                        end if;
                 end case;
 
                 ----------------------------------------------------------------
@@ -573,7 +654,11 @@ begin
                 -- Second Cycle to wait for memory to be read.
                 -- ABSOLUTE and INDEX operations.
             when MEMFETCH2_S =>
-                fsm_inst_cycle_n <= EXECUTE_S;
+                if DebugStart = '1' then
+                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                else
+                    fsm_inst_cycle_n <= EXECUTE_S;
+                end if;
 
                 ----------------------------------------------------------------
                 -- Execute intruction
@@ -599,19 +684,9 @@ begin
                         fsm_inst_cycle_n <= ADDRESS_S;
                     end if;
 
-                elsif DEBUGOUT.Stopped = '1'
-                    or JmpAddrState = '1'
-                then
-                    fsm_inst_cycle_n <= ADDRESS_S;
-
-                elsif  ffopcode = oJMP
-                    or ffopcode = oBE
-                    or ffopcode = oBLT
-                    or ffopcode = oBGT
-                    or ffopcode = oJSR
-                    or ffopcode = oRTN
-                    or ffopcode = oRTI
-                    or (ffopcode = oSWIENA and ffflag = SWIFLAG)
+                elsif JumpDisablePipline = '1'
+                    or DebugDisablePipline = '1'
+                    or interruptRun = '1'
                 then -- Jump / Branch go back to the Address state.
                     fsm_inst_cycle_n <= ADDRESS_S;
                 else -- All other operations.
@@ -640,7 +715,25 @@ begin
                 else
                     fsm_inst_cycle_n <= ADDRESS_S;
                 end if;
-            when others =>
+
+                ----------------------------------------------------------------
+                -- This is set when the DEBUG.Stopped is set and the next cycle 
+                -- would be the Execute cycle.
+                when DEBUGSTABLEIZE_S =>
+                    if DebugStart = '1' then -- This shouldn't happen.  But, it does ignore debug.
+                        fsm_inst_cycle_n <= DEBUGWAIT_S;
+                    else
+                        fsm_inst_cycle_n <= EXECUTE_S;
+                    end if;
+
+                when DEBUGWAIT_S =>
+                if DEBUGOUT.Stopped = '0' then
+                    fsm_inst_cycle_n <= EXECUTE_S;
+                else
+                    fsm_inst_cycle_n <= DEBUGWAIT_S;
+                end if;
+    
+                when others =>
                 fsm_inst_cycle_n <= ADDRESS_S;
         end case;
     end process;
@@ -668,99 +761,97 @@ begin
     end process decode_Proc;
 
     debug_proc : process(SYS_CLK)
-        variable pc1 : unsigned(7 downto 0);
-        variable pc2 : unsigned(7 downto 0);
+
     begin
         if rising_edge (SYS_CLK) then
-            case fsm_inst_cycle_p is
-                -- CPU RESET
-                when RESET_STATE_S =>
-                    DEBUGOUT.Stopped        <= '0';
-                    DEBUGOUT.CycleCount     <= (others => '0');
-                    DEBUGOUT.ProgCounter    <= (others => '0');
-                    DEBUGOUT.Regs           <= (others => (others => '0'));
-                    DEBUGOUT.Instruction    <= (others =>'0');
-                    DEBUGOUT.Status         <= (others => '0');
-                    DEBUGOUT.Interrupt      <= (others => '0');
-                    DEBUGOUT.interruptMask  <= (others => '0');
-                    stepWait <= '0';
-                    JmpAddrState <= '0';
-                    addrDelayCount <= 0;
+            if fsm_inst_cycle_p = RESET_STATE_S then
+                DEBUGOUT.Stopped        <= '0';
+                DEBUGOUT.CycleCount     <= (others => '0');
+                DEBUGOUT.ProgCounter    <= (others => '0');
+                DEBUGOUT.Regs           <= (others => (others => '0'));
+                DEBUGOUT.Instruction    <= (others =>'0');
+                DEBUGOUT.Status         <= (others => '0');
+                DEBUGOUT.StatusMask     <= (others => '0');
+                DEBUGOUT.Interrupt      <= (others => '0');
+                DEBUGOUT.interruptMask  <= (others => '0');
+                StepWait <= '0';
+                DebugDisablePipline <= '0';
+                DebugStart <= '0';
+                ProgCounterLast <= X"000";
+                RegsLast <= (others => (others => '0'));
 
-                when ADDRESS_S =>
-                    if DEBUGIN.DebugMode = '1' then
-                        if  DEBUGOUT.Stopped /= '1'and ( 
-                            ProgramCounter = DEBUGIN.BreakPoints(0)
+            elsif DEBUGIN.DebugMode = '1' then
+                if fsm_inst_cycle_p = DEBUGSTABLEIZE_S
+                then
+                    DEBUGOUT.Stopped <= '1';
+                    DebugStart <= '0';
+
+                elsif fsm_inst_cycle_p = DEBUGWAIT_S
+                then
+                    if DEBUGIN.Continue = '1'
+                    then
+                        DEBUGOUT.Stopped <= '0';
+                        StepWait <= '0';
+                        DebugDisablePipline <= '1';
+                    elsif DEBUGIN.Step = '1'
+                    then
+                        DEBUGOUT.Stopped <= '0';
+                        StepWait <= '1';
+                        DebugDisablePipline <= '1';
+                    end if;
+
+                else
+                    if  (ProgCounterLast /= ProgramCounter 
+                        and (ProgramCounter = DEBUGIN.BreakPoints(0)
                             or ProgramCounter = DEBUGIN.BreakPoints(1)
                             or ProgramCounter = DEBUGIN.BreakPoints(2)
-                            or ProgramCounter = DEBUGIN.BreakPoints(3)
-                            or (DEBUGIN.BWhenReg < 16 and cpuRegs(DEBUGIN.BWhenReg) = DEBUGIN.BWhenValue)
-                            or JmpAddrState = '1'
-                            )
-                        then
-                            if addrDelayCount = 4
-                            then
-                                addrDelayCount <= 0;
-                                StepWait <= '0';
-                                JmpAddrState <= '0';
-                                DEBUGOUT.Stopped <= '1';
-                                DEBUGOUT.ProgCounter <= ProgramCounter;
-                                DEBUGOUT.Regs <= cpuRegs;
-                                DEBUGOUT.Instruction <= MEM_DOUTA;
-                                DEBUGOUT.Status <= statusWord;
-                                DEBUGOUT.Interrupt <= INTERRUPT;
-                                DEBUGOUT.interruptMask  <= interruptMask;
-                            else
-                                addrDelayCount <= addrDelayCount + 1;
-                            end if;
-                        -- elsif JmpAddrState = '1' then
-                        --     StepWait <= '0';
-                        --     JmpAddrState <= '0';
-                        --     DEBUGOUT.Stopped <= '1';
-                        else
-                            if DEBUGIN.Continue = '1'
-                            then
-                                DEBUGOUT.Stopped <= '0';
-                            elsif DEBUGIN.Step = '1'
-                            then
-                                DEBUGOUT.Stopped <= '0';
-                                StepWait <= '1';
-                            end if;
-                        end if;
+                            or ProgramCounter = DEBUGIN.BreakPoints(3)))
+                        or debug_reg_compare(
+                                RegsLast(DEBUGIN.BWhenReg), 
+                                cpuRegs(DEBUGIN.BWhenReg), 
+                                DEBUGIN.BWhenValue, DEBUGIN.BWhenOp)
+                        or stepWait = '1'
+                        or DEBUGIN.Break = '1'
+                    then
+                        StepWait <= '0';
+                        DebugStart <= '1';
+                    else
+                        -- DebugStart <= '0';
                     end if;
-                when others =>
-                    if DEBUGIN.DebugMode = '1' then
-                        if  DEBUGOUT.Stopped /= '1' 
-                        then
-                            DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
-                            DEBUGOUT.ProgCounter <= ProgramCounter;
-                            DEBUGOUT.Regs <= cpuRegs;
-                            DEBUGOUT.Instruction <= MEM_DOUTA;
-                            DEBUGOUT.Status <= statusWord;
-                            DEBUGOUT.Interrupt <= INTERRUPT;
-                            DEBUGOUT.interruptMask  <= interruptMask;
-                            if  DEBUGIN.Break = '1' 
-                                or StepWait = '1'
-                            then
-                                JmpAddrState <= '1';
-                            end if;
+                    
+                    if fsm_inst_cycle_p = EXECUTE_S
+                    then
+                        DebugDisablePipline <= '0';
                     end if;
-                    end if;
-            end case;
+                end if;
+
+                -- Continue to update the debug information.
+                -- Good generic information for the simulator and ILA.
+                DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
+                DEBUGOUT.ProgCounter <= ProgramCounter;
+                DEBUGOUT.Instruction <= ffopcode 
+                    & ffflag 
+                    & ffmemop 
+                    & std_logic_vector(to_unsigned(ffiregop1, 4))
+                    & std_logic_vector(to_unsigned(ffiregop2, 4))
+                    & ffimmop;
+                DEBUGOUT.Regs <= cpuRegs;
+                DEBUGOUT.Status <= statusWord;
+                DEBUGOUT.StatusMask <= statusMask;
+                DEBUGOUT.Interrupt <= INTERRUPT;
+                DEBUGOUT.interruptMask  <= interruptMask;
+                if ffmemop = ABSOLUTE or ffmemop = INDEX then
+                    DEBUGOUT.MEMORY_ARG <= MEM_DOUTB;
+                else
+                    DEBUGOUT.MEMORY_ARG <= (others => '0');
+                end if;
+
+                -- Capture last values to find when the current values changes.
+                ProgCounterLast <= ProgramCounter;
+                RegsLast <= cpuRegs;
+
+            end if;
         end if;
     end process debug_proc;
-
-    -- intrCounter_proc : process (SYS_CLK)
-    -- begin
-    --     if rising_edge  (SYS_CLK) then
-    --         case fsm_interrupt_cycle_p is
-    --             when NO_INTERRUPT =>
-    --                 interruptCounter <= 0;
-    --             when JMPADDR_I =>
-    --                 interruptCounter <= interruptCounter + 1;
-    --             when others =>
-    --         end case;
-    --     end if;
-    -- end process intrCounter_proc;
 
 end Behavioral;

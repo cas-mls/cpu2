@@ -38,11 +38,11 @@ use xil_defaultlib.Utilities.all;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
-entity SimCPU is
+entity SimDebugger is
     --  Port ( );
-end SimCPU;
+end SimDebugger;
 
-architecture Behavioral of SimCPU is
+architecture Behavioral of SimDebugger is
 
     component CPU
         port (
@@ -72,8 +72,9 @@ architecture Behavioral of SimCPU is
                 Break => '0', 
                 Step => '0', 
                 Continue => '0',
-                BWhenReg => 16,
-                BWhenValue => (others => '0'));
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING);
             DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
@@ -137,16 +138,6 @@ architecture Behavioral of SimCPU is
     signal MEM_DINB  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
     signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-    -- UART Device 
-    signal UART_RXD      : STD_LOGIC;
-    signal UART_TXD      : STD_LOGIC;
-    signal TxByte        : STD_LOGIC_VECTOR (7 downto 0);
-    signal TxAvail       : STD_LOGIC;
-    signal TxStatus      : STD_LOGIC_VECTOR (31 downto 0);
-    signal UartInterrupt : STD_LOGIC;
-    signal RdByte        : STD_LOGIC_VECTOR (7 downto 0);
-    signal RdStatus      : STD_LOGIC_VECTOR (31 downto 0);
-    signal r_xtr         : STD_LOGIC_VECTOR(7 downto 0);
 
     -- Debug Items
     -- Debug Items
@@ -156,8 +147,9 @@ architecture Behavioral of SimCPU is
         Break => '0', 
         Step => '0', 
         Continue => '0',
-        BWhenReg => 16,
-        BWhenValue => (others => '0'));
+        BWhenReg => 0,
+        BWhenValue => (others => '0'),
+        BWhenOp => REG_NOTHING);
     signal DebugOut     : DEBUGOUTTYPE;
 
 begin
@@ -185,20 +177,6 @@ port map(
     MEM_DOUTB     => MEM_DOUTB,
     DEBUGIN       => DebugIn,
     DEBUGOUT      => DebugOut
-);
-
-uartCUT : UartDevice
-port map(
-    CLK       => CLK,
-    RST       => interrupt(0),
-    UART_RXD  => UART_RXD,
-    UART_TXD  => UART_TXD,
-    TxByte    => TxByte,
-    TxAvail   => TxAvail,
-    TxStatus  => TxStatus,
-    Interrupt => UartInterrupt,
-    RdByte    => RdByte,
-    RdStatus  => RdStatus
 );
 
 memory : cpumemory
@@ -238,22 +216,71 @@ end process;
 
 debug : process
 begin
-    wait for 1us;
+    wait for 0.5us;
     DebugIn.DebugMode <= '1';
-    DebugIn.BreakPoints(0) <= x"063";
-    wait for 5us;
-    wait until rising_edge (clk);
-    DebugIn.Break <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Break <= '0';
 
-    wait for 1us;
+    -- Test for Breakpoints
+    DebugIn.BreakPoints(0) <= x"081";
+    wait until DebugOut.Stopped = '1';
+    wait until rising_edge (clk);
+    -- --Continue
+    -- wait for 0.1us;
+    -- DebugIn.Continue <= '1';
+    -- wait until rising_edge (clk);
+    -- DebugIn.Continue <= '0';
+
+    -- -- Test for Register Break - Change
+    -- wait for 0.5us;
+    -- wait until rising_edge (clk);
+    -- DebugIn.BWhenReg <=14;
+    -- DebugIn.BWhenOp <= REG_CHANGE; -- This will happen every time the register changes
+    -- wait until DebugOut.Stopped = '1';
+    -- DebugIn.BWhenOp <= REG_NOTHING; -- This will stop the register break
+    -- wait until rising_edge (clk);
+    -- --Continue
+    -- wait for 0.1us;
+    -- DebugIn.Continue <= '1';
+    -- wait until rising_edge (clk);
+    -- DebugIn.Continue <= '0';
+
+    -- -- Test for Register Break - EUQAL
+    -- wait for 0.5us;
+    -- wait until rising_edge (clk);
+    -- DebugIn.BWhenReg <=14;
+    -- DebugIn.BWhenValue <= x"00000022";
+    -- DebugIn.BWhenOp <= REG_EQUAL; -- This will happen every time the register changes
+    -- wait until DebugOut.Stopped = '1';
+    -- DebugIn.BWhenOp <= REG_NOTHING; -- This will stop the register break
+    -- wait until rising_edge (clk);
+    -- --Continue
+    -- wait for 0.1us;
+    -- DebugIn.Continue <= '1';
+    -- wait until rising_edge (clk);
+    -- DebugIn.Continue <= '0';
+    
+    -- -- Test for Break Command
+    -- wait for 0.5us;
+    -- wait until rising_edge (clk);
+    -- DebugIn.Break <= '1';
+    -- wait until rising_edge (clk);
+    -- DebugIn.Break <= '0';
+ 
+    -- Test for Step Command
+    wait for 0.15us;
     wait until rising_edge (clk);
     DebugIn.Step <= '1';
     wait until rising_edge (clk);
     DebugIn.Step <= '0';
 
-    wait for 5us;
+    -- Test for Step Command
+    wait for 0.15us;
+    wait until rising_edge (clk);
+    DebugIn.Step <= '1';
+    wait until rising_edge (clk);
+    DebugIn.Step <= '0';
+
+    -- Test for Continue
+    wait for 0.5us;
     wait until rising_edge (clk);
     DebugIn.Continue <= '1';
     wait until rising_edge (clk);

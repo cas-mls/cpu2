@@ -97,7 +97,8 @@ entity ProgCounter is
         MEM_ENA               : OUT STD_LOGIC := '1';
         MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-        ProgramCounter        : OUT PCTYPE
+        ProgramCounter        : OUT PCTYPE;
+        JumpDisablePipline    : OUT STD_LOGIC
     );
 end ProgCounter;
 
@@ -140,7 +141,7 @@ begin
                     MEM_WEA <= "0";
                     MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
-
+                    JumpDisablePipline <= '0';
                 when ADDRESS_S    =>
                     MEM_ENA <= '1';
                     MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal));
@@ -169,9 +170,11 @@ begin
                         or (opcode = oSWIENA and flag = SWIFLAG)
                     then -- Branch / Jump operations.
                         MEM_ENA <= '0';
+                        JumpDisablePipline <= '1';
                     else -- ignore all Jump operations.
                         MEM_ENA <= '1';
                         MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
+                        JumpDisablePipline <= '0';
                     end if;
 
                 when EXECUTE_S    =>

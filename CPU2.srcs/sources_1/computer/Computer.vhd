@@ -79,8 +79,9 @@ architecture Behavioral of Computer is
                 Break => '0', 
                 Step => '0', 
                 Continue => '0',
-                BWhenReg => 16,
-                BWhenValue => (others => '0'));
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING);
             DEBUGOUT    : out DEBUGOUTTYPE
 
             );
@@ -238,22 +239,23 @@ architecture Behavioral of Computer is
         Break => '0', 
         Step => '0', 
         Continue => '0',
-        BWhenReg => 16,
-        BWhenValue => (others => '0'));
+        BWhenReg => 0,
+        BWhenValue => (others => '0'),
+        BWhenOp => REG_NOTHING);
     signal DebugOut     : DEBUGOUTTYPE;
     -- Debug metastability
-    signal dmode1       : STD_LOGIC;
-    signal dmode2       : STD_LOGIC;
-    signal dmode3       : STD_LOGIC;
-    signal dcont1       : STD_LOGIC;
-    signal dcont2       : STD_LOGIC;
-    signal dcont3       : STD_LOGIC;
-    signal dbreak1      : STD_LOGIC;
-    signal dbreak2      : STD_LOGIC;
-    signal dbreak3      : STD_LOGIC;
-    signal dstep1       : STD_LOGIC;
-    signal dstep2       : STD_LOGIC;
-    signal dstep3       : STD_LOGIC;
+    signal dmode1       : STD_LOGIC := '0';
+    signal dmode2       : STD_LOGIC := '0';
+    signal dmode3       : STD_LOGIC := '0';
+    signal dcont1       : STD_LOGIC := '0';
+    signal dcont2       : STD_LOGIC := '0';
+    signal dcont3       : STD_LOGIC := '0';
+    signal dbreak1      : STD_LOGIC := '0';
+    signal dbreak2      : STD_LOGIC := '0';
+    signal dbreak3      : STD_LOGIC := '0';
+    signal dstep1       : STD_LOGIC := '0';
+    signal dstep2       : STD_LOGIC := '0';
+    signal dstep3       : STD_LOGIC := '0';
     signal RdValid      : STD_LOGIC;
 
     signal dbreakUart   : STD_LOGIC;
@@ -262,10 +264,10 @@ architecture Behavioral of Computer is
 
     signal dmemReadCount: integer range 0 to 3;
 
-    -- attribute keep                          : STRING;
-    -- attribute MARK_DEBUG                    : string;
-    -- attribute keep          of rst          : signal is "TRUE";
-    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
+    attribute keep                          : STRING;
+    attribute MARK_DEBUG                    : string;
+    attribute keep          of rst          : signal is "TRUE";
+    attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
     -- attribute keep          of ioAddr       : signal is "TRUE";
     -- attribute MARK_DEBUG    of ioAddr       : signal is "TRUE";
@@ -296,10 +298,10 @@ architecture Behavioral of Computer is
     -- attribute keep          of RdStatus     : signal is "TRUE";
     -- attribute MARK_DEBUG    of RdStatus     : signal is "TRUE";
     -- DEBUG ELEMENTS
-    -- attribute keep          of DebugIn      : signal is "TRUE";
-    -- attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
-    -- attribute keep          of DebugOut     : signal is "TRUE";
-    -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
+    attribute keep          of DebugIn      : signal is "TRUE";
+    attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
+    attribute keep          of DebugOut     : signal is "TRUE";
+    attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
 
     -- attribute keep          of dcontUart    : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of dcontUart    : signal is "TRUE"; 
@@ -326,17 +328,21 @@ architecture Behavioral of Computer is
     -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
 
-    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
+    attribute keep          of MEM_ENA          : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
+    attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
+    attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
 
-    -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
-    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+    attribute keep          of MEM_ENB          : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
+    attribute keep          of MEM_WEB          : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
+    attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
+    attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
+    attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
 
 begin
 
@@ -462,18 +468,18 @@ begin
 
         if rising_edge (SYS_CLK) then
             if RST = '1' then
-                dmode1      <= '0';
-                dmode2      <= '0';
-                dmode3      <= '0';
-                dbreak1     <= '0';
-                dbreak2     <= '0';
-                dbreak3     <= '0';
-                dcont1      <= '0';
-                dcont2      <= '0';
-                dcont3      <= '0';
-                dstep1      <= '0';
-                dstep2      <= '0';
-                dstep3      <= '0';
+                -- dmode1      <= '0';
+                -- dmode2      <= '0';
+                -- dmode3      <= '0';
+                -- dbreak1     <= '0';
+                -- dbreak2     <= '0';
+                -- dbreak3     <= '0';
+                -- dcont1      <= '0';
+                -- dcont2      <= '0';
+                -- dcont3      <= '0';
+                -- dstep1      <= '0';
+                -- dstep2      <= '0';
+                -- dstep3      <= '0';
             else            
                 dmode1 <= dmode;
                 dmode2 <= dmode1;
@@ -527,8 +533,9 @@ begin
                 dstepUart <= '0';
                 dcontUart <= '0';
                 DebugIn.BreakPoints <= (others => (others => '0'));
-                DebugIn.BWhenReg <= 16;
+                DebugIn.BWhenReg <= 0;
                 DebugIn.BWhenValue <= (others => '0');
+                DebugIn.BWhenOp <= REG_NOTHING;
                 dmemReadCount <= 0;
                 DEBUG_MEM_ADDRA <= (others => '0');
                 DEBUG_MEM_ENA <= '0';
@@ -549,6 +556,16 @@ begin
                                         WB_DIN <= Debugout.Instruction;
                                     when DBG_CYCLES =>              -- VALUE 3
                                         WB_DIN <= STD_LOGIC_VECTOR(Debugout.CycleCount(31 downto 0));
+                                    when DBG_INTERRUPT =>           -- VALUE 4
+                                        WB_DIN <= DebugOut.Interrupt;
+                                    when DGB_INTERRUPT_MASK =>      -- VALUE 5
+                                        WB_DIN <= DebugOut.InterruptMask;
+                                    when DBG_STATUS =>              -- VALUE 6
+                                        WB_DIN <= DebugOut.Status;
+                                    when DBG_STATUS_MASK =>         -- VALUE 7
+                                        WB_DIN <= DebugOut.StatusMask;
+                                    when DBG_MEMORY_ARG =>          -- VALUE 8
+                                        WB_DIN <= DebugOut.MEMORY_ARG;
                                     when others =>
                                 end case;
                             end if;
@@ -591,6 +608,7 @@ begin
                         when TGA_BREAKWHEN =>
                             if WB_WE = '1' then -- BREAK COMMAND
                                 DebugIn.BWhenReg <= to_integer(unsigned(WB_ADDR(3 downto 0)));
+                                DebugIn.BWhenOp <= REG_COMPARE'VAL(to_integer(unsigned(WB_ADDR(7 downto 5))));
                                 DebugIn.BWhenValue <= WB_DOUT(31 downto 0);
                             end if;
                             WB_ACK <= '1';

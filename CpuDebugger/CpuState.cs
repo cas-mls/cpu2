@@ -189,5 +189,43 @@ namespace CpuDebugger
             }
         }
         internal uint Memory { get; set; }
+
+        internal string AssemblyInstruction
+        {
+            get
+            {
+                string results = "";
+                switch (MemoryAccessDecode)
+                {
+                    case "REGREG":
+                        results = OpcodeDecode + " R" + Register1.ToString() + ", R" + Register2.ToString();
+                        break;
+                    case "IMMED":
+                        results = OpcodeDecode + " R" + Register1.ToString() + ", #" + Immediate.ToString();
+                        break;
+                    case "ABSOLUTE":
+                        results = OpcodeDecode + " R" + Register1.ToString() + ", [" + Immediate.ToString() + "]";
+                        break;
+                    case "INDEX":
+                        results = OpcodeDecode + " R" + Register1.ToString()  + ", [" + Immediate.ToString() + "+R" + Register2.ToString() + "]";
+                        break;
+                }
+                return results;
+            }
+        }
+
+        internal string InstructionSplit
+        {
+            get
+            {
+                return Opcode.ToString("x2") + " " 
+                    + Flag.ToString("x1") + " " 
+                    + MemoryAccess.ToString("x1") + " "
+                    + Register1.ToString("x2") + " "
+                    + Register2.ToString("x2")+ " "
+                    + Immediate.ToString("x4");
+            }
+        }
+
     }
 }

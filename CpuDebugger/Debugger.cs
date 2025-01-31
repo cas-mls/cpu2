@@ -115,12 +115,9 @@ namespace CpuDebugger
             WbAccess.GetCpuCurrentState();
             if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
 
-            txtOpcode.Text = cpuState.OpcodeDecode;
-            txtFlag.Text = cpuState.Flag.ToString();
-            txtAccess.Text = cpuState.MemoryAccessDecode;
-            txtReg1.Text = cpuState.Register1.ToString();
-            txtReg2.Text = cpuState.Register2.ToString();
-            txtImmed.Text = ckbHex.Checked ? cpuState.Immediate.ToString("X4") : cpuState.Immediate.ToString("D");
+            lblInstSplit.Text = cpuState.InstructionSplit;
+            lblAssemInst.Text = cpuState.AssemblyInstruction;
+
             if (ckbHex.Checked)
             {
                 txtProgCount.Text = cpuState.ProgramCounter.ToString("X3");
@@ -169,20 +166,6 @@ namespace CpuDebugger
             else if (cpuState.MemoryAccess == 3)
             {
                 address = (ushort)(cpuState.Immediate + cpuState.CpuRegisters[cpuState.Register2]);
-            }
-            if (cpuState.MemoryAccess == 3 | cpuState.MemoryAccess == 2)
-            {
-                if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
-                while (bgwDebugStatus.IsBusy) Application.DoEvents();
-                WbAccess.GetMemory(address);
-                if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
-                txtMemAddr.Text = address.ToString("X4");
-                txtMemData.Text = cpuState.Memory.ToString("X8");
-            }
-            else
-            {
-                txtMemAddr.Text = "";
-                txtMemData.Text = "";
             }
 
         }

@@ -131,7 +131,9 @@ entity Interrupt_Entity is
         interruptMask : out std_logic_vector(interruptNums downto 0) := X"00000000";
         interruptSpNum : out integer range 0 to interruptNums;
         interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
-        interruptReset : out STD_LOGIC := '0'
+        interruptReset : out STD_LOGIC := '0';
+        statusMask : out std_logic_vector(31 downto 0) := X"00000000"
+
     );
 
 end Interrupt_Entity;
@@ -144,9 +146,6 @@ architecture Behavioral of Interrupt_Entity is
     signal interruptMaskLocal : std_logic_vector(interruptNums downto 0) := X"00000000";
     signal interruptSpNumLocal : integer range 0 to regOpMax;
 
-    -- Software Status Mask
-    signal softwareStatusMask : std_logic_vector(31 downto 0) := X"00000000";
-
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
     signal ffopcode : OPCODETYPE := "00000";
@@ -158,29 +157,33 @@ architecture Behavioral of Interrupt_Entity is
     signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal ffimmop : IMMTYPE;
 
-    -- attribute keep : string;
-    -- attribute MARK_DEBUG : string;
+    attribute keep : string;
+    attribute MARK_DEBUG : string;
 
-    -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
-    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
-    -- attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
-    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
-    -- attribute keep of        INTERRUPT : signal is "TRUE";
-    -- attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
+    attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
+    attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
+    attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
+    attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
+    attribute keep of        INTERRUPT : signal is "TRUE";
+    attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
 
     -- attribute keep of        timerAlarm : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerAlarm : signal is "TRUE";
     -- attribute keep of        timerInt : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerInt : signal is "TRUE";
 
-    -- attribute keep of        interruptRun : signal is "TRUE";
-    -- attribute MARK_DEBUG of  interruptRun : signal is "TRUE";
-    -- attribute keep of        interruptMaskLocal : signal is "TRUE";
-    -- attribute MARK_DEBUG of  interruptMaskLocal : signal is "TRUE";
-    -- attribute keep of        interruptSpNumLocal : signal is "TRUE";
-    -- attribute MARK_DEBUG of  interruptSpNumLocal : signal is "TRUE";
-    -- attribute keep of        interruptSpAddrValue : signal is "TRUE";
-    -- attribute MARK_DEBUG of  interruptSpAddrValue : signal is "TRUE";
+    attribute keep of        interruptRun : signal is "TRUE";
+    attribute MARK_DEBUG of  interruptRun : signal is "TRUE";
+    attribute keep of        interruptMaskLocal : signal is "TRUE";
+    attribute MARK_DEBUG of  interruptMaskLocal : signal is "TRUE";
+    attribute keep of        interruptSpNumLocal : signal is "TRUE";
+    attribute MARK_DEBUG of  interruptSpNumLocal : signal is "TRUE";
+    attribute keep of        interruptSpAddrValue : signal is "TRUE";
+    attribute MARK_DEBUG of  interruptSpAddrValue : signal is "TRUE";
+    attribute keep of        statusWord : signal is "TRUE";
+    attribute MARK_DEBUG of  statusWord : signal is "TRUE";
+    attribute keep of        statusMask : signal is "TRUE";
+    attribute MARK_DEBUG of  statusMask : signal is "TRUE";
     
     -- Function to determine the interrupt bit number
     function get_interBitNum(INTERRUPT : std_logic_vector) return integer is
@@ -261,7 +264,7 @@ begin
             when RESET_STATE_S =>
                 interruptSpAddrValue <= 0;
                 interruptReset <= '0';
-                interruptRun <= '0';
+                interruptRun <= '1';
             when DECODE_S =>
 
                 if  opcode = oRTI
@@ -286,11 +289,11 @@ begin
                     if ffflag = SWMFLAG then -- Status Mask
                         case ffmemop is
                             when REGREG =>
-                                softwareStatusMask <= ireg2value;
+                                statusMask <= ireg2value;
                             when IMMEDIATE =>
-                                softwareStatusMask <= X"0000" & ffimmop;
+                                statusMask <= X"0000" & ffimmop;
                             when ABSOLUTE | INDEX =>
-                                softwareStatusMask <= MEM_ARG;
+                                statusMask <= MEM_ARG;
                             when others =>
                         end case;
                     else -- Obtain status word
@@ -365,7 +368,7 @@ begin
         end if;
         
         -- Check for Status Interrupt
-        if unsigned(statusWord and softwareStatusMask) /= 0 
+        if unsigned(statusWord and statusMask) /= 0 
             and interruptMaskLocal(1) = '1'
         then
             interruptNum <= 1;

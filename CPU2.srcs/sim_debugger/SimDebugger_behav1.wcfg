@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="SimDebugger_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="SimDebugger" />
+            <top_module name="glbl" />
+            <top_module name="utilities" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="2,821.700 ns"></ZoomStartTime>
+      <ZoomEndTime time="2,862.701 ns"></ZoomEndTime>
+      <Cursor1Time time="2,915.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="346"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="22" />
+   <wvobject fp_name="/SimDebugger/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_CLK" type="logic">
+      <obj_property name="ElementShortName">MEM_CLK</obj_property>
+      <obj_property name="ObjectShortName">MEM_CLK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_ENA" type="logic">
+      <obj_property name="ElementShortName">MEM_ENA</obj_property>
+      <obj_property name="ObjectShortName">MEM_ENA</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_WEA" type="array">
+      <obj_property name="ElementShortName">MEM_WEA[0:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_WEA[0:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_ADDRA" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_DINA" type="array">
+      <obj_property name="ElementShortName">MEM_DINA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DINA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_DOUTA" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_ENB" type="logic">
+      <obj_property name="ElementShortName">MEM_ENB</obj_property>
+      <obj_property name="ObjectShortName">MEM_ENB</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_WEB" type="array">
+      <obj_property name="ElementShortName">MEM_WEB[0:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_WEB[0:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_ADDRB" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRB[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRB[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_DINB" type="array">
+      <obj_property name="ElementShortName">MEM_DINB[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DINB[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/MEM_DOUTB" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTB[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTB[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/DebugIn" type="array">
+      <obj_property name="ElementShortName">DebugIn</obj_property>
+      <obj_property name="ObjectShortName">DebugIn</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/DebugOut" type="array">
+      <obj_property name="ElementShortName">DebugOut</obj_property>
+      <obj_property name="ObjectShortName">DebugOut</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/fsm_interrupt_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_interrupt_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_interrupt_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/fsm_inst_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffopcode" type="array">
+      <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
+      <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffflag" type="logic">
+      <obj_property name="ElementShortName">ffflag</obj_property>
+      <obj_property name="ObjectShortName">ffflag</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffmemop" type="array">
+      <obj_property name="ElementShortName">ffmemop[1:0]</obj_property>
+      <obj_property name="ObjectShortName">ffmemop[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffiregop1" type="other">
+      <obj_property name="ElementShortName">ffiregop1</obj_property>
+      <obj_property name="ObjectShortName">ffiregop1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffiregop2" type="other">
+      <obj_property name="ElementShortName">ffiregop2</obj_property>
+      <obj_property name="ObjectShortName">ffiregop2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimDebugger/cpuCUT/ffimmop" type="array">
+      <obj_property name="ElementShortName">ffimmop[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ffimmop[15:0]</obj_property>
+   </wvobject>
+</wave_config>
