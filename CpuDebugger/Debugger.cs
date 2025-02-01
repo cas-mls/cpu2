@@ -11,7 +11,7 @@ using System.Net;
 
 namespace CpuDebugger
 {
-    public partial class Debugger : Form
+    public partial class txtDebugger : Form
     {
         TextBox[] RegsData = new TextBox[16];
         TextBox[] txtBreakAt = new TextBox[4];
@@ -23,14 +23,14 @@ namespace CpuDebugger
         bool changeToStopped;
         Statuses lastExecutionState = Statuses.running;
 
-        public Debugger()
+        public txtDebugger()
         {
             InitializeComponent();
             cpuState = new CpuState();
             breakData = new BreakData();
             breakData.BreakWhen = new BreakData.BreakWhenStruct()
             {
-                Valid = false,
+                Operation = RegOperators.REG_NOTHING,
                 Register = (byte)16,
                 Value = 0
             };
@@ -117,12 +117,17 @@ namespace CpuDebugger
 
             lblInstSplit.Text = cpuState.InstructionSplit;
             lblAssemInst.Text = cpuState.AssemblyInstruction;
+            lblMemArg.Text = cpuState.MemoryArg.ToString("x8");
+            lblInterrupt.Text = cpuState.Interrupt.ToString("x8");
+            lblInterMask.Text = cpuState.InterruptMask.ToString("x8");
+            lblStatusWord.Text = cpuState.StatusRegister.ToString("x8");
+            lblStatusMask.Text = cpuState.StatusMask.ToString("x8");
 
             if (ckbHex.Checked)
             {
-                txtProgCount.Text = cpuState.ProgramCounter.ToString("X3");
-                txtInstCode.Text = cpuState.InstructionCode.ToString("X8");
-                txtCycles.Text = cpuState.Cycles.ToString("X8");
+                txtProgCount.Text = cpuState.ProgramCounter.ToString("x3");
+                txtInstCode.Text = cpuState.InstructionCode.ToString("x8");
+                txtCycles.Text = cpuState.Cycles.ToString("x8");
             }
             else
             {
@@ -220,7 +225,7 @@ namespace CpuDebugger
                     return;
                 }
                 WbAccess.GetExecutionState();
-                if (cpuState.ExecutationState == Statuses.stopped & 
+                if (cpuState.ExecutationState == Statuses.stopped &
                     lastExecutionState == Statuses.running)
                 {
                     changeToStopped = true;
@@ -267,38 +272,32 @@ namespace CpuDebugger
 
         private void btnBreakWhen_Click(object sender, EventArgs e)
         {
-            int reg; 
-            if (int.TryParse(txtBWhenReg.Text, out reg) 
-                & (Regex.Match(txtBWhenValue.Text, "^[0-9A-F]+$", RegexOptions.IgnoreCase) != Match.Empty))
+            int reg;
+            if (int.TryParse(txtBWhenReg.Text, out reg)
+                && (Regex.Match(txtBWhenValue.Text, "^[0-9A-F]+$", RegexOptions.IgnoreCase) != Match.Empty)
+                && (reg >= 0 && reg < 16))
             {
-                if (reg >= 0 & reg < 16)
+                breakData.BreakWhen = new BreakData.BreakWhenStruct()
                 {
-                    breakData.BreakWhen = new BreakData.BreakWhenStruct()
-                    {
-                        Valid = true,
-                        Register = (byte)reg,
-                        Value = Convert.ToUInt32(txtBWhenValue.Text, 16)
-                    };
-                }
-                else
-                {
-                    breakData.BreakWhen = new BreakData.BreakWhenStruct()
-                    {
-                        Valid = false,
-                        Register = (byte)0,
-                        Value = 0
-                    };
-                }
+                    Operation = BreakData.Operators[cbRegOper.Text],
+                    Register = (byte)reg,
+                    Value = Convert.ToUInt32(txtBWhenValue.Text, 16)
+                };
             }
             else
                 breakData.BreakWhen = new BreakData.BreakWhenStruct()
                 {
-                    Valid = false,
+                    Operation = RegOperators.REG_NOTHING,
                     Register = (byte)0,
                     Value = 0
-                    };
+                };
 
             WbAccess.BreakWhen();
+        }
+
+        private void txtDebugger_Load(object sender, EventArgs e)
+        {
+            cbRegOper.Items.AddRange( BreakData.Operations );
         }
     }
 

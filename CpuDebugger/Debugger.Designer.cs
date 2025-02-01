@@ -1,6 +1,6 @@
 ﻿namespace CpuDebugger
 {
-    partial class Debugger
+    partial class txtDebugger
     {
         /// <summary>
         ///  Required designer variable.
@@ -29,8 +29,10 @@
         private void InitializeComponent()
         {
             grpCommands = new GroupBox();
+            cbRegOper = new ComboBox();
+            label15 = new Label();
+            label14 = new Label();
             txtBWhenValue = new TextBox();
-            label13 = new Label();
             txtBWhenReg = new TextBox();
             label12 = new Label();
             btnBreakWhen = new Button();
@@ -43,6 +45,16 @@
             txtRegs0 = new TextBox();
             lblReg0 = new Label();
             grpInstruction = new GroupBox();
+            label8 = new Label();
+            label9 = new Label();
+            lblStatusMask = new Label();
+            lblStatusWord = new Label();
+            lblInterMask = new Label();
+            lblInterrupt = new Label();
+            lblMemArg = new Label();
+            label7 = new Label();
+            label6 = new Label();
+            label5 = new Label();
             label4 = new Label();
             lblInstSplit = new Label();
             lblAssemInst = new Label();
@@ -68,8 +80,10 @@
             // 
             // grpCommands
             // 
+            grpCommands.Controls.Add(cbRegOper);
+            grpCommands.Controls.Add(label15);
+            grpCommands.Controls.Add(label14);
             grpCommands.Controls.Add(txtBWhenValue);
-            grpCommands.Controls.Add(label13);
             grpCommands.Controls.Add(txtBWhenReg);
             grpCommands.Controls.Add(label12);
             grpCommands.Controls.Add(btnBreakWhen);
@@ -82,48 +96,65 @@
             grpCommands.Margin = new Padding(3, 2, 3, 2);
             grpCommands.Name = "grpCommands";
             grpCommands.Padding = new Padding(3, 2, 3, 2);
-            grpCommands.Size = new Size(116, 321);
+            grpCommands.Size = new Size(213, 321);
             grpCommands.TabIndex = 0;
             grpCommands.TabStop = false;
             grpCommands.Text = "Commands";
             // 
+            // cbRegOper
+            // 
+            cbRegOper.FormattingEnabled = true;
+            cbRegOper.Location = new Point(53, 217);
+            cbRegOper.Name = "cbRegOper";
+            cbRegOper.Size = new Size(71, 23);
+            cbRegOper.TabIndex = 15;
+            // 
+            // label15
+            // 
+            label15.AutoSize = true;
+            label15.Location = new Point(142, 200);
+            label15.Name = "label15";
+            label15.Size = new Size(35, 15);
+            label15.TabIndex = 14;
+            label15.Text = "Value";
+            // 
+            // label14
+            // 
+            label14.AutoSize = true;
+            label14.Location = new Point(80, 200);
+            label14.Name = "label14";
+            label14.Size = new Size(23, 15);
+            label14.TabIndex = 13;
+            label14.Text = "Op";
+            // 
             // txtBWhenValue
             // 
-            txtBWhenValue.Location = new Point(19, 292);
+            txtBWhenValue.Location = new Point(130, 217);
             txtBWhenValue.Margin = new Padding(3, 2, 3, 2);
             txtBWhenValue.Name = "txtBWhenValue";
-            txtBWhenValue.Size = new Size(83, 23);
+            txtBWhenValue.Size = new Size(73, 23);
             txtBWhenValue.TabIndex = 12;
-            // 
-            // label13
-            // 
-            label13.AutoSize = true;
-            label13.Location = new Point(45, 275);
-            label13.Name = "label13";
-            label13.Size = new Size(35, 15);
-            label13.TabIndex = 11;
-            label13.Text = "Value";
             // 
             // txtBWhenReg
             // 
-            txtBWhenReg.Location = new Point(68, 252);
+            txtBWhenReg.Location = new Point(20, 217);
             txtBWhenReg.Margin = new Padding(3, 2, 3, 2);
             txtBWhenReg.Name = "txtBWhenReg";
-            txtBWhenReg.Size = new Size(34, 23);
+            txtBWhenReg.Size = new Size(27, 23);
             txtBWhenReg.TabIndex = 10;
             // 
             // label12
             // 
             label12.AutoSize = true;
-            label12.Location = new Point(19, 254);
+            label12.Location = new Point(20, 197);
             label12.Name = "label12";
-            label12.Size = new Size(30, 15);
+            label12.Size = new Size(27, 15);
             label12.TabIndex = 9;
-            label12.Text = "Reg:";
+            label12.Text = "Reg";
             // 
             // btnBreakWhen
             // 
-            btnBreakWhen.Location = new Point(19, 226);
+            btnBreakWhen.Location = new Point(19, 173);
             btnBreakWhen.Margin = new Padding(3, 2, 3, 2);
             btnBreakWhen.Name = "btnBreakWhen";
             btnBreakWhen.Size = new Size(82, 22);
@@ -134,7 +165,7 @@
             // 
             // txtBreakAt0
             // 
-            txtBreakAt0.Location = new Point(19, 127);
+            txtBreakAt0.Location = new Point(20, 74);
             txtBreakAt0.Margin = new Padding(3, 2, 3, 2);
             txtBreakAt0.Name = "txtBreakAt0";
             txtBreakAt0.Size = new Size(83, 23);
@@ -142,7 +173,7 @@
             // 
             // btnBreakAt
             // 
-            btnBreakAt.Location = new Point(19, 100);
+            btnBreakAt.Location = new Point(20, 48);
             btnBreakAt.Margin = new Padding(3, 2, 3, 2);
             btnBreakAt.Name = "btnBreakAt";
             btnBreakAt.Size = new Size(82, 22);
@@ -153,7 +184,7 @@
             // 
             // btnContinue
             // 
-            btnContinue.Location = new Point(19, 74);
+            btnContinue.Location = new Point(107, 47);
             btnContinue.Margin = new Padding(3, 2, 3, 2);
             btnContinue.Name = "btnContinue";
             btnContinue.Size = new Size(82, 22);
@@ -164,7 +195,7 @@
             // 
             // btnStep
             // 
-            btnStep.Location = new Point(19, 48);
+            btnStep.Location = new Point(107, 21);
             btnStep.Margin = new Padding(3, 2, 3, 2);
             btnStep.Name = "btnStep";
             btnStep.Size = new Size(82, 22);
@@ -222,6 +253,16 @@
             // 
             // grpInstruction
             // 
+            grpInstruction.Controls.Add(label8);
+            grpInstruction.Controls.Add(label9);
+            grpInstruction.Controls.Add(lblStatusMask);
+            grpInstruction.Controls.Add(lblStatusWord);
+            grpInstruction.Controls.Add(lblInterMask);
+            grpInstruction.Controls.Add(lblInterrupt);
+            grpInstruction.Controls.Add(lblMemArg);
+            grpInstruction.Controls.Add(label7);
+            grpInstruction.Controls.Add(label6);
+            grpInstruction.Controls.Add(label5);
             grpInstruction.Controls.Add(label4);
             grpInstruction.Controls.Add(lblInstSplit);
             grpInstruction.Controls.Add(lblAssemInst);
@@ -231,22 +272,111 @@
             grpInstruction.Controls.Add(label2);
             grpInstruction.Controls.Add(label1);
             grpInstruction.Controls.Add(txtProgCount);
-            grpInstruction.Location = new Point(268, 14);
+            grpInstruction.Location = new Point(449, 14);
             grpInstruction.Margin = new Padding(3, 2, 3, 2);
             grpInstruction.Name = "grpInstruction";
             grpInstruction.Padding = new Padding(3, 2, 3, 2);
-            grpInstruction.Size = new Size(226, 328);
+            grpInstruction.Size = new Size(168, 328);
             grpInstruction.TabIndex = 2;
             grpInstruction.TabStop = false;
             grpInstruction.Text = "Instruction";
             // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(6, 249);
+            label8.Name = "label8";
+            label8.Size = new Size(70, 15);
+            label8.TabIndex = 34;
+            label8.Text = "Status Mask";
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(6, 226);
+            label9.Name = "label9";
+            label9.Size = new Size(60, 15);
+            label9.TabIndex = 33;
+            label9.Text = "Status Wd";
+            // 
+            // lblStatusMask
+            // 
+            lblStatusMask.BorderStyle = BorderStyle.FixedSingle;
+            lblStatusMask.Font = new Font("Courier New", 9F);
+            lblStatusMask.Location = new Point(86, 249);
+            lblStatusMask.Name = "lblStatusMask";
+            lblStatusMask.Size = new Size(71, 18);
+            lblStatusMask.TabIndex = 32;
+            // 
+            // lblStatusWord
+            // 
+            lblStatusWord.BorderStyle = BorderStyle.FixedSingle;
+            lblStatusWord.Font = new Font("Courier New", 9F);
+            lblStatusWord.Location = new Point(86, 226);
+            lblStatusWord.Name = "lblStatusWord";
+            lblStatusWord.Size = new Size(71, 18);
+            lblStatusWord.TabIndex = 31;
+            // 
+            // lblInterMask
+            // 
+            lblInterMask.BorderStyle = BorderStyle.FixedSingle;
+            lblInterMask.Font = new Font("Courier New", 9F);
+            lblInterMask.Location = new Point(86, 200);
+            lblInterMask.Name = "lblInterMask";
+            lblInterMask.Size = new Size(71, 18);
+            lblInterMask.TabIndex = 30;
+            // 
+            // lblInterrupt
+            // 
+            lblInterrupt.BorderStyle = BorderStyle.FixedSingle;
+            lblInterrupt.Font = new Font("Courier New", 9F);
+            lblInterrupt.Location = new Point(86, 177);
+            lblInterrupt.Name = "lblInterrupt";
+            lblInterrupt.Size = new Size(71, 18);
+            lblInterrupt.TabIndex = 29;
+            // 
+            // lblMemArg
+            // 
+            lblMemArg.BorderStyle = BorderStyle.FixedSingle;
+            lblMemArg.Font = new Font("Courier New", 9F);
+            lblMemArg.Location = new Point(86, 150);
+            lblMemArg.Name = "lblMemArg";
+            lblMemArg.Size = new Size(71, 18);
+            lblMemArg.TabIndex = 28;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(6, 150);
+            label7.Name = "label7";
+            label7.Size = new Size(74, 15);
+            label7.TabIndex = 27;
+            label7.Text = "Memory Arg";
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(6, 200);
+            label6.Name = "label6";
+            label6.Size = new Size(62, 15);
+            label6.TabIndex = 26;
+            label6.Text = "Inter Mask";
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(6, 177);
+            label5.Name = "label5";
+            label5.Size = new Size(53, 15);
+            label5.TabIndex = 25;
+            label5.Text = "Interrupt";
+            // 
             // label4
             // 
-            label4.BorderStyle = BorderStyle.FixedSingle;
             label4.Font = new Font("Courier New", 9F);
-            label4.Location = new Point(6, 84);
+            label4.Location = new Point(6, 86);
             label4.Name = "label4";
-            label4.Size = new Size(215, 18);
+            label4.Size = new Size(146, 18);
             label4.TabIndex = 24;
             label4.Text = "OC F M R1 R2 IMM";
             // 
@@ -254,18 +384,18 @@
             // 
             lblInstSplit.BorderStyle = BorderStyle.FixedSingle;
             lblInstSplit.Font = new Font("Courier New", 9F);
-            lblInstSplit.Location = new Point(6, 100);
+            lblInstSplit.Location = new Point(6, 105);
             lblInstSplit.Name = "lblInstSplit";
-            lblInstSplit.Size = new Size(215, 18);
+            lblInstSplit.Size = new Size(146, 18);
             lblInstSplit.TabIndex = 23;
             // 
             // lblAssemInst
             // 
             lblAssemInst.BorderStyle = BorderStyle.FixedSingle;
             lblAssemInst.Font = new Font("Courier New", 9F);
-            lblAssemInst.Location = new Point(6, 120);
+            lblAssemInst.Location = new Point(6, 125);
             lblAssemInst.Name = "lblAssemInst";
-            lblAssemInst.Size = new Size(215, 18);
+            lblAssemInst.Size = new Size(146, 18);
             lblAssemInst.TabIndex = 22;
             // 
             // txtCycles
@@ -278,7 +408,7 @@
             // 
             // txtInstCode
             // 
-            txtInstCode.Location = new Point(17, 59);
+            txtInstCode.Location = new Point(9, 61);
             txtInstCode.Margin = new Padding(3, 2, 3, 2);
             txtInstCode.MaxLength = 8;
             txtInstCode.Name = "txtInstCode";
@@ -297,7 +427,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(17, 42);
+            label2.Location = new Point(9, 44);
             label2.Name = "label2";
             label2.Size = new Size(95, 15);
             label2.TabIndex = 2;
@@ -306,7 +436,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(17, 22);
+            label1.Location = new Point(9, 22);
             label1.Name = "label1";
             label1.Size = new Size(49, 15);
             label1.TabIndex = 1;
@@ -314,7 +444,7 @@
             // 
             // txtProgCount
             // 
-            txtProgCount.Location = new Point(74, 20);
+            txtProgCount.Location = new Point(66, 20);
             txtProgCount.Margin = new Padding(3, 2, 3, 2);
             txtProgCount.Name = "txtProgCount";
             txtProgCount.Size = new Size(78, 23);
@@ -411,7 +541,7 @@
             bgwDebugStatus.DoWork += bgwDebugStatus_DoWork;
             bgwDebugStatus.ProgressChanged += bgwDebugStatus_ProgressChanged;
             // 
-            // Debugger
+            // txtDebugger
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -429,8 +559,9 @@
             Controls.Add(grpRegisters);
             Controls.Add(grpCommands);
             Margin = new Padding(3, 2, 3, 2);
-            Name = "Debugger";
-            Text = "Form1";
+            Name = "txtDebugger";
+            Text = "Debugger";
+            Load += txtDebugger_Load;
             grpCommands.ResumeLayout(false);
             grpCommands.PerformLayout();
             grpRegisters.ResumeLayout(false);
@@ -470,11 +601,23 @@
         private Button btnBreakWhen;
         private Label label12;
         private TextBox txtBWhenValue;
-        private Label label13;
         private TextBox txtBWhenReg;
         private System.ComponentModel.BackgroundWorker bgwDebugStatus;
         private Label lblAssemInst;
         private Label lblInstSplit;
         private Label label4;
+        private Label label8;
+        private Label label9;
+        private Label lblStatusMask;
+        private Label lblStatusWord;
+        private Label lblInterMask;
+        private Label lblInterrupt;
+        private Label lblMemArg;
+        private Label label7;
+        private Label label6;
+        private Label label5;
+        private Label label14;
+        private Label label15;
+        private ComboBox cbRegOper;
     }
 }

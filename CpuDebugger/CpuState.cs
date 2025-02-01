@@ -189,6 +189,16 @@ namespace CpuDebugger
             }
         }
         internal uint Memory { get; set; }
+        
+        internal uint MemoryArg { get; set; }
+
+        internal uint Interrupt { get; set; }
+
+        internal uint InterruptMask { get; set; }
+
+        internal uint StatusRegister { get; set; }
+
+        internal uint StatusMask { get; set; }
 
         internal string AssemblyInstruction
         {
