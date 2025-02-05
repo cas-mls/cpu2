@@ -1248,3 +1248,24 @@ export_simulation -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU
 
 
 add_condition -name stop06d -radix hex {/SimCPU/cpuCUT/ProgramCounter == 06d} {stop}
+
+add_condition -name stop06d {/SimCPU/cpuCUT/fsm_inst_cycle_n != EXECUTE} {stop}
+
+### ALU Multiple Clock Cycle Operation
+
+* Register data updates
+  - [x] Need to know what operation, multiply (oMul) or divide (oDiv), is waiting on that register
+  - [x] Flag indicating that the register is locked because of Multiple Clock Cycle operation on each register.
+  - [ ] ~~Register could contain Lock Types (Unlocked, Countdown, m_axis\_*_tvalid)~~
+  - [x] Register could contain OpCode and Unlock could be NOP opcode.
+  - [x] Each Register also needs a countdown timer.
+* Register Conditions
+  - [ ] Need a condition on the register to indicate that the operation is completed. Wait for 5 cycles (Multiply) or m_axis_dout_tvalid = 0 and m_axis_dout_tuser = regNum for Divide.
+* Wait
+  - [ ] When the execute acquiring register is locked then the execute needs to wait until the long operation is completes
+  - [x] When the conditions are met, the lock flag is removed, the register is filled with the proper value, and the ALU wait flag is removed.
+
+* Every Cycle
+  - [x] Update the countdown timer.
+  - [ ] Every time the ALU cycles (not only EXECUTE state), the register conditions are checked; if one is finished, the register is filled with the results, and the operation is continued.
+

@@ -157,33 +157,33 @@ architecture Behavioral of Interrupt_Entity is
     signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal ffimmop : IMMTYPE;
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
 
-    attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
-    attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
-    attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
-    attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
-    attribute keep of        INTERRUPT : signal is "TRUE";
-    attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
+    -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
+    -- attribute keep of        INTERRUPT : signal is "TRUE";
+    -- attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
 
     -- attribute keep of        timerAlarm : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerAlarm : signal is "TRUE";
     -- attribute keep of        timerInt : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerInt : signal is "TRUE";
 
-    attribute keep of        interruptRun : signal is "TRUE";
-    attribute MARK_DEBUG of  interruptRun : signal is "TRUE";
-    attribute keep of        interruptMaskLocal : signal is "TRUE";
-    attribute MARK_DEBUG of  interruptMaskLocal : signal is "TRUE";
-    attribute keep of        interruptSpNumLocal : signal is "TRUE";
-    attribute MARK_DEBUG of  interruptSpNumLocal : signal is "TRUE";
-    attribute keep of        interruptSpAddrValue : signal is "TRUE";
-    attribute MARK_DEBUG of  interruptSpAddrValue : signal is "TRUE";
-    attribute keep of        statusWord : signal is "TRUE";
-    attribute MARK_DEBUG of  statusWord : signal is "TRUE";
-    attribute keep of        statusMask : signal is "TRUE";
-    attribute MARK_DEBUG of  statusMask : signal is "TRUE";
+    -- attribute keep of        interruptRun : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptRun : signal is "TRUE";
+    -- attribute keep of        interruptMaskLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptMaskLocal : signal is "TRUE";
+    -- attribute keep of        interruptSpNumLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptSpNumLocal : signal is "TRUE";
+    -- attribute keep of        interruptSpAddrValue : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptSpAddrValue : signal is "TRUE";
+    -- attribute keep of        statusWord : signal is "TRUE";
+    -- attribute MARK_DEBUG of  statusWord : signal is "TRUE";
+    -- attribute keep of        statusMask : signal is "TRUE";
+    -- attribute MARK_DEBUG of  statusMask : signal is "TRUE";
     
     -- Function to determine the interrupt bit number
     function get_interBitNum(INTERRUPT : std_logic_vector) return integer is
@@ -270,7 +270,7 @@ begin
                 if  opcode = oRTI
                     and memop = REGREG
                 then
-                    interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+                    interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
                 end if;
 
                 -- Maintain Flip-Flop (Memory) protions of the instruction.
@@ -281,8 +281,8 @@ begin
                 ffmemop <= INSTRUCTION(25 downto 24);
                 ffiregop1 <= to_integer(unsigned(INSTRUCTION(23 downto 20)));
                 ffimmop <= INSTRUCTION(15 downto 0);
-                ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20))));
-                ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16))));
+                ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
+                ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
 
             when EXECUTE_S | WAITS_S =>
                 if ffopcode = oSWDM then
@@ -335,7 +335,7 @@ begin
                         elsif interruptMaskLocal(interruptVar) = '1'
                         then
                             interruptNum <= interruptVar;
-                            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+                            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
                             interruptRun <= '1';
                         end if;
                     end if;
@@ -354,7 +354,7 @@ begin
             and interruptMaskLocal(to_integer(unsigned(timerInt))) = '1')
         then
             interruptNum <= to_integer(unsigned(timerInt));
-            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
             interruptRun <= '1';
         end if;
 
@@ -363,7 +363,7 @@ begin
         if unsigned(maskedInterrupt) /= 0
         then
             interruptNum <= get_interBitNum(maskedInterrupt);
-            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
             interruptRun <= '1';
         end if;
         
@@ -372,7 +372,7 @@ begin
             and interruptMaskLocal(1) = '1'
         then
             interruptNum <= 1;
-            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal)));
+            interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
             interruptRun <= '1';
         end if;
 

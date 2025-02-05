@@ -269,6 +269,7 @@ architecture Behavioral of Computer is
     attribute keep          of rst          : signal is "TRUE";
     attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
+    -- IO Elements ILA
     -- attribute keep          of ioAddr       : signal is "TRUE";
     -- attribute MARK_DEBUG    of ioAddr       : signal is "TRUE";
     -- attribute keep          of IORdata      : signal is "TRUE";
@@ -282,7 +283,7 @@ architecture Behavioral of Computer is
     -- attribute keep          of IOStatusReq  : signal is "TRUE";
     -- attribute MARK_DEBUG    of IOStatusReq  : signal is "TRUE";
 
-    -- UARTS ELEMENTS
+    -- UARTS ELEMENTS ILA
     -- attribute keep          of uart_rxd_in  : signal is "TRUE";
     -- attribute MARK_DEBUG    of uart_rxd_in  : signal is "TRUE";
     -- attribute keep          of uart_txd_out : signal is "TRUE";
@@ -297,22 +298,22 @@ architecture Behavioral of Computer is
     -- attribute MARK_DEBUG    of RdByte       : signal is "TRUE";
     -- attribute keep          of RdStatus     : signal is "TRUE";
     -- attribute MARK_DEBUG    of RdStatus     : signal is "TRUE";
-    -- DEBUG ELEMENTS
-    attribute keep          of DebugIn      : signal is "TRUE";
-    attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
-    attribute keep          of DebugOut     : signal is "TRUE";
-    attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
 
+    -- DEBUG ELEMENTS
+    -- attribute keep          of DebugIn      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
+    -- attribute keep          of DebugOut     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
     -- attribute keep          of dcontUart    : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of dcontUart    : signal is "TRUE"; 
     -- attribute keep          of dstepUart    : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of dstepUart    : signal is "TRUE"; 
     -- attribute keep          of dbreakUart   : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of dbreakUart   : signal is "TRUE"; 
-
     -- attribute keep          of DebugTxByte  : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of DebugTxByte  : signal is "TRUE"; 
 
+    -- Wishbone Elements ILA
     -- attribute keep          of WB_TGA       : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of WB_TGA       : signal is "TRUE"; 
     -- attribute keep          of WB_ADDR       : signal is "TRUE"; 
@@ -328,21 +329,21 @@ architecture Behavioral of Computer is
     -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
 
-    attribute keep          of MEM_ENA          : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
-    attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
-    attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
-
-    attribute keep          of MEM_ENB          : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
-    attribute keep          of MEM_WEB          : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
-    attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
-    attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+    -- Memory Elements ILA
+    -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_ENB          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
+    -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
 
 begin
 
@@ -615,7 +616,7 @@ begin
 
                         when TGA_REGISTERS => -- REGISTER COMMAND
                             if WB_WE = '0' then
-                                WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0))));
+                                WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0)))).Value;
                             else
                                 -- TODO: Debug write CPU Registers.
                                 -- This would require DebugIn to have the CPURegs.

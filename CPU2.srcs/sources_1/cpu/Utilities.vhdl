@@ -27,10 +27,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+-- library UNISIM;
+-- use UNISIM.VComponents.all;
 
 package Utilities is
+
+    -- Constants
+    constant regOpSizeBits : integer := 4;
+    constant regOpMax  : integer := 2**regOpSizeBits-1;
 
     type CYCLETYPE_FSM is (
         RESET_STATE_S,  -- State 0
@@ -63,11 +67,6 @@ package Utilities is
     -- Program Counter
     subtype PCTYPE is unsigned(11 downto 0);
 
-    -- Register Information
-    constant regOpSizeBits : integer := 4;
-    constant regOpMax  : integer := 2**regOpSizeBits-1;
-    type REG_TYPE is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
-
     -- Instruction Decode Types
     subtype INSTRUCTIONTYPE is STD_LOGIC_VECTOR (31 downto 0);
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
@@ -75,7 +74,20 @@ package Utilities is
     subtype REGTYPE is  STD_LOGIC_VECTOR (regOpSizeBits-1 downto 0);
     subtype IMMTYPE is  STD_LOGIC_VECTOR (15 downto 0);
 
+    -- Register Information
+    type REG_TYPE_REC is record
+        Value       : std_logic_vector(31 downto 0);
+        OpCode      : OPCODETYPE;
+        Countdown   : integer;
+    end record;
+
+    type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;
+
+    -- type REG_TYPE1 is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
+
+
     -- Opcodes
+    constant oNOP   : OPCODETYPE  := "00000"; -- x00
     constant oLD    : OPCODETYPE  := "00010"; -- x02
     constant oSTR   : OPCODETYPE  := "00100"; -- x04
     constant oJmp   : OPCODETYPE  := "00110"; -- x06

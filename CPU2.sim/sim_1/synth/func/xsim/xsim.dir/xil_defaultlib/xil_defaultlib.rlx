@@ -1,6 +1,0 @@
-0.7
-2020.2
-Oct 13 2023
-20:47:58
-D:/Users/Craig/Documents/000 ArtyS7/CPU2/CPU2.sim/sim_1/synth/func/xsim/SimCPU_func_synth.vhd,1702515968,vhdl,,,,\cpumemory_blk_mem_gen_prim_width__parameterized0\;\cpumemory_blk_mem_gen_prim_width__parameterized1\;\cpumemory_blk_mem_gen_prim_width__parameterized2\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized0\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized1\;\cpumemory_blk_mem_gen_prim_wrapper_init__parameterized2\;cpu;cpumemory;cpumemory_blk_mem_gen_generic_cstr;cpumemory_blk_mem_gen_prim_width;cpumemory_blk_mem_gen_prim_wrapper_init;cpumemory_blk_mem_gen_top;cpumemory_blk_mem_gen_v8_4_7;cpumemory_blk_mem_gen_v8_4_7_synth;memory;registers,,,,,,,,
-D:/Users/Craig/Documents/000 ArtyS7/CPU2/CPU2.srcs/sim_1/imports/new/SimCPU.vhd,1702338574,vhdl,,,,simcpu,,,,,,,,

@@ -1,4 +1,4 @@
--- vhdl-linter-disable type-resolved
+-- vhdl-linter-disable type-resolved not-declared
 ----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: Craig Shannon
@@ -25,6 +25,9 @@ use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 
 use xil_defaultlib.Utilities.all;
+
+library UNISIM;
+use UNISIM.VComponents.all;
 
 -------------------------------------------------------------------------------
 -- ### CPU
@@ -169,11 +172,10 @@ architecture Behavioral of CPU is
             interruptSpNum : in integer range 0 to 31;
             IOR_DATA : in std_logic_vector(31 downto 0);
             IO_STATUS : in std_logic_vector(31 downto 0);
-            ireg1value : in std_logic_vector(31 downto 0);
-            ireg2value : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             statusWord : out STATUS_WORD_TYPE;
-            cpuRegs : out REG_TYPE
+            cpuRegs : out REG_TYPE;
+            AluDecodeDone : out std_logic
         );
 
     end component;
@@ -281,6 +283,7 @@ architecture Behavioral of CPU is
     signal fsm_inst_cycle_p : CYCLETYPE_FSM := RESET_STATE_S;
     signal fsm_inst_cycle_n : CYCLETYPE_FSM := RESET_STATE_S;
     signal JumpDisablePipline : std_logic := '0';
+    signal AluDecodeDone : std_logic := '0';
 
 
     -- Decode information    
@@ -293,16 +296,17 @@ architecture Behavioral of CPU is
     signal regop1 : REGTYPE;
     signal iregop1 : integer range 0 to regOpMax;
     signal ffiregop1 : integer range 0 to regOpMax;
-    signal ireg1value : std_logic_vector(31 downto 0) := X"00000000";
     signal regop2 : REGTYPE;
     signal iregop2 : integer range 0 to regOpMax;
     signal ffiregop2 : integer range 0 to regOpMax;
-    signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal immop : IMMTYPE;
     signal ffimmop : IMMTYPE;
 
     -- Register information
-    signal cpuRegs : REG_TYPE := (others => (others => '0'));
+    signal cpuRegs : REG_TYPE := (others => (
+                value => (others => '0'),
+                opcode => oNOP,
+                countdown => 0));
 
     -- interrupts
     signal fsm_interrupt_cycle_p : INTERRUPT_FSM := INTRWAIT_S;
@@ -327,23 +331,28 @@ architecture Behavioral of CPU is
     -- DEBUG 
     signal StepWait : STD_LOGIC := '0';
     signal ProgCounterLast : PCTYPE := X"000";
-    signal RegsLast : REG_TYPE := (others => (others => '0'));
+    signal RegsLast : REG_TYPE := (others => (
+        value => (others => '0'),
+        opcode => oNOP,
+        countdown => 0));
     signal DebugDisablePipline : STD_LOGIC := '0';
     signal DebugStart : STD_LOGIC := '0';
 
     -- Help with ILA debugging by flattening the Wires.
     attribute keep : string;
     attribute MARK_DEBUG : string;
-    -- attribute keep of cpuRegs : signal is "TRUE";
-    -- attribute MARK_DEBUG of cpuRegs : signal is "TRUE";
+    attribute keep of cpuRegs : signal is "TRUE";
+    attribute MARK_DEBUG of cpuRegs : signal is "TRUE";
     attribute keep of fsm_inst_cycle_p : signal is "TRUE";
     attribute MARK_DEBUG of fsm_inst_cycle_p : signal is "TRUE";
     attribute keep of ProgramCounter : signal is "TRUE";
     attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
-    attribute keep of DebugDisablePipline : signal is "TRUE";
-    attribute MARK_DEBUG of DebugDisablePipline : signal is "TRUE";
-    attribute keep of DebugStart : signal is "TRUE";
-    attribute MARK_DEBUG of DebugStart : signal is "TRUE";
+
+    -- CPU Debugging ILA
+    -- attribute keep of DebugDisablePipline : signal is "TRUE";
+    -- attribute MARK_DEBUG of DebugDisablePipline : signal is "TRUE";
+    -- attribute keep of DebugStart : signal is "TRUE";
+    -- attribute MARK_DEBUG of DebugStart : signal is "TRUE";
 
     function debug_reg_compare(
         RegLast : std_logic_vector;
@@ -397,11 +406,10 @@ begin
         interruptSpNum => interruptSpNum,
         IOR_DATA => IOR_DATA,
         IO_STATUS => IO_STATUS,
-        ireg1value => ireg1value,
-        ireg2value => ireg2value,
         interruptSpAddrValue => interruptSpAddrValue,
         statusWord => statusWord,
-        cpuRegs => cpuRegs
+        cpuRegs => cpuRegs,
+        AluDecodeDone => AluDecodeDone
     );
 
     memoryAccess_enity : MemoryAccess
@@ -523,7 +531,8 @@ begin
         interruptRun,
         DEBUGOUT.Stopped,
         DebugStart,
-        fsm_interrupt_cycle_p
+        fsm_interrupt_cycle_p,
+        AluDecodeDone
         )
     begin
 
@@ -556,94 +565,97 @@ begin
                 --       (opcode, memop, flag, iregop1, iregop2, and immop)
                 -- Set up memory address for ABSOLUTE and INDEX
             when DECODE_S =>
-
-                case memop is
-                    when REGREG =>
-                        case opcode is
-                            when oJSR =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                            when oRTN | oRTI =>
-                                fsm_inst_cycle_n <= MEMFETCH1_S;
-                            when oRWIO | oIOST =>
-                                fsm_inst_cycle_n <= MEMFETCH2_S;
-                            when oPUSHPOP =>
-                                if flag = '0' then
+                -- Continued until the ALU is done.
+                if AluDecodeDone = '0' then
+                    fsm_inst_cycle_n <= DECODE_S;
+                else
+                    case memop is
+                        when REGREG =>
+                            case opcode is
+                                when oJSR =>
                                     if DebugStart = '1' then
                                         fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
                                     else
                                         fsm_inst_cycle_n <= EXECUTE_S;
                                     end if;
-                                else
+                                when oRTN | oRTI =>
                                     fsm_inst_cycle_n <= MEMFETCH1_S;
-                                end if;
-                            when others =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                        end case;
-                    when IMMEDIATE =>
-                        case opcode is
-                            when oJSR =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                            when oRWIO | oIOST=>
-                                fsm_inst_cycle_n <= MEMFETCH2_S;
-                            when oPUSHPOP =>
-                                if flag = '0' then
+                                when oRWIO | oIOST =>
+                                    fsm_inst_cycle_n <= MEMFETCH2_S;
+                                when oPUSHPOP =>
+                                    if flag = '0' then
+                                        if DebugStart = '1' then
+                                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                        else
+                                            fsm_inst_cycle_n <= EXECUTE_S;
+                                        end if;
+                                    else
+                                        fsm_inst_cycle_n <= MEMFETCH1_S;
+                                    end if;
+                                when others =>
                                     if DebugStart = '1' then
                                         fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
                                     else
                                         fsm_inst_cycle_n <= EXECUTE_S;
                                     end if;
-                                else
-                                    fsm_inst_cycle_n <= ADDRESS_S; -- Should not happen
-                                end if;
-                            when others =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                        end case;
-                    when ABSOLUTE =>
-                        case opcode is
-                            when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
-                                fsm_inst_cycle_n <= MEMFETCH1_S;
-                            when others =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                        end case;
-                    when INDEX =>
-                        case opcode is
-                            when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
-                                fsm_inst_cycle_n <= MEMFETCH1_S;
-                            when others =>
-                                if DebugStart = '1' then
-                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                else
-                                    fsm_inst_cycle_n <= EXECUTE_S;
-                                end if;
-                        end case;
-                    when others =>
-                        if DebugStart = '1' then
-                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                        else
-                            fsm_inst_cycle_n <= EXECUTE_S;
-                        end if;
-                end case;
-
+                            end case;
+                        when IMMEDIATE =>
+                            case opcode is
+                                when oJSR =>
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
+                                when oRWIO | oIOST=>
+                                    fsm_inst_cycle_n <= MEMFETCH2_S;
+                                when oPUSHPOP =>
+                                    if flag = '0' then
+                                        if DebugStart = '1' then
+                                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                        else
+                                            fsm_inst_cycle_n <= EXECUTE_S;
+                                        end if;
+                                    else
+                                        fsm_inst_cycle_n <= ADDRESS_S; -- Should not happen
+                                    end if;
+                                when others =>
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
+                            end case;
+                        when ABSOLUTE =>
+                            case opcode is
+                                when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
+                                    fsm_inst_cycle_n <= MEMFETCH1_S;
+                                when others =>
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
+                            end case;
+                        when INDEX =>
+                            case opcode is
+                                when oLD | oSTR | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
+                                    fsm_inst_cycle_n <= MEMFETCH1_S;
+                                when others =>
+                                    if DebugStart = '1' then
+                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                    else
+                                        fsm_inst_cycle_n <= EXECUTE_S;
+                                    end if;
+                            end case;
+                        when others =>
+                            if DebugStart = '1' then
+                                fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                            else
+                                fsm_inst_cycle_n <= EXECUTE_S;
+                            end if;
+                    end case;
+                end if;
                 ----------------------------------------------------------------
                 -- Cycle to wait for memory to be read.
                 -- ABSOLUTE and INDEX operations.
@@ -664,36 +676,41 @@ begin
                 -- Execute intruction
             when EXECUTE_S =>
 
-                -- Find the next cycle state....
-                if ffopcode = oRWIO
-                    or ffopcode = oRTI
-                    or ffopcode = oIOST
-                then -- Need additional step.
-                    fsm_inst_cycle_n <= CLEANUP_S;
+                if AluDecodeDone = '0' then
+                    fsm_inst_cycle_n <= DECODE_S;
+                else
 
-                elsif ffopcode = oWAIT then
-                    if ffflag = '0' -- Wait, Not Cancel
-                    then
-                        if ffiregop2 = 0 -- Wait, Not Timer
+                    -- Find the next cycle state....
+                    if ffopcode = oRWIO
+                        or ffopcode = oRTI
+                        or ffopcode = oIOST
+                    then -- Need additional step.
+                        fsm_inst_cycle_n <= CLEANUP_S;
+
+                    elsif ffopcode = oWAIT then
+                        if ffflag = '0' -- Wait, Not Cancel
+                        then
+                            if ffiregop2 = 0 -- Wait, Not Timer
                             then -- Specific requirement for only WAIT
-                            fsm_inst_cycle_n <= WAITS_S;
+                                fsm_inst_cycle_n <= WAITS_S;
+                            else
+                                fsm_inst_cycle_n <= ADDRESS_S;
+                            end if;
                         else
                             fsm_inst_cycle_n <= ADDRESS_S;
                         end if;
-                    else
-                        fsm_inst_cycle_n <= ADDRESS_S;
-                    end if;
 
-                elsif JumpDisablePipline = '1'
-                    or DebugDisablePipline = '1'
-                    or interruptRun = '1'
-                then -- Jump / Branch go back to the Address state.
-                    fsm_inst_cycle_n <= ADDRESS_S;
-                else -- All other operations.
-                    if ffmemop = ABSOLUTE or ffmemop = INDEX then
-                        fsm_inst_cycle_n <= DECODE_S;
-                    else
-                        fsm_inst_cycle_n <= INSTFETCH2_S;
+                    elsif JumpDisablePipline = '1'
+                        or DebugDisablePipline = '1'
+                        or interruptRun = '1'
+                    then -- Jump / Branch go back to the Address state.
+                        fsm_inst_cycle_n <= ADDRESS_S;
+                    else -- All other operations.
+                        if ffmemop = ABSOLUTE or ffmemop = INDEX then
+                            fsm_inst_cycle_n <= DECODE_S;
+                        else
+                            fsm_inst_cycle_n <= INSTFETCH2_S;
+                        end if;
                     end if;
                 end if;
 
@@ -716,24 +733,24 @@ begin
                     fsm_inst_cycle_n <= ADDRESS_S;
                 end if;
 
-                ----------------------------------------------------------------
-                -- This is set when the DEBUG.Stopped is set and the next cycle 
-                -- would be the Execute cycle.
-                when DEBUGSTABLEIZE_S =>
-                    if DebugStart = '1' then -- This shouldn't happen.  But, it does ignore debug.
-                        fsm_inst_cycle_n <= DEBUGWAIT_S;
-                    else
-                        fsm_inst_cycle_n <= EXECUTE_S;
-                    end if;
-
-                when DEBUGWAIT_S =>
-                if DEBUGOUT.Stopped = '0' then
-                    fsm_inst_cycle_n <= EXECUTE_S;
-                else
+            ----------------------------------------------------------------
+            -- This is set when the DEBUG.Stopped is set and the next cycle 
+            -- would be the Execute cycle.
+            when DEBUGSTABLEIZE_S =>
+                if DebugStart = '1' then -- This shouldn't happen.  But, it does ignore debug.
                     fsm_inst_cycle_n <= DEBUGWAIT_S;
+                else
+                    fsm_inst_cycle_n <= EXECUTE_S;
                 end if;
-    
-                when others =>
+
+            when DEBUGWAIT_S =>
+            if DEBUGOUT.Stopped = '0' then
+                fsm_inst_cycle_n <= EXECUTE_S;
+            else
+                fsm_inst_cycle_n <= DEBUGWAIT_S;
+            end if;
+
+            when others =>
                 fsm_inst_cycle_n <= ADDRESS_S;
         end case;
     end process;
@@ -752,9 +769,6 @@ begin
                 ffiregop1 <= iregop1;
                 ffiregop2 <= iregop2;
                 ffimmop <= immop;
-                -- Save the values of the Register Data.  Again this ifor timing operations.
-                ireg1value <= cpuRegs(iregop1);
-                ireg2value <= cpuRegs(iregop2);
             end if;
         end if;
 
@@ -768,17 +782,24 @@ begin
                 DEBUGOUT.Stopped        <= '0';
                 DEBUGOUT.CycleCount     <= (others => '0');
                 DEBUGOUT.ProgCounter    <= (others => '0');
-                DEBUGOUT.Regs           <= (others => (others => '0'));
+                DEBUGOUT.Regs           <= (others => (
+                    value => (others => '0'),
+                    opcode => oNOP,
+                    countdown => 0));
                 DEBUGOUT.Instruction    <= (others =>'0');
                 DEBUGOUT.Status         <= (others => '0');
                 DEBUGOUT.StatusMask     <= (others => '0');
                 DEBUGOUT.Interrupt      <= (others => '0');
                 DEBUGOUT.interruptMask  <= (others => '0');
+                DEBUGOUT.MEMORY_ARG     <= (others => '0');
                 StepWait <= '0';
                 DebugDisablePipline <= '0';
                 DebugStart <= '0';
                 ProgCounterLast <= X"000";
-                RegsLast <= (others => (others => '0'));
+                RegsLast <= (others => (
+                    value => (others => '0'),
+                    opcode => oNOP,
+                    countdown => 0));
 
             elsif DEBUGIN.DebugMode = '1' then
                 if fsm_inst_cycle_p = DEBUGSTABLEIZE_S
@@ -807,8 +828,8 @@ begin
                             or ProgramCounter = DEBUGIN.BreakPoints(2)
                             or ProgramCounter = DEBUGIN.BreakPoints(3)))
                         or debug_reg_compare(
-                                RegsLast(DEBUGIN.BWhenReg), 
-                                cpuRegs(DEBUGIN.BWhenReg), 
+                                RegsLast(DEBUGIN.BWhenReg).Value, 
+                                cpuRegs(DEBUGIN.BWhenReg).Value, 
                                 DEBUGIN.BWhenValue, DEBUGIN.BWhenOp)
                         or stepWait = '1'
                         or DEBUGIN.Break = '1'

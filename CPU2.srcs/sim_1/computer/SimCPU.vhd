@@ -34,8 +34,8 @@ use xil_defaultlib.Utilities.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
 entity SimCPU is
     --  Port ( );
@@ -67,13 +67,14 @@ architecture Behavioral of SimCPU is
 
             DEBUGIN     : in DEBUGINTYPE := (
                 DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
+                BreakPoints => (others => (others => '0')), 
                 Break => '0', 
                 Step => '0', 
                 Continue => '0',
-                BWhenReg => 16,
-                BWhenValue => (others => '0'));
-            DEBUGOUT    : out DEBUGOUTTYPE
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING);
+                DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
 
@@ -179,14 +180,15 @@ architecture Behavioral of SimCPU is
     -- Debug Items
     -- Debug Items
     signal DebugIn      : DEBUGINTYPE := 
-        (DebugMode => '0',
-        BreakPoints => (others => (others => '0')), 
-        Break => '0', 
-        Step => '0', 
-        Continue => '0',
-        BWhenReg => 16,
-        BWhenValue => (others => '0'));
-    signal DebugOut     : DEBUGOUTTYPE;
+    (DebugMode => '0',
+    BreakPoints => (others => (others => '0')), 
+    Break => '0', 
+    Step => '0', 
+    Continue => '0',
+    BWhenReg => 0,
+    BWhenValue => (others => '0'),
+    BWhenOp => REG_NOTHING);
+signal DebugOut     : DEBUGOUTTYPE;
 
     procedure InitRamFromFile
     (RamFileName    : in  STRING;
