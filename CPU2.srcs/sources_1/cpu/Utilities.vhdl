@@ -77,8 +77,9 @@ package Utilities is
     -- Register Information
     type REG_TYPE_REC is record
         Value       : std_logic_vector(31 downto 0);
-        OpCode      : OPCODETYPE;
-        Countdown   : integer;
+        OpCode      : OPCODETYPE;   -- Instruction OpCode
+        Flag        : STD_LOGIC;    -- Instruction Flag
+        Countdown   : integer;      -- Countdown Timer.
     end record;
 
     type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;

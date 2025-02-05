@@ -306,6 +306,7 @@ architecture Behavioral of CPU is
     signal cpuRegs : REG_TYPE := (others => (
                 value => (others => '0'),
                 opcode => oNOP,
+                flag => '0',
                 countdown => 0));
 
     -- interrupts
@@ -334,6 +335,7 @@ architecture Behavioral of CPU is
     signal RegsLast : REG_TYPE := (others => (
         value => (others => '0'),
         opcode => oNOP,
+        flag => '0',
         countdown => 0));
     signal DebugDisablePipline : STD_LOGIC := '0';
     signal DebugStart : STD_LOGIC := '0';
@@ -785,6 +787,7 @@ begin
                 DEBUGOUT.Regs           <= (others => (
                     value => (others => '0'),
                     opcode => oNOP,
+                    flag => '0',
                     countdown => 0));
                 DEBUGOUT.Instruction    <= (others =>'0');
                 DEBUGOUT.Status         <= (others => '0');
@@ -799,6 +802,7 @@ begin
                 RegsLast <= (others => (
                     value => (others => '0'),
                     opcode => oNOP,
+                    flag => '0',
                     countdown => 0));
 
             elsif DEBUGIN.DebugMode = '1' then

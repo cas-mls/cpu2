@@ -117,26 +117,51 @@ architecture Behavioral of ALU is
     signal ireg1value : std_logic_vector(31 downto 0);
     signal ireg2value : std_logic_vector(31 downto 0);
 
-    signal MultRegA : std_logic_vector(31 downto 0);
-    signal MultRegB : std_logic_vector(31 downto 0);
-    signal product : std_logic_vector(63 downto 0);
+    -- Signed Multiply
+    signal SMultRegA : std_logic_vector(31 downto 0);
+    signal SMultRegB : std_logic_vector(31 downto 0);
+    signal SProduct : std_logic_vector(63 downto 0);
 
-    signal DivRegA : std_logic_vector(31 downto 0);
-    signal DivRegAValid : std_logic;
-    signal DivRegB : std_logic_vector(31 downto 0);
-    signal DivRegBValid : std_logic;
-    signal UsrRegNum  : std_logic_vector(3 downto 0);
+    -- Signed Divide
+    signal SDivRegA : std_logic_vector(31 downto 0);
+    signal SDivRegAValid : std_logic;
+    signal SDivRegB : std_logic_vector(31 downto 0);
+    signal SDivRegBValid : std_logic;
+    signal SUsrRegNum  : std_logic_vector(3 downto 0);
+    signal SQuotRem : std_logic_vector(63 downto 0);
+    signal SQuotRemValid: std_logic;
+    signal SUsrZeroReg : std_logic_vector(4 downto 0);
 
-    signal QuotRem : std_logic_vector(63 downto 0);
-    signal QuotRemValid: std_logic;
-    signal UsrZeroReg : std_logic_vector(4 downto 0);
+    -- Signed Multiply
+    signal UMultRegA : std_logic_vector(31 downto 0);
+    signal UMultRegB : std_logic_vector(31 downto 0);
+    signal UProduct : std_logic_vector(63 downto 0);
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
-    attribute keep of product : signal is "TRUE";
-    attribute MARK_DEBUG of product : signal is "TRUE";
+    -- Signed Divide
+    signal UDivRegA : std_logic_vector(31 downto 0);
+    signal UDivRegAValid : std_logic;
+    signal UDivRegB : std_logic_vector(31 downto 0);
+    signal UDivRegBValid : std_logic;
+    signal UUsrRegNum  : std_logic_vector(3 downto 0);
+    signal UQuotRem : std_logic_vector(63 downto 0);
+    signal UQuotRemValid: std_logic;
+    signal UUsrZeroReg : std_logic_vector(4 downto 0);
+
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
+    -- attribute keep of SProduct : signal is "TRUE";
+    -- attribute MARK_DEBUG of SProduct : signal is "TRUE";
 
     COMPONENT SIntMult
+        PORT (
+            CLK : IN STD_LOGIC;
+            A : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            B : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+            P : OUT STD_LOGIC_VECTOR(63 DOWNTO 0) 
+        );
+    END COMPONENT;
+
+    COMPONENT UIntMult
         PORT (
             CLK : IN STD_LOGIC;
             A : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -159,29 +184,64 @@ architecture Behavioral of ALU is
         );
   END COMPONENT;
 
+  COMPONENT UIntDiv
+  PORT (
+      aclk : IN STD_LOGIC;
+      s_axis_divisor_tvalid : IN STD_LOGIC;
+      s_axis_divisor_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      s_axis_dividend_tvalid : IN STD_LOGIC;
+      s_axis_dividend_tuser : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+      s_axis_dividend_tdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      m_axis_dout_tvalid : OUT STD_LOGIC;
+      m_axis_dout_tuser : OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+      m_axis_dout_tdata : OUT STD_LOGIC_VECTOR(63 DOWNTO 0) 
+  );
+END COMPONENT;
+
 begin
 
     SignIntMultiply : SIntMult
         PORT MAP (
             CLK => SYS_CLK,
-            A => MultRegA,
-            B => MultRegB,
-            P => product
+            A => SMultRegA,
+            B => SMultRegB,
+            P => SProduct
         );
   
     SignIntDivide : SIntDiv
         PORT MAP (
             aclk => SYS_CLK,
-            s_axis_divisor_tvalid => DivRegBValid,
-            s_axis_divisor_tdata => DivRegB,
-            s_axis_dividend_tvalid => DivRegAValid,
-            s_axis_dividend_tuser => UsrRegNum,
-            s_axis_dividend_tdata => DivRegA,
-            m_axis_dout_tvalid => QuotRemValid,
-            m_axis_dout_tuser => UsrZeroReg,
-            m_axis_dout_tdata => QuotRem
+            s_axis_divisor_tvalid => SDivRegBValid,
+            s_axis_divisor_tdata => SDivRegB,
+            s_axis_dividend_tvalid => SDivRegAValid,
+            s_axis_dividend_tuser => SUsrRegNum,
+            s_axis_dividend_tdata => SDivRegA,
+            m_axis_dout_tvalid => SQuotRemValid,
+            m_axis_dout_tuser => SUsrZeroReg,
+            m_axis_dout_tdata => SQuotRem
         );
   
+    UignIntMultiply : UIntMult
+        PORT MAP (
+            CLK => SYS_CLK,
+            A   => UMultRegA,
+            B   => UMultRegB,
+            P   => UProduct
+        );
+  
+    UignIntDivide : UIntDiv
+        PORT MAP (
+            aclk                    => SYS_CLK,
+            s_axis_divisor_tvalid   => UDivRegBValid,
+            s_axis_divisor_tdata    => UDivRegB,
+            s_axis_dividend_tvalid  => UDivRegAValid,
+            s_axis_dividend_tuser   => UUsrRegNum,
+            s_axis_dividend_tdata   => UDivRegA,
+            m_axis_dout_tvalid      => UQuotRemValid,
+            m_axis_dout_tuser       => UUsrZeroReg,
+            m_axis_dout_tdata       => UQuotRem
+        );
+
 
     alu_proc : process (SYS_CLK)
         variable a_reg_s        : signed(31 downto 0);
@@ -200,8 +260,8 @@ begin
         if rising_edge (SYS_CLK) then
 
             -- Default these and later they will be set by the Divide section
-            DivRegAValid <= '0';
-            DivRegBValid <= '0';
+            SDivRegAValid <= '0';
+            SDivRegBValid <= '0';
 
             -- Check each cycle for changes in the long operations and update the registers.
             for reg in cpuRegs'range loop
@@ -211,46 +271,61 @@ begin
                     else
                         case  cpuRegs(reg).OpCode is
                             when oMul =>
-                                cpuRegs(reg).OpCode <= oNOP;
-                                cpuRegs(reg).Value <= Product(31 downto 0);
-                                cpuRegs(reg).Countdown <= 0;
-                                statusWord(OverUnderflow) <= 
-                                        '0' when results_mult_s(63 downto 0) = 0 
-                                                or results_mult_s(63 downto 0) = -1 
-                                            else '1';
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
+                                if cpuRegs(reg).Flag = '0' then
+                                    cpuRegs(reg).Value      <= SProduct(31 downto 0);
+                                    statusWord(OverUnderflow) <= 
+                                            '0' when signed(SProduct(63 downto 32)) = 0 
+                                                    or signed(SProduct(63 downto 32)) = -1 
+                                                else '1';
+                                else
+                                    cpuRegs(reg).Value      <= UProduct(31 downto 0);
+                                    statusWord(OverUnderflow) <= 
+                                            '0' when signed(SProduct(63 downto 34)) = 0 
+                                                else '1';
+                                end if;
                             when others =>
                         end case;
                     end if;
                 end if;
             end loop;
 
-            if QuotRemValid = '1' then
-                divideZero := UsrZeroReg(0);
-                divRegNum := to_integer(unsigned(UsrZeroReg(4 downto 1)));
+            if SQuotRemValid = '1' then
+                divideZero := SUsrZeroReg(0);
+                divRegNum := to_integer(unsigned(SUsrZeroReg(4 downto 1)));
                 if divideZero = '0' then -- Not divide by zero
                     cpuRegs(divRegNum).OpCode <= oNOP; 
                     -- cpuRegs(divRegNum).Value <= QuotRem(31 downto 0); -- Remainder
-                    cpuRegs(divRegNum).Value <= QuotRem(63 downto 32); -- Quotent
+                    cpuRegs(divRegNum).Value <= SQuotRem(63 downto 32); -- Quotent
                 end if;
                 statusWord(DivideByZero) <= divideZero;
+            elsif UQuotRemValid = '1' then
+                divideZero := UUsrZeroReg(0);
+                divRegNum := to_integer(unsigned(UUsrZeroReg(4 downto 1)));
+                if divideZero = '0' then -- Not divide by zero
+                    cpuRegs(divRegNum).OpCode <= oNOP; 
+                    -- cpuRegs(divRegNum).Value <= QuotRem(31 downto 0); -- Remainder
+                    cpuRegs(divRegNum).Value <= UQuotRem(63 downto 32); -- Quotent
+                end if;
             end if;
-
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
                     cpuRegs <= (others => (
-                        value => (others => '0'),
-                        opcode => oNOP,
-                        countdown => 0));
+                        value       => (others => '0'),
+                        opcode      => oNOP,
+                        flag        => '0',
+                        countdown   => 0 ));
                     statusWord      <= (others => '0');
                     AluDecodeDone   <= '1';
-                    MultRegA        <= (others => '0');
-                    MultRegB        <= (others => '0');
-                    DivRegA         <= (others => '0');
-                    DivRegAValid    <= '0';
-                    DivRegB         <= (others => '0');
-                    DivRegBValid    <= '0';
-                    UsrRegNum       <= (others => '0');
+                    SMultRegA        <= (others => '0');
+                    SMultRegB        <= (others => '0');
+                    SDivRegA         <= (others => '0');
+                    SDivRegAValid    <= '0';
+                    SDivRegB         <= (others => '0');
+                    SDivRegBValid    <= '0';
+                    SUsrRegNum       <= (others => '0');
                 
                 when DECODE_S =>
 
@@ -376,53 +451,34 @@ begin
                                 end if;
                             elsif ffopcode = oMul then
                                 if ffflag = '0' then
-                                    MultRegA <= std_logic_vector(a_reg_s);
-                                    MultRegB <= std_logic_vector(b_reg_s);
+                                    SMultRegA <= std_logic_vector(a_reg_s);
+                                    SMultRegB <= std_logic_vector(b_reg_s);
                                     cpuRegs(ffiregop1).OpCode <= oMul;
+                                    cpuRegs(ffiregop1).Flag <= '0';
                                     cpuRegs(ffiregop1).Countdown <= 6;
-                                    -- results_mult_s := a_reg_s * b_reg_s;
-                                    -- product <= std_logic_vector(results_mult_s(31 downto 0));
-                                    -- results_ov := to_integer(results_mult_s(63 downto 32));
-                                    -- cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_mult_s,32));
-                                    -- statusWord(OverUnderflow) <= 
-                                    --         '0' when results_mult_s(63 downto 0) = 0 
-                                    --                 or results_mult_s(63 downto 0) = -1 
-                                    --             else '1';
                                 else
-                                    results_mult_u := a_reg_u(31 downto 0) * b_reg_u(31 downto 0);
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_mult_u,32));
-                                    results_ov := to_integer(results_mult_s(63 downto 32));
-                                    statusWord(OverUnderflow) <= 
-                                            '0' when results_mult_u(63 downto 32) = 0
-                                                else '1';
+                                    UMultRegA <= std_logic_vector(a_reg_u(31 downto 0));
+                                    UMultRegB <= std_logic_vector(b_reg_u(31 downto 0));
+                                    cpuRegs(ffiregop1).OpCode <= oMul;
+                                    cpuRegs(ffiregop1).Flag <= '1';
+                                    cpuRegs(ffiregop1).Countdown <= 6;
                                 end if;
 
                             elsif ffopcode = oDiv then
                                 if ffflag = '0' then
-                                    DivRegA <= std_logic_vector(a_reg_s);
-                                    DivRegB <= std_logic_vector(b_reg_s);
-                                    DivRegAValid <= '1';
-                                    DivRegBValid <= '1';
-                                    UsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                    SDivRegA <= std_logic_vector(a_reg_s);
+                                    SDivRegB <= std_logic_vector(b_reg_s);
+                                    SDivRegAValid <= '1';
+                                    SDivRegBValid <= '1';
+                                    SUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
                                     cpuRegs(ffiregop1).OpCode <= oDiv;
-
-
-
-                                    -- if b_reg_s = 0 then
-                                    --     statusWord(DivideByZero) <= '1';
-                                    -- else
-                                    --     results_reg_s := a_reg_s / b_reg_s;
-                                    --     cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_s,32));
-                                    --     statusWord(DivideByZero) <= '0';
-                                    -- end if;
                                 else
-                                    -- if b_reg_u = 0 then
-                                    --     statusWord(DivideByZero) <= '1';
-                                    -- else
-                                    --     results_reg_u := a_reg_u / b_reg_u;
-                                    --     cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
-                                    --     statusWord(DivideByZero) <= '0';
-                                    -- end if;
+                                    UDivRegA <= std_logic_vector(a_reg_u(31 downto 0));
+                                    UDivRegB <= std_logic_vector(b_reg_u(31 downto 0));
+                                    UDivRegAValid <= '1';
+                                    UDivRegBValid <= '1';
+                                    UUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                    cpuRegs(ffiregop1).OpCode <= oDiv;
                                 end if;
                             end if;
 
