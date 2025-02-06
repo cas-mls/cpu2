@@ -264,10 +264,10 @@ architecture Behavioral of Computer is
 
     signal dmemReadCount: integer range 0 to 3;
 
-    attribute keep                          : STRING;
-    attribute MARK_DEBUG                    : string;
-    attribute keep          of rst          : signal is "TRUE";
-    attribute MARK_DEBUG    of rst          : signal is "TRUE";
+    -- attribute keep                          : STRING;
+    -- attribute MARK_DEBUG                    : string;
+    -- attribute keep          of rst          : signal is "TRUE";
+    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
     -- IO Elements ILA
     -- attribute keep          of ioAddr       : signal is "TRUE";

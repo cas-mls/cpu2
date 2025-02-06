@@ -147,6 +147,13 @@ architecture Behavioral of ALU is
     signal UQuotRemValid: std_logic;
     signal UUsrZeroReg : std_logic_vector(4 downto 0);
 
+    signal AValS : signed(32 downto 0);
+    signal BValS : signed(32 downto 0);
+    signal RValS : signed(32 downto 0);
+    signal AValU : unsigned(32 downto 0);
+    signal BValU : unsigned(32 downto 0);
+    signal RValU : unsigned(32 downto 0);
+
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;
     -- attribute keep of SProduct : signal is "TRUE";
@@ -265,7 +272,6 @@ begin
 
             -- Check each cycle for changes in the long operations and update the registers.
             for reg in cpuRegs'range loop
-                if cpuRegs(reg).Opcode = oMul then
                     if cpuRegs(reg).Countdown > 0 then
                         cpuRegs(reg).Countdown <= cpuRegs(reg).Countdown - 1;
                     else
@@ -285,10 +291,34 @@ begin
                                             '0' when signed(SProduct(63 downto 34)) = 0 
                                                 else '1';
                                 end if;
+                            when oAdd =>
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
+                                if cpuRegs(reg).Flag = '0' then
+                                    statusWord(OverUnderflow) <=  
+                                                (AValS(31) xnor BValS(31)) 
+                                            and (AValS(31) xor RValS(31));
+                                else
+                                    statusWord(OverUnderflow) <= RValU(32);
+                                end if;
+
+                            when oSub =>
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
+                                if cpuRegs(reg).Flag = '0' then
+                                    statusWord(OverUnderflow) <= 
+                                            '1' when AValS < 0 and  BValS > 0 and RValS < AValS
+                                                else '0';
+                                else
+                                    statusWord(OverUnderflow) <=  
+                                            '1' when BValU > AValU
+                                                else '0';
+                                end if;
+
                             when others =>
+
                         end case;
                     end if;
-                end if;
             end loop;
 
             if SQuotRemValid = '1' then
@@ -296,7 +326,6 @@ begin
                 divRegNum := to_integer(unsigned(SUsrZeroReg(4 downto 1)));
                 if divideZero = '0' then -- Not divide by zero
                     cpuRegs(divRegNum).OpCode <= oNOP; 
-                    -- cpuRegs(divRegNum).Value <= QuotRem(31 downto 0); -- Remainder
                     cpuRegs(divRegNum).Value <= SQuotRem(63 downto 32); -- Quotent
                 end if;
                 statusWord(DivideByZero) <= divideZero;
@@ -305,7 +334,6 @@ begin
                 divRegNum := to_integer(unsigned(UUsrZeroReg(4 downto 1)));
                 if divideZero = '0' then -- Not divide by zero
                     cpuRegs(divRegNum).OpCode <= oNOP; 
-                    -- cpuRegs(divRegNum).Value <= QuotRem(31 downto 0); -- Remainder
                     cpuRegs(divRegNum).Value <= UQuotRem(63 downto 32); -- Quotent
                 end if;
             end if;
@@ -429,25 +457,33 @@ begin
                                 if ffflag = '0' then
                                     results_reg_s := a_reg_s + b_reg_s;
                                     cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
-                                    statusWord(OverUnderflow) <=  (a_reg_s(31) xnor b_reg_s(31)) and (a_reg_s(31) xor results_reg_s(31));
+                                    cpuRegs(ffiregop1).OpCode <= oAdd;
+                                    cpuRegs(ffiregop1).Flag <= '0';
+                                    cpuRegs(ffiregop1).Countdown <= 1;
+                                    AValS <= resize(a_reg_s,33);
+                                    BValS <= resize(b_reg_s,33);
+
                                 else
                                     results_reg_u := a_reg_u + b_reg_u;
                                     cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
-                                    statusWord(OverUnderflow) <= results_reg_u(32);
+                                    RValU <= resize(results_reg_u,33);
+
                                 end if;
                             elsif ffopcode = oSub then
                                 if ffflag = '0' then
                                     results_reg_s := a_reg_s - b_reg_s;
                                     cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
-                                    statusWord(OverUnderflow) <= 
-                                            '1' when a_reg_s < 0 and  b_reg_s > 0 and results_reg_s < a_reg_s
-                                                else '0';
+                                    AValS <= resize(a_reg_s,33);
+                                    BValS <= resize(b_reg_s,33);
+                                    RValS <= resize(results_reg_s,33);
+
                                 else
                                     results_reg_u := a_reg_u - b_reg_u;
                                     cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
-                                    statusWord(OverUnderflow) <=  
-                                            '1' when b_reg_u > a_reg_u
-                                                else '0';
+                                    AValU <= resize(a_reg_u,33);
+                                    BValU <= resize(b_reg_u,33);
+                                    RValU <= resize(results_reg_u,33);
+
                                 end if;
                             elsif ffopcode = oMul then
                                 if ffflag = '0' then

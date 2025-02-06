@@ -884,6 +884,40 @@ Performs a sub is 2-complement subtraction, and usub is unsigned subtraction.  T
 | usub r1, mem[address]     | Absolute          | 1e   | 7            | R1 - mem(imm) → R1    |
 | usub r1, r2, mem[address] | Index             | 1f   | 7            | R1 - mem(r2+imm) → R1 |
 
+### Multiply
+
+Performs Integer Multiplication. This operation takes 6 clock cycles. The CPU waits to complete the operation only when the results are required for another operation.
+
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| mul r1, r2                | Register/Register | 28   | 6            | R1 * R2 → R1          |
+| mul r1, r2, Imm           | Immediate         | 29   | 6            | R2 * Imm → R1         |
+| mul r1, Imm               | Immediate         | 29x0 | 6            | R1 * Imm → R1         |
+| mul  r1, mem[address]     | Absolute          | 2a   | 6            | R1 * mem(imm) → R1    |
+| mul r1, r2, mem[address]  | Index             | 2b   | 6            | R1 * mem(r2+imm) → R1 |
+| umul r1, r2               | Register/Register | 2c   | 6            | R1 * R2 → R1          |
+| umul r1, r2, Imm          | Immediate         | 2d   | 6            | R2 * Imm → R1         |
+| umul r1, Imm              | Immediate         | 2dx0 | 6            | R1 * Imm → R1         |
+| umul  r1, mem[address]    | Absolute          | 2e   | 6            | R1 * mem(imm) → R1    |
+| umul r1, r2, mem[address] | Index             | 2f   | 6            | R1 * mem(r2+imm) → R1 |
+
+### Divide
+
+Performs Divide.  This operation takes 33 clock cycles.  The CPU waits to complete the operation only when the results are required for another operation.
+
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| div r1, r2                | Register/Register | 38   | 33           | R1 / R2 → R1         |
+| div r1, r2, Imm           | Immediate         | 39   | 33           | R2 / Imm → R1        |
+| div r1, Imm               | Immediate         | 39x0 | 33           | R1 / Imm → R1        |
+| div r1, mem[address]      | Absolute          | 3a   | 33           | R1 / mem(imm) → R1   |
+| div r1, r2, mem[address]  | Index             | 3b   | 33           | R1 / mem(r2+imm) → R1 |
+| udiv r1, r2               | Register/Register | 3c   | 33           | R1 / R2 → R1         |
+| udiv r1, r2, Imm          | Immediate         | 3d   | 33           | R2 / Imm → R1        |
+| udiv r1, Imm              | Immediate         | 3dx0 | 33           | R1 / Imm → R1        |
+| udiv r1, mem[address]     | Absolute          | 3e   | 33           | R1 / mem(imm) → R1   |
+| udiv r1, r2, mem[address] | Index             | 3f   | 33            | R1 / mem(r2+imm) → R1 |
+
 ### And/Nand
 
 Performs the logical "and" or "nand" to the accumulator.
@@ -1249,23 +1283,7 @@ export_simulation -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU
 
 add_condition -name stop06d -radix hex {/SimCPU/cpuCUT/ProgramCounter == 06d} {stop}
 
-add_condition -name stop06d {/SimCPU/cpuCUT/fsm_inst_cycle_n != EXECUTE} {stop}
+add_condition -name stopEXE {/SimCPU/cpuCUT/fsm_inst_cycle_n != EXECUTE} {stop}
 
-### ALU Multiple Clock Cycle Operation
 
-* Register data updates
-  - [x] Need to know what operation, multiply (oMul) or divide (oDiv), is waiting on that register
-  - [x] Flag indicating that the register is locked because of Multiple Clock Cycle operation on each register.
-  - [ ] ~~Register could contain Lock Types (Unlocked, Countdown, m_axis\_*_tvalid)~~
-  - [x] Register could contain OpCode and Unlock could be NOP opcode.
-  - [x] Each Register also needs a countdown timer.
-* Register Conditions
-  - [ ] Need a condition on the register to indicate that the operation is completed. Wait for 5 cycles (Multiply) or m_axis_dout_tvalid = 0 and m_axis_dout_tuser = regNum for Divide.
-* Wait
-  - [ ] When the execute acquiring register is locked then the execute needs to wait until the long operation is completes
-  - [x] When the conditions are met, the lock flag is removed, the register is filled with the proper value, and the ALU wait flag is removed.
-
-* Every Cycle
-  - [x] Update the countdown timer.
-  - [ ] Every time the ALU cycles (not only EXECUTE state), the register conditions are checked; if one is finished, the register is filled with the results, and the operation is continued.
 

@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="2,156.200 ns"></ZoomStartTime>
-      <ZoomEndTime time="2,249.401 ns"></ZoomEndTime>
-      <Cursor1Time time="2,286.400 ns"></Cursor1Time>
+      <ZoomStartTime time="433.888 ns"></ZoomStartTime>
+      <ZoomEndTime time="939.223 ns"></ZoomEndTime>
+      <Cursor1Time time="855.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="226"></NameColumnWidth>
+      <NameColumnWidth column_width="221"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="46" />
+   <WVObjectSize size="45" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -75,6 +75,7 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[14]" type="array">
          <obj_property name="ElementShortName">[14]</obj_property>
          <obj_property name="ObjectShortName">[14]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[13]" type="array">
          <obj_property name="ElementShortName">[13]</obj_property>
@@ -123,12 +124,10 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[2]" type="array">
          <obj_property name="ElementShortName">[2]</obj_property>
          <obj_property name="ObjectShortName">[2]</obj_property>
-         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[1]" type="array">
          <obj_property name="ElementShortName">[1]</obj_property>
          <obj_property name="ObjectShortName">[1]</obj_property>
-         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[0]" type="array">
          <obj_property name="ElementShortName">[0]</obj_property>
@@ -198,11 +197,6 @@
          <obj_property name="ElementShortName">[0]</obj_property>
          <obj_property name="ObjectShortName">[0]</obj_property>
       </wvobject>
-   </wvobject>
-   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/product" type="array">
-      <obj_property name="ElementShortName">product[63:0]</obj_property>
-      <obj_property name="ObjectShortName">product[63:0]</obj_property>
-      <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/AluDecodeDone" type="logic">
       <obj_property name="ElementShortName">AluDecodeDone</obj_property>

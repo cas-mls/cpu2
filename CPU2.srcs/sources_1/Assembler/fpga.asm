@@ -304,7 +304,7 @@ ovprod = ovmultend1 * ovmultend2
     ldl r4, PRODMEM1 - PRODMEM
     mult r1, r4, mem[PRODMEM]
     bne r1, r3, MULTERROR
-    mult r tr, 1
+    add r tr, 1
     jmp MULTCOMP
 
 PRODMEM:
@@ -343,7 +343,7 @@ quot = divend1 / divisor2
     ldl r4, QUOTMEM1 - QUOTMEM
     div r1, r4, mem[QUOTMEM]
     bne r1, r3, DIVERROR
-    div r tr, 1
+    add r tr, 1
     jmp DIVCOMP
 
 QUOTMEM:
