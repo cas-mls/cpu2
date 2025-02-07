@@ -97,7 +97,8 @@ entity ProgCounter is
         MEM_ENA               : OUT STD_LOGIC := '1';
         MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
-        ProgramCounter        : OUT PCTYPE
+        ProgramCounter        : OUT PCTYPE;
+        JumpDisablePipline    : OUT STD_LOGIC
     );
 end ProgCounter;
 
@@ -106,6 +107,7 @@ architecture Behavioral of ProgCounter is
     -- Decode information    
     signal opcode : OPCODETYPE := "00000";
     signal ffopcode : OPCODETYPE := "00000";
+    signal flag : STD_LOGIC := '0';
     signal ffflag : STD_LOGIC :='0';
     signal ffmemop : MEMTYPE;
     signal ffiregop1 : integer range 0 to regOpMax;
@@ -125,6 +127,7 @@ architecture Behavioral of ProgCounter is
 begin
 
     opcode <= INSTRUCTION(31 downto 27);
+    flag <= INSTRUCTION(26);
 
     -- Output Values
     ProgramCounter <= ProgCounterLocal;
@@ -138,7 +141,7 @@ begin
                     MEM_WEA <= "0";
                     MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
-
+                    JumpDisablePipline <= '0';
                 when ADDRESS_S    =>
                     MEM_ENA <= '1';
                     MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal));
@@ -154,144 +157,149 @@ begin
                     ffiregop2   <= to_integer(unsigned(INSTRUCTION(19 downto 16)));
                     ffimmop     <= INSTRUCTION(15 downto 0);
                     -- Save the values of the Register Data.  Again this ifor timing operations.
-                    ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20))));
-                    ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16))));
+                    ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
+                    ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
 
-                    if      opcode /= oJMP 
-                        and opcode /= oBE 
-                        and opcode /= oBLT 
-                        and opcode /= oBGT 
-                        and opcode /= oJSR 
-                        and opcode /= oRTN 
-                        and opcode /= oRTI 
-                        and opcode /= oSWI
-                    then -- ignore all Jump operations.
+                    if     opcode = oJMP 
+                        or opcode = oBE 
+                        or opcode = oBLT 
+                        or opcode = oBGT 
+                        or opcode = oJSR 
+                        or opcode = oRTN 
+                        or opcode = oRTI 
+                        or (opcode = oSWIENA and flag = SWIFLAG)
+                    then -- Branch / Jump operations.
+                        MEM_ENA <= '0';
+                        JumpDisablePipline <= '1';
+                    else -- ignore all Jump operations.
                         MEM_ENA <= '1';
                         MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
-                    else
-                        MEM_ENA <= '0';
+                        JumpDisablePipline <= '0';
                     end if;
 
                 when EXECUTE_S    =>
+                    if cpuRegs(ffiregop1).OpCode = oNOP 
+                        and cpuRegs(ffiregop2).OpCode = oNOP
+                    then -- Execute Instruction
 
-                    case ffopcode is
-                        when oJMP | oJSR =>
-                            case ffmemop is
-                                when REGREG     =>
-                                    ProgCounterLocal <= unsigned(ireg2value(11 downto 0)); 
-                                when IMMEDIATE  =>
-                                    ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                when ABSOLUTE | INDEX =>
-                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                when others     =>
-                            end case;
-
-                        when oRTN | oRTI =>
-                            case ffmemop is
-                                when REGREG     =>
-                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                when IMMEDIATE  =>
-                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                when ABSOLUTE | INDEX =>
-                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                when others     =>
-                            end case;
-
-                        when oBE =>
-                            case ffmemop is
-                                when IMMEDIATE  =>
-                                    if  ffiregop2 /= 0 
-                                        and  ((ffflag = '0' and ireg1value = ireg2value)
-                                        or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and  ((ffflag = '0' and signed(ireg1value) = 0)
-                                        or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when ABSOLUTE | INDEX =>
-                                    if  ffiregop2 /= 0 
-                                        and  ((ffflag = '0' and ireg1value = ireg2value)
-                                        or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                            ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and  ((ffflag = '0' and signed(ireg1value) = 0)
-                                        or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                            ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when others     =>
-                            end case;
-
-                        when oBLT =>
-                            case ffmemop is
-                                when IMMEDIATE  =>
-                                    if ffiregop2 /= 0 
-                                        and ((ffflag = '0' and ireg1value < ireg2value) 
-                                            or (ffflag = '1' and ireg1value >= ireg2value)) 
-                                            then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and ((ffflag = '0' and signed(ireg1value) < 0) 
-                                            or (ffflag = '1' and signed(ireg1value) >= 0))
-                                            then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when ABSOLUTE | INDEX =>
-                                    if ffiregop2 /= 0 
-                                        and ((ffflag = '0' and ireg1value < ireg2value) 
-                                            or (ffflag = '1' and ireg1value >= ireg2value)) 
-                                            then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and ((ffflag = '0' and signed(ireg1value) < 0) 
-                                            or (ffflag = '1' and signed(ireg1value) >= 0))
-                                    then
+                        case ffopcode is
+                            when oJMP | oJSR =>
+                                case ffmemop is
+                                    when REGREG     =>
+                                        ProgCounterLocal <= unsigned(ireg2value(11 downto 0)); 
+                                    when IMMEDIATE  =>
+                                        ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                    when ABSOLUTE | INDEX =>
                                         ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when others     =>
-                            end case;
+                                    when others     =>
+                                end case;
 
-                        when oBGT =>
-                            case ffmemop is
-                                when IMMEDIATE  =>
-                                    if ffiregop2 /= 0 
-                                        and  ((ffflag = '0' and ireg1value > ireg2value) 
-                                        or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and  ((ffflag = '0' and signed(ireg1value) > 0) 
-                                        or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                            ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when ABSOLUTE | INDEX =>
-                                    if ffiregop2 /= 0 
-                                        and  ((ffflag = '0' and ireg1value > ireg2value) 
-                                        or (ffflag = '1' and ireg1value <= ireg2value)) then
+                            when oRTN | oRTI =>
+                                case ffmemop is
+                                    when REGREG     =>
+                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                    when IMMEDIATE  =>
+                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                    when ABSOLUTE | INDEX =>
+                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                    when others     =>
+                                end case;
+
+                            when oBE =>
+                                case ffmemop is
+                                    when IMMEDIATE  =>
+                                        if  ffiregop2 /= 0 
+                                            and  ((ffflag = '0' and ireg1value = ireg2value)
+                                            or (ffflag = '1' and ireg1value /= ireg2value)) then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and  ((ffflag = '0' and signed(ireg1value) = 0)
+                                            or (ffflag = '1' and signed(ireg1value) /= 0)) then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when ABSOLUTE | INDEX =>
+                                        if  ffiregop2 /= 0 
+                                            and  ((ffflag = '0' and ireg1value = ireg2value)
+                                            or (ffflag = '1' and ireg1value /= ireg2value)) then
+                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and  ((ffflag = '0' and signed(ireg1value) = 0)
+                                            or (ffflag = '1' and signed(ireg1value) /= 0)) then
+                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when others     =>
+                                end case;
+
+                            when oBLT =>
+                                case ffmemop is
+                                    when IMMEDIATE  =>
+                                        if ffiregop2 /= 0 
+                                            and ((ffflag = '0' and ireg1value < ireg2value) 
+                                                or (ffflag = '1' and ireg1value >= ireg2value)) 
+                                                then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and ((ffflag = '0' and signed(ireg1value) < 0) 
+                                                or (ffflag = '1' and signed(ireg1value) >= 0))
+                                                then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when ABSOLUTE | INDEX =>
+                                        if ffiregop2 /= 0 
+                                            and ((ffflag = '0' and ireg1value < ireg2value) 
+                                                or (ffflag = '1' and ireg1value >= ireg2value)) 
+                                                then
+                                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and ((ffflag = '0' and signed(ireg1value) < 0) 
+                                                or (ffflag = '1' and signed(ireg1value) >= 0))
+                                        then
                                             ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    elsif ffiregop2 = 0 
-                                        and  ((ffflag = '0' and signed(ireg1value) > 0) 
-                                        or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                            ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
-                                    else
-                                        ProgCounterLocal <= ProgCounterLocal + 1;
-                                    end if;
-                                when others     =>
-                            end case;
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when others     =>
+                                end case;
 
-                        when others =>
-                            ProgCounterLocal <= ProgCounterLocal + 1;
-                    end case;
+                            when oBGT =>
+                                case ffmemop is
+                                    when IMMEDIATE  =>
+                                        if ffiregop2 /= 0 
+                                            and  ((ffflag = '0' and ireg1value > ireg2value) 
+                                            or (ffflag = '1' and ireg1value <= ireg2value)) then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and  ((ffflag = '0' and signed(ireg1value) > 0) 
+                                            or (ffflag = '1' and signed(ireg1value) <= 0)) then
+                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when ABSOLUTE | INDEX =>
+                                        if ffiregop2 /= 0 
+                                            and  ((ffflag = '0' and ireg1value > ireg2value) 
+                                            or (ffflag = '1' and ireg1value <= ireg2value)) then
+                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        elsif ffiregop2 = 0 
+                                            and  ((ffflag = '0' and signed(ireg1value) > 0) 
+                                            or (ffflag = '1' and signed(ireg1value) <= 0)) then
+                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        else
+                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                        end if;
+                                    when others     =>
+                                end case;
 
+                            when others =>
+                                ProgCounterLocal <= ProgCounterLocal + 1;
+                        end case;
+                    end if;
                 when others =>
             end case;
 

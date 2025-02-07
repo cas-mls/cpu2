@@ -6,16 +6,16 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 ## Specifications
 
-| Clock Speed.                     |            |
-| -------------------------------- | ---------- |
-| Word size                        | 32 Bits    |
-| Memory                           | 4096 Words |
-| Average Instructions per second. | 16.6KIPS   |
-| Cache                            | 0          |
-| Cores                            | 1          |
-| Registers                        | 16         |
-| Interrupt                        | 32         |
-| IO Addresses                     | 256        |
+| Description                      | Specifiction |
+| -------------------------------- | ------------ |
+| Word size                        | 32 Bits      |
+| Memory                           | 4096 Words   |
+| Average Instructions per second. | 16.6KIPS     |
+| Cache                            | 0            |
+| Cores                            | 1            |
+| Registers                        | 16           |
+| Interrupt                        | 32           |
+| IO Addresses                     | 256          |
 
 
 
@@ -111,13 +111,17 @@ This is a simple CPU architecture that I used to verify that I understand how to
 
 ## Instruction Format
 
+```mermaid
+
+```
+
 |              | Opcode | Flag         | Access <br />(Memory)                                        | Register 1                | Register 2     | Immediate / <br />Address |
 | ------------ | ------ | ------------ | ------------------------------------------------------------ | ------------------------- | -------------- | ------------------------- |
 | Bit Position | 31-27  | 26           | 25-24                                                        | 23-20                     | 19-16          | 15-0                      |
 | Number Bits  | 5      | 1            | 2                                                            | 4                         | 4              | 16                        |
 | Description  |        | Hi/Low / Not | 0 = Register / Register<br />1 = Immediate<br />2 = Absolute<br />3 = Indexed | Destination / Accumulator | Source / Index |                           |
 
-***Recommendation: R0 not be used as a user register.***
+***Recommendation: Register R0 not be used as a user register.***
 
 ### Opcode
 
@@ -125,7 +129,7 @@ There are 5 bits for the opcode.
 
 ### Flag
 
-Load instruction - High 1/2 word = 1, Low 1/2 Word = 0
+Load immediate instruction - 1 = High 1/2 word, 0 = Low 1/2 Word.
 
 1 = NOT for the following instructions:
 
@@ -392,8 +396,7 @@ This handles the updating and operating on the register and is also known as the
  * oAND - And or Nand registers, immediate, or memory
  * oOR - Or or Nor registers, immediate, or memory
  * oXOR - Xor or Xnor registers, immediate, or memory
- * oSHL - Shift left registers, immediate, or memory
- * oSHR - Shift right registers, immediate, or memory
+ * oSHLR - Shift left/right registers, immediate, or memory
  * oJSR - Jump and store PC (Jump to Subroutine)
  * oRWIO - Load and write to IO.
  * oPUSHPOP - Push or Pop from memory
@@ -469,7 +472,6 @@ Note:  Reading the IO (IOR_DATA) is not performed in this process. it is used by
 | cpuRegs          | The fast CPU registers.                                      |
 
 #### Internal Wires:
-
 | Signal                   | Description                                      |
 | ------------------------ | ------------------------------------------------ |
 | flag/ffflag              | Multiple use flag (e.g., negative logic)         |
@@ -598,15 +600,18 @@ Note:   Limitations 1) The interrupt is read when instruction in execute state.
 
 #### Interrupt State Diagram
 
-| Cycle      | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-|            | Interrupt Processing                                         |
-| SAVEENA    | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1         |
-| DISABLEINT | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
-| JMPADDR    | reg(InterSP) → reg(InterSP) – 1 <br />InterNum → addrB       |
-| JMPFETCH1  | Wait                                                         |
-| JMPFETCH2  | Wait                                                         |
-| JUMP       | DoutB → PC                                                   |
+| Cycle      | Description                                                  | Processing                                                   |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+|            |                                                              | Interrupt Processing                                         |
+| INTRWAIT   | Initial state waiting for an interrupt.                      |                                                              |
+| CYCLEWAIT  | Wait for the instruction cycle to Execute.                   |                                                              |
+| SAVEENA    | Save the Interrupt Mask to the stack and update the stack pointer. | IntEna → dinB  <br />reg(InterSP) → reg(InterSP) – 1<br />interruptRun <= '1' |
+| DISABLEINT | Disable the interrupt and save the Program Counter to the stack.  Update the stack pointer. | ’0’ → IntEna(interNum) <br />reg(InterSP) → addrB <br />PC → dinB |
+| JMPADDR    | Set the jump vector address which contains the Interrupt Handler address.<br /><br />Interrupt 0 - Reset will start the process here. | reg(InterSP) → reg(InterSP) – 1 <br />InterNum → addrB<br />interruptRun <= '1' |
+| JMPFETCH1  | Wait for the Interrupt Handler Address.                      | Wait<br />interruptRun <= '1'                                |
+| JMPFETCH2  | Wait for the Interrupt Handler Address.                      | Wait<br />interruptRun <= '1'                                |
+| JUMP       | Update the program counter with the Interrupt Handler address. | DoutB → PC                                                   |
+| DONE       |                                                              | interruptRun <= '0'<br />interruptNum <= 0;                  |
 
 ```mermaid
 stateDiagram
@@ -650,15 +655,15 @@ stateDiagram
 | `rsio (Read Status)`                                         | `11000` | 0                 | $R2 → IOAddr\\Status → R1$                                   | $imm → IOAddr\\Status → R1$                                  |                                         |                                      |
 | `wsio (Write Status)`                                        | `11000` | 1                 | $R2 → IOAddr\\ Status → R1$                                  | $imm → IOAddr\\Status → R1$                                  |                                         |                                      |
 | `rti` (Return from Interrupt)[^11]                           | `11010` | NA                | NA                                                           | NA                                                           | NA                                      | NA                                   |
-| `swi` (Software Interrupt)[^11]                              | `11100` | NA                | $'1' → IRProcFlag\\R1 → InterNum$                            | $'1' → IRProcFlag\\imm  → InterNum$                          | Not Tested                              | NA                                   |
-| `iena` (Interrupt enable mask)[^11]: [^12]:                  | `11110` | NA                | $R1 → IRSP,\\R2 → InterEna$                                  | $R1 → IRSP,\\imm → InterEna$                                 | $R1 → IRSP\\mem(imm) → \\InterEna$      | NA                                   |
-| `add`                                                        | `00001` | NA                | $R1 + R2 → R1$                                               | $R1 + R2 + imm → R1 \\ R2 == 0 : R1 + \\imm → R1$            | $R1 + mem(imm) → R1$                    | $R1 + mem(r2+imm)$ → R1              |
-| `sub`                                                        | `00011` | NA                | $R1 - R2 → R1$                                               | $R1 - R2 - imm → R1\\R2 == 0 : R1 -\\ imm → R1$              | $R1 - mem(imm) → R1$                    | $R1 - mem(r2+imm) → R1$              |
-| `and`<br />`nand` (Flag = 1)                                 | `00101` | not               | $R1 ∧ R2 → R1$                                               | $R1 ∧ R2 ∧ imm → R1\\R2 = 0  : R1 ∧ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∧ mem(r2+imm) → R1$              |
-| `or`<br />`nor` (Flag = 1)                                   | `00110` | not               | $R1 ∨ R2  → R1$                                              | $R1 ∨ R2 ∨ imm → R1\\R2 = 0  : R1 ∨ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∨ mem(r2+imm) → R1$              |
-| `xor`<br />`xnor` (Flag = 1)                                 | `01011` | not               | $R1 ⊕ R2  → R1$                                              | $R1⊕R2⊕imm→ R1\\R2=0:R1⊕\\imm→R1$                            | $R1 ⊕ mem(imm) → R1$                    | $R1 ⊕ mem(r2+imm) → R1$              |
-| `sll` (Shift Left Logical)                                   | `01101` | NA                | $R1 << R2  → R1$                                             | $R1<<imm → R1\\R2 = 0  : R1<<\\imm → R1$                     | $R1<<mem(imm) → R1$                     | $R1<<mem(r2+imm) → R1$               |
-| `srl`(Shift Right Logical)                                   | `01111` | NA                | $R1 >> R2 → R1$                                              | $R1 >> imm → R1\\R2 = 0  : R1 >> \\imm → R1$                 | $R1>>mem(imm) → R1$                     | $R1>>mem(r2+imm) → R1$               |
+| `swi` (Software Interrupt)[^11]                              | `11100` | 0                 | $'1' → IRProcFlag\\R1 → InterNum$                            | $'1' → IRProcFlag\\imm  → InterNum$                          | Not Tested                              | NA                                   |
+| `iena` (Interrupt enable mask)[^11]: [^12]:                  | `11100` | 1                 | $R1 → IRSP,\\R2 → InterEna$                                  | $R1 → IRSP,\\imm → InterEna$                                 | $R1 → IRSP\\mem(imm) → \\InterEna$      | NA                                   |
+| `add`                                                        | `00001` | 1=Unsigned        | $R1 + R2 → R1$                                               | $R1 + R2 + imm → R1 \\ R2 == 0 : R1 + \\imm → R1$            | $R1 + mem(imm) → R1$                    | $R1 + mem(r2+imm)$ → R1              |
+| `sub`                                                        | `00011` | 1=Unsigned        | $R1 - R2 → R1$                                               | $R1 - R2 - imm → R1\\R2 == 0 : R1 -\\ imm → R1$              | $R1 - mem(imm) → R1$                    | $R1 - mem(r2+imm) → R1$              |
+| `and`<br />`nand` (Flag = 1)                                 | `01001` | not               | $R1 ∧ R2 → R1$                                               | $R1 ∧ R2 ∧ imm → R1\\R2 = 0  : R1 ∧ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∧ mem(r2+imm) → R1$              |
+| `or`<br />`nor` (Flag = 1)                                   | `01011` | not               | $R1 ∨ R2  → R1$                                              | $R1 ∨ R2 ∨ imm → R1\\R2 = 0  : R1 ∨ \\imm → R1$              | $R1 ∧ mem(imm) → R1$                    | $R1 ∨ mem(r2+imm) → R1$              |
+| `xor`<br />`xnor` (Flag = 1)                                 | `01101` | not               | $R1 ⊕ R2  → R1$                                              | $R1⊕R2⊕imm→ R1\\R2=0:R1⊕\\imm→R1$                            | $R1 ⊕ mem(imm) → R1$                    | $R1 ⊕ mem(r2+imm) → R1$              |
+| `sll` (Shift Left Logical)                                   | `01111` | 0                 | $R1 << R2  → R1$                                             | $R1<<imm → R1\\R2 = 0  : R1<<\\imm → R1$                     | $R1<<mem(imm) → R1$                     | $R1<<mem(r2+imm) → R1$               |
+| `srl`(Shift Right Logical)                                   | `01111` | 1                 | $R1 >> R2 → R1$                                              | $R1 >> imm → R1\\R2 = 0  : R1 >> \\imm → R1$                 | $R1>>mem(imm) → R1$                     | $R1>>mem(r2+imm) → R1$               |
 
 [^1]: R1 is the  Stack Pointer
 [^2]: R2 <> 0: R1 = R2 R1<>R2 (Flag=1)
@@ -682,41 +687,41 @@ stateDiagram
 
 |      | 0         | 1    | 2    | 3    | 4    | 5    | 6    | 7    |
 | ---- | --------- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| 0    |           | <sub>`ld r1, r2`</sub> |      | <sub>`jmp r1`</sub> | <sub>`jsr r1, r2`</sub> | <sub>`rtn r1`</sub> |      |      |
-| 1 |  | <sub>`ldl r1, imm`</sub> |      | <sub>`jmp imm`</sub> | <sub>`jsr imm`</sub> |      | <sub>`be r1, r2, imm<br />bz r1, imm`</sub> | <sub>`blt r1, r2, imm<br />bn r1, imm` </sub> |
-| 2 |           | <sub>`ld r1, mem [addr]`</sub> | <sub>`st r1, mem [addr]`</sub> | <sub>`jmp mem [addr]`</sub> |      |      | <sub>`be r1, r2, mem [addr]<br />bz r1, mem [addr]`</sub> | <sub>`blt r1, r2, mem[addr] <br /> bn r1, mem[addr]`</sub> |
-| 3 |           | <sub>`ld r1, r2, mem [addr]`</sub> | <sub>`st r1, r2, mem [addr]`</sub> | <sub>`jmp r2, mem [addr]`</sub> |      |      |      |      |
+| 0    |           | `ld r1, r2` |      | `jmp r1` | `jsr r1, r2` | `rtn r1` |      |      |
+| 1 |  | `ldl r1, imm` |      | `jmp imm` | `jsr imm` |      | `be r1, r2, imm<br />bz r1, imm` | `blt r1, r2, imm<br />bn r1, imm` |
+| 2 |           | `ld r1, mem [addr]` | `st r1, mem [addr]` | `jmp mem [addr]` |      |      | `be r1, r2, mem [addr]<br />bz r1, mem [addr]` | `blt r1, r2, mem[addr] <br /> bn r1, mem[addr]` |
+| 3 |           | `ld r1, r2, mem [addr]` | `st r1, r2, mem [addr]` | `jmp r2, mem [addr]` |      |      |      |      |
 | 4 |           |      |      |      |      |      |      |      |
-| 5 |           | <sub>`ldh r1, imm`</sub> |      |      |      |      | <sub>`bne r1, r2, imm<br />bnz r1, imm`</sub> | <sub>`bge r1, r2, imm<br />bl r1, r0, imm`</sub> |
-| 6 |           |      |      |      |      |      | <sub>`bne r1, r2, mem [addr]<br />bnz r1, mem [addr]`</sub> | <sub>`bge r1, r2, mem[addr]<br />bl r1, r0, mem[addr]`</sub> |
+| 5 |           | `ldh r1, imm` |      |      |      |      | `bne r1, r2, imm<br />bnz r1, imm` | `bge r1, r2, imm<br />bl r1, r0, imm` |
+| 6 |           |      |      |      |      |      | `bne r1, r2, mem [addr]<br />bnz r1, mem [addr]` | `bge r1, r2, mem[addr]<br />bl r1, r0, mem[addr]` |
 | 7 |           |      |      |      |      |      |      |      |
-| 8 | <sub>`add r1, r2`</sub> | <sub>`sub r1, r2`</sub> | <sub>`and r1, r2`</sub> | <sub>`or r1, r2`</sub> |      | <sub>`xor r1, r2`</sub> | <sub>`sll r1, r2`</sub> | <sub>`srl r1, r2`</sub> |
-| 9 | <sub>`add r1, r2, imm<br />add r1, imm`</sub> | <sub>`sub r1, r2, imm<br />sub r1, imm`</sub> | <sub>`and r1, r2, imm<br />and r1, imm`</sub> | <sub>`or r1, r2, imm <br />or r1, imm`</sub> |      | <sub>`xor r1, r2, imm<br />xor r1, imm`</sub> | <sub>`sll r1, r2, imm<br />sll r1, imm`</sub> | <sub>`srl r1, r2, imm<br />srl r1, imm`</sub> |
-| a | <sub>`add  r1, mem[addr]`</sub> | <sub>`sub r1, mem[addr]`</sub> | <sub>`and r1, mem[addr]`</sub> | <sub>`or r1, mem[addr]`</sub> |      | <sub>`xor r1, mem[addr]`</sub> | <sub>`sll r1, mem[addr]`</sub> | <sub>`srl r1, mem[addr]`</sub> |
-| b | <sub>`add r1, r2, mem[addr]`</sub> | <sub>`sub r1, r2, mem[addr]`</sub> | <sub>`and r1, r2, mem[addr]`</sub> | <sub>`or r1, r2, mem[addr]`</sub> |      | <sub>`xor r1, r2, mem[addr]`</sub> | <sub>`sll r1, r2, mem[addr]`</sub> | <sub>`srl r1, r2, mem[addr]`</sub> |
-| c |                                             |                                             | <sub>`nand r1, r2`</sub>                      | <sub>`nor r1, r2`</sub>                     |                       | <sub>`xnor r1, r2`</sub>                      |                                                           |                                                            |
-| d    |                                             |                                             | <sub>`nand r1, r2, imm<br />nand r1, imm`</sub> | <sub>`nor r1, r2, imm<br />nor r1, imm`</sub> |                       | <sub>`xnor r1, r2, imm<br />xnor r1, imm`</sub> |                                                           |                                                            |
-| e    |                                             |                                             | <sub>`nand r1, mem[addr]`</sub>               | <sub>`nor r1, mem[addr]`</sub>              |                       | <sub>`xnor r1, mem[addr]`</sub>               |                                                           |                                                            |
-| f    |                                             |      | <sub>`nand r1, r2, mem[addr]`</sub> | <sub>`nor r1, r2, mem[addr]`</sub> |      | <sub>`xnor r1, r2, mem[addr]`</sub> |      |      |
+| 8 | `add r1, r2` | `sub r1, r2` |  |  | `and r1, r2` | `or r1, r2` | `xor r1, r2` | `srl r1, r2` |
+| 9 | `add r1, r2, imm<br />add r1, imm` | `sub r1, r2, imm<br />sub r1, imm` |  |  | `and r1, r2, imm<br />and r1, imm` | `or r1, r2, imm <br />or r1, imm` | `xor r1, r2, imm<br />xor r1, imm` | `srl r1, r2, imm<br />srl r1, imm` |
+| a | `add  r1, mem[addr]` | `sub r1, mem[addr]` |  |  | `and r1, mem[addr]` | `or r1, mem[addr]` | `xor r1, mem[addr]` | `srl r1, mem[addr]` |
+| b | `add r1, r2, mem[addr]` | `sub r1, r2, mem[addr]` |  |  | `and r1, r2, mem[addr]` | `or r1, r2, mem[addr]` | `xor r1, r2, mem[addr]` | `srl r1, r2, mem[addr]` |
+| c | `uadd r1, r2` | `usub r1, r2` |                       |                      | `nand r1, r2` | `nor r1, r2` | `xnor r1, r2` | `sll r1, r2` |
+| d    | `uadd r1, r2, imm<br />add r1, imm` | `usub r1, r2, imm<br />sub r1, imm` |  |  | `nand r1, r2, imm<br />nand r1, imm` | `nor r1, r2, imm<br />nor r1, imm` | `xnor r1, r2, imm<br />xnor r1, imm` | `sll r1, r2, imm<br />sll r1, imm` |
+| e    | `uadd  r1, mem[addr]` | `usub r1, mem[addr]` |                |               | `nand r1, mem[addr]` | `nor r1, mem[addr]` | `xnor r1, mem[addr]` | `sll r1, mem[addr]` |
+| f    | `uadd r1, r2, mem[addr]` | `usub r1, r2, mem[addr]` |  |  | `nand r1, r2, mem[addr]` | `nor r1, r2, mem[addr]` | `xnor r1, r2, mem[addr]` | `sll r1, r2, mem[addr]` |
 
-|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e               | f                    |
-| ---- | ------------------------------------------------- | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | --------------- | -------------------- |
-| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`        | `iena r1, r2`        |
-| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`       | `iena r1, imm`       |
-| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]` | `iena r1, mem[addr]` |
-| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                 |                      |
-| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       |                 |                      |
-| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       |                 |                      |
-| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       |                 |                      |
-| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                 |                      |
-| 8    |                                                   |                |                                      |                         |                |       |                 |                      |
-| 9    |                                                   |                |                                      |                         |                |       |                 |                      |
-| a    |                                                   |                |                                      |                         |                |       |                 |                      |
-| b    |                                                   |                |                                      |                         |                |       |                 |                      |
-| c    |                                                   |                |                                      |                         |                |       |                 |                      |
-| d    |                                                   |                |                                      |                         |                |       |                 |                      |
-| e    |                                                   |                |                                      |                         |                |       |                 |                      |
-| f    |                                                   |                |                                      |                         |                |       |                 |                      |
+|      | 8                                                 | 9              | a                                    | b                       | c              | d     | e                    | f                   |
+| ---- | :------------------------------------------------ | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | -------------------- | :------------------ |
+| 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`             | `swd r1`            |
+| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`            |                     |
+| 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]`      |                     |
+| 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                      |                     |
+| 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       | `iena r1, r2`        | `swm r1, r2`        |
+| 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       | `iena r1, imm`       | `swm r1, imm`       |
+| 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       | `iena r1, mem[addr]` | `swm r1, mem[addr]` |
+| 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                      |                     |
+| 8    |                                                   |                |                                      |                         |                |       |                      |                     |
+| 9    |                                                   |                |                                      |                         |                |       |                      |                     |
+| a    |                                                   |                |                                      |                         |                |       |                      |                     |
+| b    |                                                   |                |                                      |                         |                |       |                      |                     |
+| c    |                                                   |                |                                      |                         |                |       |                      |                     |
+| d    |                                                   |                |                                      |                         |                |       |                      |                     |
+| e    |                                                   |                |                                      |                         |                |       |                      |                     |
+| f    |                                                   |                |                                      |                         |                |       |                      |                     |
 
 ## Instruction Detail
 
@@ -849,25 +854,69 @@ This command output data to the peripherals.  The IO address is one 8 bits (byte
 
 Performs 2-complement addition.  This does not support carry.
 
-| Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
-| ------------------------ | ----------------- | ---- | ------------ | --------------------- |
-| add r1, r2               | Register/Register | 08   | 5            | R1 + R2 → R1          |
-| add r1, r2, Imm          | Immediate         | 09   | 5            | R1 + R2 + Imm → R1    |
-| add r1, Imm              | Immediate         | 09x0 | 5            | R1 + Imm → R1         |
-| add  r1, mem[address]    | Absolute          | 0a   | 7            | R1 + mem(imm) → R1    |
-| add r1, r2, mem[address] | Index             | 0b   | 7            | R1 + mem(r2+imm) → R1 |
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| add r1, r2                | Register/Register | 08   | 5            | R1 + R2 → R1          |
+| add r1, r2, Imm           | Immediate         | 09   | 5            | R2 + Imm → R1         |
+| add r1, Imm               | Immediate         | 09x0 | 5            | R1 + Imm → R1         |
+| add  r1, mem[address]     | Absolute          | 0a   | 7            | R1 + mem(imm) → R1    |
+| add r1, r2, mem[address]  | Index             | 0b   | 7            | R1 + mem(r2+imm) → R1 |
+| uadd r1, r2               | Register/Register | 0c   | 5            | R1 + R2 → R1          |
+| uadd r1, r2, Imm          | Immediate         | 0d   | 5            | R2 + Imm → R1         |
+| uadd r1, Imm              | Immediate         | 0dx0 | 5            | R1 + Imm → R1         |
+| uadd  r1, mem[address]    | Absolute          | 0e   | 7            | R1 + mem(imm) → R1    |
+| uadd r1, r2, mem[address] | Index             | 0f   | 7            | R1 + mem(r2+imm) → R1 |
 
 ### Subtract
 
-Performs a 2-complement subtraction.  This does not support overflow and carry.
+Performs a sub is 2-complement subtraction, and usub is unsigned subtraction.  This does not support overflow and carry.
 
-| Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
-| ------------------------ | ----------------- | ---- | ------------ | --------------------- |
-| sub r1, r2               | Register/Register | 18   | 5            | R1 + R2 → R1          |
-| sub r1, r2, Imm          | Immediate         | 19   | 5            | R1 + R2 + Imm → R1    |
-| sub r1, Imm              | Immediate         | 19x0 | 5            | R1 + Imm → R1         |
-| sub r1, mem[address]     | Absolute          | 1a   | 7            | R1 + mem(imm) → R1    |
-| sub r1, r2, mem[address] | Index             | 1b   | 7            | R1 + mem(r2+imm) → R1 |
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| sub r1, r2                | Register/Register | 18   | 5            | R1 - R2 → R1          |
+| sub r1, r2, Imm           | Immediate         | 19   | 5            | R2 - Imm → R1         |
+| sub r1, Imm               | Immediate         | 19x0 | 5            | R1 - Imm → R1         |
+| sub r1, mem[address]      | Absolute          | 1a   | 7            | R1 - mem(imm) → R1    |
+| sub r1, r2, mem[address]  | Index             | 1b   | 7            | R1 - mem(r2+imm) → R1 |
+| usub r1, r2               | Register/Register | 1c   | 5            | R1 - R2 → R1          |
+| usub r1, r2, Imm          | Immediate         | 1d   | 5            | R2 - Imm → R1         |
+| usub r1, Imm              | Immediate         | 1dx0 | 5            | R1 - Imm → R1         |
+| usub r1, mem[address]     | Absolute          | 1e   | 7            | R1 - mem(imm) → R1    |
+| usub r1, r2, mem[address] | Index             | 1f   | 7            | R1 - mem(r2+imm) → R1 |
+
+### Multiply
+
+Performs Integer Multiplication. This operation takes 6 clock cycles. The CPU waits to complete the operation only when the results are required for another operation.
+
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| mul r1, r2                | Register/Register | 28   | 6            | R1 * R2 → R1          |
+| mul r1, r2, Imm           | Immediate         | 29   | 6            | R2 * Imm → R1         |
+| mul r1, Imm               | Immediate         | 29x0 | 6            | R1 * Imm → R1         |
+| mul  r1, mem[address]     | Absolute          | 2a   | 6            | R1 * mem(imm) → R1    |
+| mul r1, r2, mem[address]  | Index             | 2b   | 6            | R1 * mem(r2+imm) → R1 |
+| umul r1, r2               | Register/Register | 2c   | 6            | R1 * R2 → R1          |
+| umul r1, r2, Imm          | Immediate         | 2d   | 6            | R2 * Imm → R1         |
+| umul r1, Imm              | Immediate         | 2dx0 | 6            | R1 * Imm → R1         |
+| umul  r1, mem[address]    | Absolute          | 2e   | 6            | R1 * mem(imm) → R1    |
+| umul r1, r2, mem[address] | Index             | 2f   | 6            | R1 * mem(r2+imm) → R1 |
+
+### Divide
+
+Performs Divide.  This operation takes 33 clock cycles.  The CPU waits to complete the operation only when the results are required for another operation.
+
+| Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
+| ------------------------- | ----------------- | ---- | ------------ | --------------------- |
+| div r1, r2                | Register/Register | 38   | 33           | R1 / R2 → R1         |
+| div r1, r2, Imm           | Immediate         | 39   | 33           | R2 / Imm → R1        |
+| div r1, Imm               | Immediate         | 39x0 | 33           | R1 / Imm → R1        |
+| div r1, mem[address]      | Absolute          | 3a   | 33           | R1 / mem(imm) → R1   |
+| div r1, r2, mem[address]  | Index             | 3b   | 33           | R1 / mem(r2+imm) → R1 |
+| udiv r1, r2               | Register/Register | 3c   | 33           | R1 / R2 → R1         |
+| udiv r1, r2, Imm          | Immediate         | 3d   | 33           | R2 / Imm → R1        |
+| udiv r1, Imm              | Immediate         | 3dx0 | 33           | R1 / Imm → R1        |
+| udiv r1, mem[address]     | Absolute          | 3e   | 33           | R1 / mem(imm) → R1   |
+| udiv r1, r2, mem[address] | Index             | 3f   | 33            | R1 / mem(r2+imm) → R1 |
 
 ### And/Nand
 
@@ -875,16 +924,16 @@ Performs the logical "and" or "nand" to the accumulator.
 
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------- | ----------------- | ---- | ------------ | --------------------- |
-| and r1, r2                | Register/Register | 28   | 5            | R1 ∧ mem(imm) → R1    |
-| and r1, r2, Imm           | Immediate         | 29   | 5            | R1 ∧ R2 ∧ Imm → R1    |
-| and r1, Imm               | Immediate         | 29x0 | 5            | R1 ∧ Imm → R1         |
-| and r1, mem[address]      | Absolute          | 2a   | 7            | R1 ∧ mem(imm) → R1    |
-| and r1, r2, mem[address]  | Index             | 2b   | 7            | R1 ∧ mem(r2+imm) → R1 |
-| nand r1, r2               | Register/Register | 2c   | 5            | R1 ⊼ mem(imm) → R1    |
-| nand r1, r2, Imm          | Immediate         | 2d   | 5            | R1 ⊼ R2 ⊼ Imm → R1    |
-| nand r1, Imm              | Immediate         | 2dx0 | 5            | R1 ⊼ Imm → R1         |
-| nand r1, mem[address]     | Absolute          | 2e   | 7            | R1 ⊼ mem(imm) → R1    |
-| nand r1, r2, mem[address] | Index             | 2f   | 7            | R1 ⊼ mem(r2+imm) → R1 |
+| and r1, r2                | Register/Register | 48   | 5            | R1 ∧ mem(imm) → R1    |
+| and r1, r2, Imm           | Immediate         | 49   | 5            | R2 ∧ Imm → R1         |
+| and r1, Imm               | Immediate         | 49x0 | 5            | R1 ∧ Imm → R1         |
+| and r1, mem[address]      | Absolute          | 4a   | 7            | R1 ∧ mem(imm) → R1    |
+| and r1, r2, mem[address]  | Index             | 4b   | 7            | R1 ∧ mem(r2+imm) → R1 |
+| nand r1, r2               | Register/Register | 4c   | 5            | R1 ⊼ mem(imm) → R1    |
+| nand r1, r2, Imm          | Immediate         | 4d   | 5            | R2 ⊼ Imm → R1         |
+| nand r1, Imm              | Immediate         | 4dx0 | 5            | R1 ⊼ Imm → R1         |
+| nand r1, mem[address]     | Absolute          | 4e   | 7            | R1 ⊼ mem(imm) → R1    |
+| nand r1, r2, mem[address] | Index             | 4f   | 7            | R1 ⊼ mem(r2+imm) → R1 |
 
 ### Or/Nor
 
@@ -892,16 +941,16 @@ Performs the logical "or" or "nor" to the accumulator.
 
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
-| or r1, r2                | Register/Register | 38   | 5            | R1 ∨ mem(imm) → R1    |
-| or r1, r2, Imm           | Immediate         | 39   | 5            | R1 ∨ R2 ∨ Imm → R1    |
-| or r1, Imm               | Immediate         | 39x0 | 5            | R1 ∨ Imm → R1         |
-| or r1, mem[address]      | Absolute          | 3a   | 7            | R1 ∨ mem(imm) → R1    |
-| or r1, r2, mem[address]  | Index             | 3b   | 7            | R1 ∨ mem(r2+imm) → R1 |
-| nor r1, r2               | Register/Register | 3c   | 5            | R1 ⊽ mem(imm) → R1    |
-| nor r1, r2, Imm          | Immediate         | 3d   | 5            | R1 ⊽ R2 ⊽ Imm → R1    |
-| nor r1, Imm              | Immediate         | 3dx0 | 5            | R1 ⊽ Imm → R1         |
-| nor r1, mem[address]     | Absolute          | 3e   | 7            | R1 ⊽ mem(imm) → R1    |
-| nor r1, r2, mem[address] | Index             | 3f   | 7            | R1 ⊽ mem(r2+imm) → R1 |
+| or r1, r2                | Register/Register | 58   | 5            | R1 ∨ mem(imm) → R1    |
+| or r1, r2, Imm           | Immediate         | 59   | 5            | R2 ∨ Imm → R1         |
+| or r1, Imm               | Immediate         | 59x0 | 5            | R1 ∨ Imm → R1         |
+| or r1, mem[address]      | Absolute          | 5a   | 7            | R1 ∨ mem(imm) → R1    |
+| or r1, r2, mem[address]  | Index             | 5b   | 7            | R1 ∨ mem(r2+imm) → R1 |
+| nor r1, r2               | Register/Register | 5c   | 5            | R1 ⊽ mem(imm) → R1    |
+| nor r1, r2, Imm          | Immediate         | 5d   | 5            | R2 ⊽ Imm → R1         |
+| nor r1, Imm              | Immediate         | 5dx0 | 5            | R1 ⊽ Imm → R1         |
+| nor r1, mem[address]     | Absolute          | 5e   | 7            | R1 ⊽ mem(imm) → R1    |
+| nor r1, r2, mem[address] | Index             | 5f   | 7            | R1 ⊽ mem(r2+imm) → R1 |
 
 ### Xor/Xnor
 
@@ -909,16 +958,16 @@ Performs the logical "xor" or "xnor" to the accumulator.
 
 | Assembly                  | Addressing        | Code | Clock Cycles | Operation              |
 | ------------------------- | ----------------- | ---- | ------------ | ---------------------- |
-| xor r1, r2                | Register/Register | 58   | 5            | R1 ⊕ mem(imm) → R1     |
-| xor r1, r2, Imm           | Immediate         | 59   | 5            | R1 ⊕ R2 ⊕ Imm → R1     |
-| xor r1, Imm               | Immediate         | 59x0 | 5            | R1 ⊕ Imm → R1          |
-| xor r1, mem[address]      | Absolute          | 5a   | 7            | R1 ⊕ mem(imm) → R1     |
-| xor r1, r2, mem[address]  | Index             | 5b   | 7            | R1 ⊕ mem(r2+imm) → R1  |
-| xnor r1, r2               | Register/Register | 5c   | 5            | R1 ⊙ mem(imm) → R1     |
-| xnor r1, r2, Imm          | Immediate         | 5d   | 5            | R1 ⊙ R2 ⊙ Imm → R1     |
-| xnor r1, Imm              | Immediate         | 5dx0 | 5            | R1 ⊙ Imm → R1          |
-| xnor r1, mem[address]     | Absolute          | 5e   | 7            | R1 ⊙ mem(imm) → R1     |
-| xnor r1, r2, mem[address] | Index             | 5f   | 7            | R1 ⊙  mem(r2+imm) → R1 |
+| xor r1, r2                | Register/Register | 68   | 5            | R1 ⊕ mem(imm) → R1     |
+| xor r1, r2, Imm           | Immediate         | 69   | 5            | R2 ⊕ Imm → R1          |
+| xor r1, Imm               | Immediate         | 69x0 | 5            | R1 ⊕ Imm → R1          |
+| xor r1, mem[address]      | Absolute          | 6a   | 7            | R1 ⊕ mem(imm) → R1     |
+| xor r1, r2, mem[address]  | Index             | 6b   | 7            | R1 ⊕ mem(r2+imm) → R1  |
+| xnor r1, r2               | Register/Register | 6c   | 5            | R1 ⊙ mem(imm) → R1     |
+| xnor r1, r2, Imm          | Immediate         | 6d   | 5            | R2 ⊙ Imm → R1          |
+| xnor r1, Imm              | Immediate         | 6dx0 | 5            | R1 ⊙ Imm → R1          |
+| xnor r1, mem[address]     | Absolute          | 6e   | 7            | R1 ⊙ mem(imm) → R1     |
+| xnor r1, r2, mem[address] | Index             | 6f   | 7            | R1 ⊙  mem(r2+imm) → R1 |
 
 ### Shift Left
 
@@ -926,11 +975,11 @@ Performs the shift left logical to the accumulator.
 
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
-| sll r1, r2               | Register/Register | 68   | 5            | R1《 mem(imm) → R1    |
-| sll r1, r2, Imm          | Immediate         | 69   | 5            | R1《 R2《 Imm → R1    |
-| sll r1, Imm              | Immediate         | 69x0 | 5            | R1《 Imm → R1         |
-| sll r1, mem[address]     | Absolute          | 6a   | 7            | R1《 mem(imm) → R1    |
-| sll r1, r2, mem[address] | Index             | 6b   | 7            | R1《 mem(r2+imm) → R1 |
+| sll r1, r2               | Register/Register | 78   | 5            | R1《 mem(imm) → R1    |
+| sll r1, r2, Imm          | Immediate         | 79   | 5            | R2《 Imm → R1         |
+| sll r1, Imm              | Immediate         | 79x0 | 5            | R1《 Imm → R1         |
+| sll r1, mem[address]     | Absolute          | 7a   | 7            | R1《 mem(imm) → R1    |
+| sll r1, r2, mem[address] | Index             | 7b   | 7            | R1《 mem(r2+imm) → R1 |
 
 ### Shift Right
 
@@ -938,11 +987,11 @@ Performs the shift right logical to the accumulator.
 
 | Assembly                 | Addressing        | Code | Clock Cycles | Operation             |
 | ------------------------ | ----------------- | ---- | ------------ | --------------------- |
-| srl r1, r2               | Register/Register | 78   | 5            | R1 》mem(imm) → R1    |
-| srl r1, r2, Imm          | Immediate         | 79   | 5            | R1 》R2 》Imm → R1    |
-| srl r1, Imm              | Immediate         | 79x0 | 5            | R1 》Imm → R1         |
-| srl r1, mem[address]     | Absolute          | 7a   | 7            | R1 》mem(imm) → R1    |
-| srl r1, r2, mem[address] | Index             | 7b   | 7            | R1 》mem(r2+imm) → R1 |
+| srl r1, r2               | Register/Register | 7c   | 5            | R1 》mem(imm) → R1    |
+| srl r1, r2, Imm          | Immediate         | 7d   | 5            | R2 》Imm → R1         |
+| srl r1, Imm              | Immediate         | 7dx0 | 5            | R1 》Imm → R1         |
+| srl r1, mem[address]     | Absolute          | 7e   | 7            | R1 》mem(imm) → R1    |
+| srl r1, r2, mem[address] | Index             | 7f   | 7            | R1 》mem(r2+imm) → R1 |
 
 ### Wait / Timer
 
@@ -980,9 +1029,9 @@ For the async (timer) the counter is going the regular cycle continues.  When th
 
 | Assembly              | Addressing        | Code | Clock Cycles | Operation                                                    |
 | --------------------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
-| iena r1, r2           | Register/Register | f0   | 5            | R1 – IR Stack Pointer,  <br />R2 → Interrupts Enable Mask    |
-| iena r1, Imm          | Immediate         | f1   | 5            | R1 –IR Stack Pointer,  <br />Imm → Interrupts Enable Mask(Low 16 bits) |
-| iena r1, mem[address] | Absolute          | f2   | 7            | R1 – IR Stack Pointer,  <br />mem(address) → Interrupts Enable Mask |
+| iena r1, r2           | Register/Register | e4   | 5            | R1 – IR Stack Pointer,  <br />R2 → Interrupts Enable Mask    |
+| iena r1, Imm          | Immediate         | e5   | 5            | R1 –IR Stack Pointer,  <br />Imm → Interrupts Enable Mask(Low 16 bits) |
+| iena r1, mem[address] | Absolute          | e6   | 7            | R1 – IR Stack Pointer,  <br />mem(address) → Interrupts Enable Mask |
 
 #### Software Interrupt
 
@@ -1053,6 +1102,29 @@ Return from interrupt processing:
 | EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
 | MEMW      | DoutB → IntEna                           |
 
+#### Special Interrupts
+
+| Interrupt Number | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| 0                | Restart -- Restart the computer like when powering up.  Registers are set to 0.  CPU state is set as startup.  The CPU starts at the address identified in address 0.  This interrupt is not maskable. |
+| 1                | Status Trap -- This interrupt will happen when the CPU status word is "and" with the CPU Interrupt Status Mask. |
+
+#### Status Word
+
+| Bit   | Description                    |
+| ----- | ------------------------------ |
+| 0     | Illegal Operation              |
+| 1     | Illegal Address                |
+| 2     | Integer Overflow/Underflow     |
+| 3     | Integer Divide by Zero         |
+|       |                                |
+|       |                                |
+| 16    | IO Change to not Busy          |
+| 17    | IO Error                       |
+| 24-31 | IO Address Creating Interrupts |
+
+
+
 ## Serial Device
 
 The Serial Device is a basic UART that runs through the Serial/Programming interface for the Arty device.  This device uses the AXI UART Lite v2.0 IP provided by Vivado.  The interface is AXI-Lite, the first time I used this interface, and needed additional time to understand it.  It was hard to find documentation and examples of this IP.  The example Vivado uses is limited and can only be read from the serial.  I'm not describing the AXI-Lite protocol.
@@ -1120,21 +1192,27 @@ Wishbone/UART interconnect where UART is the master and the Computer.vhd is the 
 
 
 
-Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (bit 0) and TGA_O (bits 1-7) signals.
+Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (CMD bit 0) and TGA_O (CMD bits 1-7) signals.  Address is 16 bits and Data is 32 bits.
 
-| CMD           | WE_O | Address                 | Data                                    | Description                 |
-| ------------- | ---- | ----------------------- | --------------------------------------- | --------------------------- |
-| 0 = Status    | R    | 0 (Status)              | 0 = Running<br />1 = Stopped            |                             |
-|               |      | 1 = Program Counter     | The current program counter.            |                             |
-|               |      | 2 = Instruction         | Next instruction which will be executed |                             |
-|               |      | 3 = Cycles              | Number of Cycles from the last reset.   |                             |
-| 1 = Step      | W    | 0                       | 0                                       |                             |
-| 2 = Continue  | W    | 0                       | 0                                       |                             |
-| 3 = Break     | W    | 0                       | 0                                       |                             |
-| 4 = Break At  | W    | 1-4 = Break At Location | Break At Address                        |                             |
-| 5= Break When | W    | Register (0-15)         | Value                                   | >15 will disable the break. |
-| 8 = Register  | RW   | Register Number (0-15)  | Register Content                        | Write Not Implemented       |
-| 16 = Memory   | RW   | Memory Address          | Memory Data                             | Not Implemented             |
+| CMD           | WE_O | Address (16 bits)                                            | Data (32 bits)                              | Description           |
+| ------------- | ---- | ------------------------------------------------------------ | ------------------------------------------- | --------------------- |
+| 0 = Status    | R    | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                       |
+|               |      | 1 = Program Counter                                          | The current program counter.                |                       |
+|               |      | 2 = Instruction                                              | The next instruction which will be executed |                       |
+|               |      | 3 = Cycles                                                   | Number of Cycles from the last reset.       |                       |
+|               |      | 4 = Interrupt Word                                           |                                             |                       |
+|               |      | 5 = Interrupt Mask Word                                      |                                             |                       |
+|               |      | 6 = Status Word                                              |                                             |                       |
+|               |      | 7 = Status Mask Word                                         |                                             |                       |
+|               |      | 8 = Memory Argument                                          |                                             |                       |
+|               |      |                                                              |                                             |                       |
+| 1 = Step      | W    | 0                                                            | 0                                           |                       |
+| 2 = Continue  | W    | 0                                                            | 0                                           |                       |
+| 3 = Break     | W    | 0                                                            | 0                                           |                       |
+| 4 = Break At  | W    | 1-4 = Break At Location                                      | Break At Address                            |                       |
+| 5= Break When | W    | bits 0-3: Register (0-15)<br />bit 4: X<br />bit 5-7: Operation:<br />0 = Nothing, 1 = Equal, 2 = Less than, 3= Greater than, 4 = Change, 5 = Not Equal, 6 = Greater Equal, 7 = Less Equal | Value                                       |                       |
+| 8 = Register  | RW   | Register Number (0-15)                                       | Register Content                            | Write Not Implemented |
+| 16 = Memory   | RW   | Memory Address                                               | Memory Data                                 | Not Implemented       |
 
 ### Serial  Protocol
 
@@ -1150,3 +1228,62 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 * Data In - 
 * Data Out - 
 * Response - 
+
+## GCC Backend Processing
+
+[ChatGPT Dialog](https://chatgpt.com/share/675098aa-4a90-8000-8823-883505618efd)
+
+### GCC’s Register Transfer Language (RTL)
+
+[Instruction Attributes](https://gcc.gnu.org/onlinedocs/gccint/machine-descriptions/instruction-attributes.html)
+
+[GCC Internals Standard Names for RTL Patterns](https://gcc.gnu.org/onlinedocs/gccint/Standard-Names.html)
+
+## Other Information
+
+### Synthesis
+
+update_compile_order -fileset sources_1
+reset_run synth_1
+launch_runs synth_1 -jobs 16
+
+### Implementation
+
+launch_runs impl_1 -jobs 16
+
+### Create Bitstream
+
+launch_runs impl_1 -to_step write_bitstream -jobs 16
+
+### Reset Memory IP
+
+reset_target all [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
+export_ip_user_files -of_objects  [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -sync -no_script -force -quiet
+delete_ip_run [get_files -of_objects [get_fileset cpumemory] D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
+
+### Generate Memory IP
+
+generate_target all [get_files  
+
+```
+generate_target all [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
+
+export_ip_user_files -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -no_script -sync -force -quiet
+
+create_ip_run [get_files -of_objects [get_fileset sources_1] D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
+
+launch_runs cpumemory_synth_1 -jobs 16
+
+wait_on_run cpumemory_synth_1
+
+export_simulation -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -directory D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/sim_scripts -ip_user_files_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files -ipstatic_source_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/ipstatic -lib_map_path [list {modelsim=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/modelsim} {questa=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/questa} {riviera=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/riviera} {activehdl=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/activehdl}] -use_ip_compiled_libs -force -quiet
+```
+
+
+
+add_condition -name stop06d -radix hex {/SimCPU/cpuCUT/ProgramCounter == 06d} {stop}
+
+add_condition -name stopEXE {/SimCPU/cpuCUT/fsm_inst_cycle_n != EXECUTE} {stop}
+
+
+

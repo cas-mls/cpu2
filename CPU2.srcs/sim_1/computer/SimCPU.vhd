@@ -34,8 +34,8 @@ use xil_defaultlib.Utilities.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+library UNISIM;
+use UNISIM.VComponents.all;
 
 entity SimCPU is
     --  Port ( );
@@ -65,8 +65,16 @@ architecture Behavioral of SimCPU is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
-            DEBUGOUT    : out DEBUGOUTTYPE
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')), 
+                Break => '0', 
+                Step => '0', 
+                Continue => '0',
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING);
+                DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
 
@@ -170,8 +178,17 @@ architecture Behavioral of SimCPU is
     signal r_xtr         : STD_LOGIC_VECTOR(7 downto 0);
 
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := (DebugMode => '0',BreakPoints => (others => (others => '0')), Break => '0', Step => '0', Continue => '0');
-    signal DebugOut     : DEBUGOUTTYPE;
+    -- Debug Items
+    signal DebugIn      : DEBUGINTYPE := 
+    (DebugMode => '0',
+    BreakPoints => (others => (others => '0')), 
+    Break => '0', 
+    Step => '0', 
+    Continue => '0',
+    BWhenReg => 0,
+    BWhenValue => (others => '0'),
+    BWhenOp => REG_NOTHING);
+signal DebugOut     : DEBUGOUTTYPE;
 
     procedure InitRamFromFile
     (RamFileName    : in  STRING;
@@ -258,8 +275,8 @@ port map(
     MEM_ADDRB     => MEM_ADDRB,
     MEM_DINB      => MEM_DINB,
     MEM_DOUTB     => MEM_DOUTB,
-    DEBUGIN     => DebugIn,
-    DEBUGOUT    => DebugOut
+    DEBUGIN       => DebugIn,
+    DEBUGOUT      => DebugOut
 );
 
 uartCUT : UartDevice
@@ -355,19 +372,9 @@ begin
 
         while true loop
             wait until rising_edge (clk);
-            if ioaddr = X"01" and IORena = '1' then
-                IORdata  <= echoIO;
-                IOStatus <= X"00000000";
-            elsif ioaddr = X"01" and IOWena = '1' then
-                echoIO   <= IOWdata;
-                IOStatus <= X"00000000";
-            elsif ioaddr = X"02" and IOWena = '1' then
-                IOStatus <= X"00000010";
-            elsif ioaddr = X"05" and IOWena = '1' then
-                interrupt(2) <= IOWdata(0);
 
             -- UART Device Interface
-            elsif ioaddr = X"0c"
+            if ioaddr = X"0c"
                 and IOWena = '1'
                 and IOStatusReq = '1'
             then
@@ -392,33 +399,9 @@ begin
                 TxAvail <= '0';
                 -- IOStatus <= X"00000000";
             end if;
+
         end loop;
     end if;
-
-end process;
-
-debug : process
-begin
-    wait for 1us;
-    DebugIn.DebugMode <= '1';
-    DebugIn.BreakPoints(0) <= x"063";
-    wait for 5us;
-    wait until rising_edge (clk);
-    DebugIn.Break <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Break <= '0';
-
-    wait for 1us;
-    wait until rising_edge (clk);
-    DebugIn.Step <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Step <= '0';
-
-    wait for 5us;
-    wait until rising_edge (clk);
-    DebugIn.Continue <= '1';
-    wait until rising_edge (clk);
-    DebugIn.Continue <= '0';
 
 end process;
 

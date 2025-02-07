@@ -1,1 +1,0 @@
---incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "secureip" --snapshot "SimCPU_func_synth" "xil_defaultlib.SimCPU" -log "elaborate.log" 

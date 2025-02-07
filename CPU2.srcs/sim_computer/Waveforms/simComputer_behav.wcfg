@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="2,593.351666 us"></ZoomStartTime>
-      <ZoomEndTime time="3,623.351667 us"></ZoomEndTime>
-      <Cursor1Time time="3,451.685000 us"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="759.501 ns"></ZoomEndTime>
+      <Cursor1Time time="515.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="241"></NameColumnWidth>
+      <NameColumnWidth column_width="231"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="18" />
+   <WVObjectSize size="28" />
    <wvobject fp_name="/simComputer/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
       <obj_property name="ObjectShortName">CLK</obj_property>
@@ -30,10 +30,6 @@
    <wvobject fp_name="/simComputer/RST" type="logic">
       <obj_property name="ElementShortName">RST</obj_property>
       <obj_property name="ObjectShortName">RST</obj_property>
-   </wvobject>
-   <wvobject fp_name="/simComputer/computer_UUT/cpu1/fsm_inst_cycle_p" type="other">
-      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
-      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
    </wvobject>
    <wvobject fp_name="/simComputer/UART_RXD" type="logic">
       <obj_property name="ElementShortName">UART_RXD</obj_property>
@@ -120,5 +116,53 @@
          <obj_property name="ElementShortName">StepWait</obj_property>
          <obj_property name="ObjectShortName">StepWait</obj_property>
       </wvobject>
+      <wvobject fp_name="/simComputer/computer_UUT/cpu1/fsm_inst_cycle_p" type="other">
+         <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+         <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/fsm_inst_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/Interrupt_enty/fsm_interrupt_cycle_p_local" type="other">
+      <obj_property name="ElementShortName">fsm_interrupt_cycle_p_local</obj_property>
+      <obj_property name="ObjectShortName">fsm_interrupt_cycle_p_local</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/MEM_ENA" type="logic">
+      <obj_property name="ElementShortName">MEM_ENA</obj_property>
+      <obj_property name="ObjectShortName">MEM_ENA</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/MEM_ADDRA" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/MEM_DOUTA" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/ProgramCounter" type="array">
+      <obj_property name="ElementShortName">ProgramCounter[11:0]</obj_property>
+      <obj_property name="ObjectShortName">ProgramCounter[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/DebugStart" type="logic">
+      <obj_property name="ElementShortName">DebugStart</obj_property>
+      <obj_property name="ObjectShortName">DebugStart</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/DebugDisablePipline" type="logic">
+      <obj_property name="ElementShortName">DebugDisablePipline</obj_property>
+      <obj_property name="ObjectShortName">DebugDisablePipline</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/ProgCounterLast" type="array">
+      <obj_property name="ElementShortName">ProgCounterLast[11:0]</obj_property>
+      <obj_property name="ObjectShortName">ProgCounterLast[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/ProgramCounter" type="array">
+      <obj_property name="ElementShortName">ProgramCounter[11:0]</obj_property>
+      <obj_property name="ObjectShortName">ProgramCounter[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/cpu1/DEBUGIN.BreakPoints" type="array">
+      <obj_property name="ElementShortName">.BreakPoints[3:0][11:0]</obj_property>
+      <obj_property name="ObjectShortName">.BreakPoints[3:0][11:0]</obj_property>
    </wvobject>
 </wave_config>

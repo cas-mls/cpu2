@@ -24,13 +24,13 @@ WaitReg = 3;
 #addr 32
 START:
     ld r SP1,  Stack1
-    ld r CountReg, 0 ; initialize the count
+    ld r CountReg, #0 ; initialize the count
     ld r MaxCountReg, MaxCount
     ld r WaitReg, Wait
 LOOP:
     wio r CountReg, LedIo   ; Display LED count
     wait r WaitReg, WaitRes ; Wait 1/2 second
-    add r CountReg, 1
+    add r CountReg, #1
     blt r CountReg, r MaxCountReg, LOOP
-    ldl  r CountReg, 0
+    ldl  r CountReg, #0
     jmp LOOP

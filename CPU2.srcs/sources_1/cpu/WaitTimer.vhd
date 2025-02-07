@@ -178,6 +178,7 @@ begin
                 timerReg <= 0;
                 timerAlarm <= '0';
                 timerRun <= '0';
+                timerInt <= (others => '0');
 
             elsif fsm_inst_cycle_p = DECODE_S
                 then
@@ -191,11 +192,12 @@ begin
                 ffiregop2 <= iregop2;
                 ffimmop <= immop;
                 -- Save the values of the Register Data.  Again this ifor timing operations.
-                ireg1value <= cpuRegs(iregop1);
-                ireg2value <= cpuRegs(iregop2);
+                ireg1value <= cpuRegs(iregop1).Value;
+                ireg2value <= cpuRegs(iregop2).Value;
 
             elsif fsm_inst_cycle_p = EXECUTE_S
-                then
+            then
+
                 if ffopcode = oWAIT
                     then
                     if ffmemop = REGREG
@@ -219,7 +221,7 @@ begin
                             if ffiregop2 = 0 then
                                 if waitRunLocal = '0' then
                                     waitReg <= ffiregop1;
-                                    waitTime <= unsigned(cpuRegs(ffiregop1));
+                                    waitTime <= unsigned(cpuRegs(ffiregop1).Value);
                                     waitResolution <= unsigned(ffimmop);
                                     waitResCounter <= (others => '0');
                                     waitCount <= (others => '0');
@@ -228,8 +230,8 @@ begin
                                 end if;
                             else
                                 timerreg <= ffiregop1;
-                                timerTime <= unsigned(cpuRegs(ffiregop1));
-                                timerInt <= unsigned(cpuRegs(ffiregop2)(4 downto 0));
+                                timerTime <= unsigned(cpuRegs(ffiregop1).Value);
+                                timerInt <= unsigned(cpuRegs(ffiregop2).Value(4 downto 0));
                                 timerResolution <= unsigned(ffimmop);
                                 timerAlarm <= '0';
                                 timerRun <= '1';

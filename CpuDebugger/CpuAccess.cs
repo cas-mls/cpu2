@@ -9,17 +9,29 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace CpuDebugger
 {
-    enum CmdStatusAddr { Status = 0, ProgCounter, Instruction, Cycles };
+    enum CmdStatusAddr { 
+            Status = 0, 
+            ProgCounter, 
+            Instruction, 
+            Cycles,
+            Interrupt,
+            InterruptMask,
+            SwStatus,
+            StatusMask,
+            MemoryArg
+    };
 
     enum DebugCmd { 
-            Status      = 0,
-            Step        = 1,
-            Continue    = 2,
-            Break       = 3,
-            BreakAt     = 4,
-            BreakWhen   = 5,
-            RWRegisters = 8,
-            RWMemory    = 16 }
+            Status          = 0,
+            Step            = 1,
+            Continue        = 2,
+            Break           = 3,
+            BreakAt         = 4,
+            BreakWhen       = 5,
+            RWRegisters     = 8,
+            RWMemory        = 16 }
+
+
 
     internal class CpuAccess
     {
@@ -35,6 +47,7 @@ namespace CpuDebugger
             port = new SerialPort();
             StatusIsRunning = false ;
         }
+
 
         internal void Open(string PortName)
         {
@@ -68,6 +81,26 @@ namespace CpuDebugger
                     port,
                     (byte)DebugCmd.Status,
                     (ushort)CmdStatusAddr.Cycles);
+                cpuState.MemoryArg = SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.Status,
+                    (ushort)CmdStatusAddr.MemoryArg);
+                cpuState.Interrupt = SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.Status,
+                    (ushort)CmdStatusAddr.Interrupt);
+                cpuState.InterruptMask = SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.Status,
+                    (ushort)CmdStatusAddr.InterruptMask);
+                cpuState.StatusRegister = SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.Status,
+                    (ushort)CmdStatusAddr.SwStatus);
+                cpuState.StatusMask = SerialWishbone.read(
+                    port,
+                    (byte)DebugCmd.Status,
+                    (ushort)CmdStatusAddr.StatusMask);
                 GetRegisters();
             }
         }
@@ -183,18 +216,11 @@ namespace CpuDebugger
             if (IsConnected
                 && cpuState.ExecutationState == Statuses.stopped)
             {
-                if (breakData.BreakWhen.Valid)
-                    SerialWishbone.write(
-                        port,
-                        (byte)DebugCmd.BreakWhen,
-                        (ushort)breakData.BreakWhen.Register,
-                        (uint)breakData.BreakWhen.Value);
-                else
-                    SerialWishbone.write(
-                        port,
-                        (byte)DebugCmd.BreakWhen,
-                        (ushort)16,
-                        (uint)0);
+                SerialWishbone.write(
+                    port,
+                    (byte)DebugCmd.BreakWhen,
+                    (ushort)((ushort)breakData.BreakWhen.Operation << 5 | (ushort)breakData.BreakWhen.Register),
+                    (uint)breakData.BreakWhen.Value);
             }
         }
     }

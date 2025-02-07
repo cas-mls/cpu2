@@ -27,10 +27,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
+-- library UNISIM;
+-- use UNISIM.VComponents.all;
 
 package Utilities is
+
+    -- Constants
+    constant regOpSizeBits : integer := 4;
+    constant regOpMax  : integer := 2**regOpSizeBits-1;
 
     type CYCLETYPE_FSM is (
         RESET_STATE_S,  -- State 0
@@ -42,13 +46,15 @@ package Utilities is
         MEMFETCH2_S,    -- State 6
         EXECUTE_S,      -- State 7
         CLEANUP_S,      -- State 8
-        WAITS_S         -- State 9
+        WAITS_S,        -- State 9
+        DEBUGSTABLEIZE_S,-- State 10
+        DEBUGWAIT_S     -- State 11
         );
     
 
     type INTERRUPT_FSM is (
         INTRWAIT_S,     -- State 0
-        CYCLEWAIT_S,    -- State 1
+        DUMMY_S,        -- State 1
         SAVEENA_S,      -- State 2
         DISABLEINT_S,   -- State 3
         JMPADDR_S,      -- State 4
@@ -61,11 +67,6 @@ package Utilities is
     -- Program Counter
     subtype PCTYPE is unsigned(11 downto 0);
 
-    -- Register Information
-    constant regOpSizeBits : integer := 4;
-    constant regOpMax  : integer := 2**regOpSizeBits-1;
-    type REG_TYPE is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
-
     -- Instruction Decode Types
     subtype INSTRUCTIONTYPE is STD_LOGIC_VECTOR (31 downto 0);
     subtype OPCODETYPE is STD_LOGIC_VECTOR (4 downto 0);
@@ -73,7 +74,21 @@ package Utilities is
     subtype REGTYPE is  STD_LOGIC_VECTOR (regOpSizeBits-1 downto 0);
     subtype IMMTYPE is  STD_LOGIC_VECTOR (15 downto 0);
 
+    -- Register Information
+    type REG_TYPE_REC is record
+        Value       : std_logic_vector(31 downto 0);
+        OpCode      : OPCODETYPE;   -- Instruction OpCode
+        Flag        : STD_LOGIC;    -- Instruction Flag
+        Countdown   : integer;      -- Countdown Timer.
+    end record;
+
+    type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;
+
+    -- type REG_TYPE1 is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
+
+
     -- Opcodes
+    constant oNOP   : OPCODETYPE  := "00000"; -- x00
     constant oLD    : OPCODETYPE  := "00010"; -- x02
     constant oSTR   : OPCODETYPE  := "00100"; -- x04
     constant oJmp   : OPCODETYPE  := "00110"; -- x06
@@ -89,17 +104,23 @@ package Utilities is
 
     constant oIOST  : OPCODETYPE  := "11000"; -- x18
     constant oRTI   : OPCODETYPE  := "11010"; -- x1A
-    constant oSWI   : OPCODETYPE  := "11100"; -- x1C
-    constant oIENA  : OPCODETYPE  := "11110"; -- x1E
+
+    constant oSWIENA: OPCODETYPE  := "11100"; -- x1C
+    constant SWIFLAG: STD_LOGIC   := '0';
+    constant ENAFLAG: STD_LOGIC   := '1';
+
+    constant oSWDM  : OPCODETYPE  := "11110"; -- x1E
+    constant SWDFLAG: STD_LOGIC   := '0';
+    constant SWMFLAG: STD_LOGIC   := '1';
 
     constant oAdd   : OPCODETYPE  := "00001"; -- x01
     constant oSub   : OPCODETYPE  := "00011"; -- x03
-    constant oAnd   : OPCODETYPE  := "00101"; -- x05
-    constant oOr    : OPCODETYPE  := "00111"; -- x07
-    constant oEMPTY2: OPCODETYPE  := "01001"; -- x09
-    constant oXor   : OPCODETYPE  := "01011"; -- x0B
-    constant oShL   : OPCODETYPE  := "01101"; -- x0D
-    constant oShR   : OPCODETYPE  := "01111"; -- x0F
+    constant oMul   : OPCODETYPE  := "00101"; -- x05
+    constant oDiv   : OPCODETYPE  := "00111"; -- x07
+    constant oAnd   : OPCODETYPE  := "01001"; -- x09
+    constant oOr    : OPCODETYPE  := "01011"; -- x0B
+    constant oXor   : OPCODETYPE  := "01101"; -- x0D
+    constant oShLR  : OPCODETYPE  := "01111"; -- x0F
 
     constant REGREG : MEMTYPE := "00";
     constant IMMEDIATE : MEMTYPE := "01";
@@ -115,16 +136,37 @@ package Utilities is
     constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
     constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
+    ---------------------------------------------------------------------------
+    -- Debug Information
+
+    -- Register compare types
+    type REG_COMPARE is (
+        REG_NOTHING,        -- Value 0
+        REG_EQUAL,          -- Value 1
+        REG_LESS,           -- Value 2
+        REG_GREATER,        -- Value 3
+        REG_CHANGE,         -- Value 4
+        REG_NOT_EQUAL,      -- Value 5
+        REG_GREATER_EQUAL,  -- Value 6
+        REG_LESS_EQUAL     -- Value 7
+        );
+
+        constant NumBreakPoint : integer := 4;
+        type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
+    
     type DEBUGOUTTYPE is record
         Stopped     : STD_LOGIC;
         CycleCount  : unsigned(63 downto 0);
         ProgCounter : PCTYPE;
         Regs        : REG_TYPE;
         Instruction : INSTRUCTIONTYPE;
+        Interrupt   : STD_LOGIC_VECTOR(interruptNums downto 0);
+        interruptMask
+                    : STD_LOGIC_VECTOR(31 downto 0);
+        Status      : STD_LOGIC_VECTOR(31 downto 0);
+        StatusMask  : STD_LOGIC_VECTOR(31 downto 0);
+        MEMORY_ARG  : STD_LOGIC_VECTOR(31 downto 0);
     end record;
-
-    constant NumBreakPoint : integer := 4;
-    type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
 
     type DEBUGINTYPE is record
         DebugMode   : STD_LOGIC;
@@ -134,6 +176,7 @@ package Utilities is
         Continue    : STD_LOGIC;
         BWhenReg    : integer;
         BWhenValue  : STD_LOGIC_VECTOR(31 downto 0);
+        BWhenOp     : REG_COMPARE;
     end record;
 
     subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);
@@ -151,8 +194,35 @@ package Utilities is
         DBG_STATE,              -- VALUE 0
         DBG_PROG_COUNTER,       -- VALUE 1
         DBG_INSTRUCTION,        -- VALUE 2
-        DBG_CYCLES              -- VALUE 3
+        DBG_CYCLES,             -- VALUE 3
+        DBG_INTERRUPT,          -- VALUE 4
+        DGB_INTERRUPT_MASK,     -- VALUE 5
+        DBG_STATUS,             -- VALUE 6
+        DBG_STATUS_MASK,        -- VALUE 7
+        DBG_MEMORY_ARG          -- VALUE 8
     );
+
+
+    -- Status Word
+    -- | Bit   | Description                    |
+    -- | ----- | ------------------------------ |
+    -- | 0     | Illegal Operation              |
+    -- | 1     | Illegal Address                |
+    -- | 2     | Integer Overflow/Underflow     |
+    -- | 3     | Integer Divide by Zero         |
+    -- |       |                                |
+    -- |       |                                |
+    -- | 16    | IO Change to not Busy          |
+    -- | 17    | IO Error                       |
+    -- | 24-31 | IO Address Creating Interrupts |
+    subtype STATUS_WORD_TYPE is STD_LOGIC_VECTOR(31 downto 0);
+    -- Status BIT location
+    constant IllegalOp      : integer := 0;
+    constant IllegalAddr    : integer := 1;
+    constant OverUnderflow  : integer := 2;
+    constant DivideByZero   : integer := 3;
+    constant IONotBusy      : integer := 16;
+    constant IOError        : integer := 17;
 
 
 end Package;

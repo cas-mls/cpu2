@@ -32,12 +32,12 @@ SERIALINTERRUPT:
 #addr 32
 START:
     ld r SP1,  Stack1
-    ld r CountReg, 0 ; initialize the count
+    ld r CountReg, #0 ; initialize the count
     ld r MaxCountReg, MaxCount
     ld r WaitReg, Wait
-    ld r IOADDR, 12
-    ld r RINDEX, 0
-    ld r WINDEX, 0
+    ld r IOADDR, #12
+    ld r RINDEX, #0
+    ld r WINDEX, #0
     iena r SP1, 0b1000000000000`16
     jsr r SP1, WRITESERIAL
     jsr r SP1, WRITESERIAL
@@ -47,22 +47,22 @@ START:
 LOOP:
     wio r CountReg, LedIo   ; Display LED count
     wait r WaitReg, WaitRes ; Wait 1/2 second
-    add r CountReg, 1
+    add r CountReg, #1
     blt r CountReg, r MaxCountReg, LOOP
-    ldl  r CountReg, 0
+    ldl  r CountReg, #0
     jsr r SP1, WRITESERIAL
     jmp LOOP
 WRITESERIAL:
     push    r SP1, R10
 LOOPWB:
     wsio    r10, r IOADDR
-    and     r10, 0b1`16
+    and     r10, #0b1`16
     bnz     r10, LOOPWB
     wio     r IOADDR, r WINDEX, mem[WRITEDATA]
-    add     r WINDEX, 1
+    add     r WINDEX, #1
     ld      r10, 3
     blt     r WINDEX, r10, WRITERET
-    ld      r WINDEX, 1
+    ld      r WINDEX, #1
 WRITERET:
     pop     r SP1, r10
     rtn     r SP1
@@ -73,12 +73,12 @@ SERIALHANDLER:
 LOOPRB:
     rsio    r10, r IOADDR
     ; ld      R11, R10
-    and     r10, 0b1`16
+    and     r10, #0b1`16
     bnz     r10, LOOPRB
     ; and     r11, 0b1000`16
     ; bz      r11, LOOPRB
     rio     r IOADDR, r RINDEX, mem[READDATA]
-    add     R RINDEX, 1
+    add     R RINDEX, #1
     ; pop     r SP1, r11
     pop     r SP1, r10
     rti

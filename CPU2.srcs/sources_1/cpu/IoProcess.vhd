@@ -74,21 +74,19 @@ use xil_defaultlib.Utilities.all;
 ---------------------------------------------------------------------------
 
 entity IoProcess is
-  port (
-    SYS_CLK : in std_logic;
-    INSTRUCTION : in std_logic_vector(31 downto 0);
-    cpuRegs : in REG_TYPE;
-    MEM_ARG : in std_logic_vector(31 downto 0);
-    fsm_inst_cycle_p : in CYCLETYPE_FSM;
-
-    IOW_ENA : out std_logic;
-    IOR_ENA : out std_logic;
-    IO_ADDR : out std_logic_vector (7 downto 0);
-    IOW_DATA : out std_logic_vector (31 downto 0);
-    IO_STATUS_REQ : out std_logic
-
-
-  );
+    port (
+        SYS_CLK : in std_logic;
+        INSTRUCTION : in std_logic_vector(31 downto 0);
+        cpuRegs : in REG_TYPE;
+        MEM_ARG : in std_logic_vector(31 downto 0);
+        fsm_inst_cycle_p : in CYCLETYPE_FSM;
+        
+        IOW_ENA : out std_logic;
+        IOR_ENA : out std_logic;
+        IO_ADDR : out std_logic_vector (7 downto 0);
+        IOW_DATA : out std_logic_vector (31 downto 0);
+        IO_STATUS_REQ : out std_logic
+   );
 
 end IoProcess;
 
@@ -143,9 +141,9 @@ begin
           ffiregop1 <= iregop1;
           ffiregop2 <= iregop2;
           ffimmop <= immop;
-          -- Save the values of the Register Data.  Again this ifor timing operations.
-          ireg1value <= cpuRegs(iregop1);
-          ireg2value <= cpuRegs(iregop2);
+          -- Save the values of the Register Data.  Again this is for timing operations.
+          ireg1value <= cpuRegs(iregop1).Value;
+          ireg2value <= cpuRegs(iregop2).Value;
 
           if opcode = oRWIO 
             or opcode = oIOST 
@@ -160,13 +158,13 @@ begin
             end if;
             case memop is
               when REGREG =>
-                IO_ADDR <= cpuRegs(iregop2)(7 downto 0);
+                IO_ADDR <= cpuRegs(iregop2).Value(7 downto 0);
               when IMMEDIATE =>
                 IO_ADDR <= immop(7 downto 0);
               when ABSOLUTE =>
-                IO_ADDR <= cpuRegs(iregop2)(7 downto 0);
+                IO_ADDR <= cpuRegs(iregop2).Value(7 downto 0);
               when INDEX =>
-                IO_ADDR <= cpuRegs(iregop1)(7 downto 0);
+                IO_ADDR <= cpuRegs(iregop1).Value(7 downto 0);
               when others =>
             end case;
           end if;
