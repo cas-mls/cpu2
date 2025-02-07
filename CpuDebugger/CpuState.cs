@@ -111,22 +111,22 @@ namespace CpuDebugger
                         results = "sub";
                         break;
                     case 0x05:
-                        results = Flag == 0 ? "and" : "nand";
+                        results = "mul";
                         break;
                     case 0x07:
-                        results = Flag == 0 ? "aor" : "nor";
+                        results = "div";
                         break;
                     case 0x09:
-                        results = "empty";
+                        results = Flag == 0 ? "and" : "nand";
                         break;
-                    case 0x0B:
+                    case 0x0b:
+                        results = Flag == 0 ? "aor" : "nor";
+                        break;
+                    case 0x0d:
                         results = Flag == 0 ? "xor" : "xnor";
                         break;
-                    case 0x0D:
-                        results = "sll";
-                        break;
-                    case 0x0F:
-                        results = "srl";
+                    case 0x0f:
+                        results = Flag == 0 ? "sll" : "srl";
                         break;
                     default:
                         results = "empty";
@@ -200,28 +200,26 @@ namespace CpuDebugger
 
         internal uint StatusMask { get; set; }
 
-        internal string AssemblyInstruction
+        internal string AssemblyInstruction(bool hex)
         {
-            get
+            string results = "";
+            string ImmString = string.Format(hex ? "0x{0,4:x4}" : "{0}", Immediate);
+            switch (MemoryAccessDecode)
             {
-                string results = "";
-                switch (MemoryAccessDecode)
-                {
-                    case "REGREG":
-                        results = OpcodeDecode + " R" + Register1.ToString() + ", R" + Register2.ToString();
-                        break;
-                    case "IMMED":
-                        results = OpcodeDecode + " R" + Register1.ToString() + ", #" + Immediate.ToString();
-                        break;
-                    case "ABSOLUTE":
-                        results = OpcodeDecode + " R" + Register1.ToString() + ", [" + Immediate.ToString() + "]";
-                        break;
-                    case "INDEX":
-                        results = OpcodeDecode + " R" + Register1.ToString()  + ", [" + Immediate.ToString() + "+R" + Register2.ToString() + "]";
-                        break;
-                }
-                return results;
+                case "REGREG":
+                    results = OpcodeDecode + " R" + Register1.ToString() + ", R" + Register2.ToString();
+                    break;
+                case "IMMED":
+                    results = OpcodeDecode + " R" + Register1.ToString() + ", #" + ImmString;
+                    break;
+                case "ABSOLUTE":
+                    results = OpcodeDecode + " R" + Register1.ToString() + ", [" + ImmString + "]";
+                    break;
+                case "INDEX":
+                    results = OpcodeDecode + " R" + Register1.ToString()  + ", [" + ImmString + "+R" + Register2.ToString() + "]";
+                    break;
             }
+            return results;
         }
 
         internal string InstructionSplit

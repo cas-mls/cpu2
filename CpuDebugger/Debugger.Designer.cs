@@ -272,11 +272,11 @@
             grpInstruction.Controls.Add(label2);
             grpInstruction.Controls.Add(label1);
             grpInstruction.Controls.Add(txtProgCount);
-            grpInstruction.Location = new Point(449, 14);
+            grpInstruction.Location = new Point(433, 14);
             grpInstruction.Margin = new Padding(3, 2, 3, 2);
             grpInstruction.Name = "grpInstruction";
             grpInstruction.Padding = new Padding(3, 2, 3, 2);
-            grpInstruction.Size = new Size(168, 328);
+            grpInstruction.Size = new Size(184, 328);
             grpInstruction.TabIndex = 2;
             grpInstruction.TabStop = false;
             grpInstruction.Text = "Instruction";
@@ -303,7 +303,7 @@
             // 
             lblStatusMask.BorderStyle = BorderStyle.FixedSingle;
             lblStatusMask.Font = new Font("Courier New", 9F);
-            lblStatusMask.Location = new Point(86, 249);
+            lblStatusMask.Location = new Point(107, 248);
             lblStatusMask.Name = "lblStatusMask";
             lblStatusMask.Size = new Size(71, 18);
             lblStatusMask.TabIndex = 32;
@@ -312,7 +312,7 @@
             // 
             lblStatusWord.BorderStyle = BorderStyle.FixedSingle;
             lblStatusWord.Font = new Font("Courier New", 9F);
-            lblStatusWord.Location = new Point(86, 226);
+            lblStatusWord.Location = new Point(107, 225);
             lblStatusWord.Name = "lblStatusWord";
             lblStatusWord.Size = new Size(71, 18);
             lblStatusWord.TabIndex = 31;
@@ -321,7 +321,7 @@
             // 
             lblInterMask.BorderStyle = BorderStyle.FixedSingle;
             lblInterMask.Font = new Font("Courier New", 9F);
-            lblInterMask.Location = new Point(86, 200);
+            lblInterMask.Location = new Point(107, 199);
             lblInterMask.Name = "lblInterMask";
             lblInterMask.Size = new Size(71, 18);
             lblInterMask.TabIndex = 30;
@@ -330,7 +330,7 @@
             // 
             lblInterrupt.BorderStyle = BorderStyle.FixedSingle;
             lblInterrupt.Font = new Font("Courier New", 9F);
-            lblInterrupt.Location = new Point(86, 177);
+            lblInterrupt.Location = new Point(107, 176);
             lblInterrupt.Name = "lblInterrupt";
             lblInterrupt.Size = new Size(71, 18);
             lblInterrupt.TabIndex = 29;
@@ -339,7 +339,7 @@
             // 
             lblMemArg.BorderStyle = BorderStyle.FixedSingle;
             lblMemArg.Font = new Font("Courier New", 9F);
-            lblMemArg.Location = new Point(86, 150);
+            lblMemArg.Location = new Point(107, 149);
             lblMemArg.Name = "lblMemArg";
             lblMemArg.Size = new Size(71, 18);
             lblMemArg.TabIndex = 28;
@@ -386,7 +386,7 @@
             lblInstSplit.Font = new Font("Courier New", 9F);
             lblInstSplit.Location = new Point(6, 105);
             lblInstSplit.Name = "lblInstSplit";
-            lblInstSplit.Size = new Size(146, 18);
+            lblInstSplit.Size = new Size(172, 18);
             lblInstSplit.TabIndex = 23;
             // 
             // lblAssemInst
@@ -395,7 +395,7 @@
             lblAssemInst.Font = new Font("Courier New", 9F);
             lblAssemInst.Location = new Point(6, 125);
             lblAssemInst.Name = "lblAssemInst";
-            lblAssemInst.Size = new Size(146, 18);
+            lblAssemInst.Size = new Size(172, 18);
             lblAssemInst.TabIndex = 22;
             // 
             // txtCycles

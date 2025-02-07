@@ -34,28 +34,28 @@ LOOP:
     jsr r SP1, IOTESTS
     jsr r SP1, INTERRUPTTEST
     jsr r SP1, OVERFLOWTEST
-    wio r tr, 0x03    
+    wio r tr, #0x03    
     ;swi 0
     jmp LOOP
 
 STATUSHANDLER:
     swd r4              ; Get Status Word
-    add r tr, 10
+    add r tr, #10
     RTI
 
 SWINT:
-    add r tr, 10
+    add r tr, #10
     ld r4, SWIntTestValue
     RTI
 
 HWINT:
-    wio r10, 0x05 ; Tell the tester to cancel the interrupt.
-    add r tr, 100
+    wio r10, #0x05 ; Tell the tester to cancel the interrupt.
+    add r tr, #100
     ld r6, HWIntTestValue
     RTI
 
 TIMERHANDLER:
-    add r tr, 1
+    add r tr, #1
     rti
 
 WAITTEST:
@@ -85,33 +85,33 @@ WAITCOMPLETE:
 INTERRUPTTEST:
 SWIntTestValue = 0x54545
 HWIntTestValue = 0x665566
-    ldl r tr, 0x120
-    ld r1, 0b100
+    ldl r tr, #0x120
+    ld r1, #0b100
     ld r5, SWIntTestValue
-    ld r4, 0x0
-    ld r2, 2
+    ld r4, #0x0
+    ld r2, #2
     swi r2
     bnz r4, INTERR
-    add r tr, 1
+    add r tr, #1
     iena r SP1, r1
     swi 2
     bne r5, r4, INTERR 
-    add r tr, 1
+    add r tr, #1
     ld r4, 0x0
-    swi mem[INTSW]
+    swi [INTSW]
     bne r5, r4, INTERR 
-    add r tr, 1
+    add r tr, #1
     ; Hardware Interrupt
-    ld r6, 0x0
+    ld r6, #0x0
     ld r7, HWIntTestValue
-    ld r9, 0x1
-    ld r10, 0x0
-    wio r9, 0x05 ; Tell Tester to send (set) interrupt
-    wio r10, 0x05 ; Tell the tester to cancel the interrupt.
+    ld r9, #0x1
+    ld r10, #0x0
+    wio r9, #0x05 ; Tell Tester to send (set) interrupt
+    wio r10, #0x05 ; Tell the tester to cancel the interrupt.
     bnz r6, INTERR
-    wio r9, 0x05 ; Tell Tester to send (set) interrupt
-    iena r SP1, 0b1000
-    iena r SP1, mem[INTMASK] ; disable all interrupts.
+    wio r9, #0x05 ; Tell Tester to send (set) interrupt
+    iena r SP1, #0b1000
+    iena r SP1, [INTMASK] ; disable all interrupts.
     bne r6, r7, INTERR
     jmp INTCOMPLETE
 
@@ -122,7 +122,7 @@ INTMASK:
     #d32 0
 
 INTERR:
-    add r ER, 1
+    add r ER, #1
 
 INTCOMPLETE:
     rtn r SP1
@@ -172,38 +172,38 @@ IOTESTS:
     bz r5, IOERR
 
     ld  r2, 0x01 ; IO Address
-    ld  r3, mem[WRITEMEM] ; Data
+    ld  r3, [WRITEMEM] ; Data
     ld  r1, 0x00
-    wio r2, mem[WRITEMEM]
+    wio r2, [WRITEMEM]
     wsio r5, r2
     bnz r5, IOERR
     add r tr, 1
-    rio r2, mem[READMEM]
+    rio r2, [READMEM]
     rsio r5, r2
-    ld r1, mem[READMEM]
+    ld r1, [READMEM]
     bnz r5, IOERR
     bne r1, r3, IOERR
     add r tr, 1
 
     ldl r2, 0x02
-    wio r2, mem[WRITEMEM]
+    wio r2, [WRITEMEM]
     wsio r5, r2
     be r5, IOERR            ; test status not zero.
     add r tr, 1
 
     ld  r4, -2 ; index -- try negative numbers.
     ld  r2, 0x01 ; IO Address
-    ld  r3, mem[WRITEMEM] ; Data
+    ld  r3, [WRITEMEM] ; Data
     ld  r1, 0x00
     wio r2, r4, mem[WRITEMEM + 2]
     wsio r5, r2
     bnz r5, IOERR
     add r tr, 1
     ld  r1, 0x00
-    st r1, mem[READMEM]
+    st r1, [READMEM]
     rio r2, r4, mem[READMEM + 2]
     rsio r5, r2
-    ld r1, mem[READMEM]
+    ld r1, [READMEM]
     bnz r5, IOERR
     bne r1, r3, IOERR
     add r tr, 1
@@ -226,23 +226,23 @@ OVERFLOWTEST:
 ovAddend1 = 0x7FFFFFFF
 ovAddend2 = 10
 ovSum = ovAddend1 + ovAddend2
-    ld r tr, 0x20
+    ld r tr, #0x20
     ld r1, ovAddend1
     ld r2, ovAddend2
     ld r3, ovSum
-    ld r4, 0b000        ; Status Word
-    ld r5, 0b100        ; Overflow Bit
+    ld r4, #0b000        ; Status Word
+    ld r5, #0b100        ; Overflow Bit
     add r1, r2          ; Register Overflow
     swd r4              ; Get Status Word
 
     bne r1, r3, OVERERROR ; check Add Result
-    add r tr, 1
+    add r tr, #1
     bne r4, r5, OVERERROR   ; Check Overlow Status Bit
-    add r tr, 1
+    add r tr, #1
 
-    ld r4, 0b000        ; Status Word
-    IENA r SP1, 0b10    ; Status Interrupt
-    swm 0b100           ; Overflow Interrupt
+    ld r4, #0b000        ; Status Word
+    IENA r SP1, #0b10    ; Status Interrupt
+    swm #0b100           ; Overflow Interrupt
     ld r1, ovAddend1
     add r1, r2          ; Register Overflow
     bne r4, r5, OVERERROR   ; Check Overlow Status Bit

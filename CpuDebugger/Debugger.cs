@@ -116,7 +116,7 @@ namespace CpuDebugger
             if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
 
             lblInstSplit.Text = cpuState.InstructionSplit;
-            lblAssemInst.Text = cpuState.AssemblyInstruction;
+            lblAssemInst.Text = cpuState.AssemblyInstruction(ckbHex.Checked);
             lblMemArg.Text = cpuState.MemoryArg.ToString("x8");
             lblInterrupt.Text = cpuState.Interrupt.ToString("x8");
             lblInterMask.Text = cpuState.InterruptMask.ToString("x8");
