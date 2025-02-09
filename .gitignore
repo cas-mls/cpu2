@@ -61,7 +61,7 @@ xsim.dir
 */*.runs/synth*/*.tcl
 */*.runs/synth*/*.bat
 */*.runs/synth*/*.xdc
-!*/*.runs/synth*/*utilization*.rpt
+*/*.runs/synth*/*utilization*.rpt
 
 *.runs/synth*/*.xml
 *.runs/synth*/*.txt
@@ -69,7 +69,7 @@ xsim.dir
 *.runs/synth*/*.tcl
 *.runs/synth*/*.bat
 *.runs/synth*/*.xdc
-!*.runs/synth*/*utilization*.rpt
+*.runs/synth*/*utilization*.rpt
 
 ### project impl
 */*.runs/impl*/*.xml
@@ -78,7 +78,7 @@ xsim.dir
 */*.runs/impl*/*.sh
 */*.runs/impl*/*.tcl
 */*.runs/impl*/*.bat
-!*/*.runs/impl*/*utilization*.rpt
+*/*.runs/impl*/*utilization*.rpt
 
 *.runs/impl*/*.xml
 *.runs/impl*/*.html
@@ -86,7 +86,7 @@ xsim.dir
 *.runs/impl*/*.sh
 *.runs/impl*/*.tcl
 *.runs/impl*/*.bat
-!*.runs/impl*/*utilization*.rpt
+*.runs/impl*/*utilization*.rpt
 
 ### block design
 */*/bd/*/hdl
