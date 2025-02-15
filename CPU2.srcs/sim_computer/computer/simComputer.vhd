@@ -238,7 +238,7 @@ begin
         wait for PERIOD * 5;
         dmode <= '1';
 
-        wait for PERIOD * 425;
+        wait for PERIOD * 50;
         wait until rising_edge(clk);
         dbreak <= '1';                  -- 0bd / 615000e9 / 15 20 00 00
         wait until rising_edge(clk);
@@ -286,7 +286,29 @@ begin
         wait until rising_edge(clk);
         dstep <= '0';
 
+        wait for PERIOD * 20;
+        dcont <= '1';                   -- 0be / 15200000 / 11 20 00 01
+        wait until rising_edge(clk);
+        dcont <= '0';
+
         wait for PERIOD * 5;
+
+
+        CMD <= TGA_RESET & '1'; -- Reset
+        ADDRESS <= X"0000"; 
+        DATA_IN <= (others => '0');
+        WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
+
+        CMD <= TGA_BREAK & '1'; -- Break
+        ADDRESS <= X"0000"; 
+        DATA_IN <= (others => '0');
+        WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
+
+        CMD <= TGA_RESET & '1'; -- Reset
+        ADDRESS <= X"0000"; 
+        DATA_IN <= (others => '0');
+        WB_WRITE(UART_PERIOD, UART_RXD, UART_TXD, CMD , ADDRESS, DATA_IN, CMD_RESP);
+
         CMD <= TGA_BREAK & '1'; -- Break
         ADDRESS <= X"0000"; 
         DATA_IN <= (others => '0');

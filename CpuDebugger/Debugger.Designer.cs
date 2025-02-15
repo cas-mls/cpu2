@@ -73,6 +73,7 @@
             btnConnect = new Button();
             btnDisConnect = new Button();
             bgwDebugStatus = new System.ComponentModel.BackgroundWorker();
+            btnReset = new Button();
             grpCommands.SuspendLayout();
             grpRegisters.SuspendLayout();
             grpInstruction.SuspendLayout();
@@ -541,12 +542,23 @@
             bgwDebugStatus.DoWork += bgwDebugStatus_DoWork;
             bgwDebugStatus.ProgressChanged += bgwDebugStatus_ProgressChanged;
             // 
+            // btnReset
+            // 
+            btnReset.Location = new Point(38, 211);
+            btnReset.Name = "btnReset";
+            btnReset.Size = new Size(82, 21);
+            btnReset.TabIndex = 11;
+            btnReset.Text = "Reset";
+            btnReset.UseVisualStyleBackColor = true;
+            btnReset.Click += btnReset_Click;
+            // 
             // txtDebugger
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
             ClientSize = new Size(797, 377);
+            Controls.Add(btnReset);
             Controls.Add(btnDisConnect);
             Controls.Add(btnConnect);
             Controls.Add(label11);
@@ -619,5 +631,6 @@
         private Label label14;
         private Label label15;
         private ComboBox cbRegOper;
+        private Button btnReset;
     }
 }

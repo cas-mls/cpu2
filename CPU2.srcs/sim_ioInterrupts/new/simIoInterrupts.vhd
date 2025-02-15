@@ -1,3 +1,4 @@
+-- vhdl-linter-disable component
 ----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
@@ -73,7 +74,8 @@ architecture Behavioral of SimCPU_Interrupt is
                 Continue => '0',
                 BWhenReg => 0,
                 BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING
+                BWhenOp => REG_NOTHING,
+                Reset => '0'
                 );
             DEBUGOUT    : out DEBUGOUTTYPE
             );
@@ -94,7 +96,7 @@ architecture Behavioral of SimCPU_Interrupt is
             dinb  : in  STD_LOGIC_VECTOR(31 downto 0);
             doutb : out STD_LOGIC_VECTOR(31 downto 0)
         );
-    end component;
+    end component; -- vhdl-linter-disable-line component
 
     constant HALF_PERIOD : TIME := 5 ns;
 
@@ -132,7 +134,8 @@ architecture Behavioral of SimCPU_Interrupt is
         Continue => '0',
         BWhenReg => 0,
         BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING);
+        BWhenOp => REG_NOTHING,
+        Reset => '0');
     signal DebugOut     : DEBUGOUTTYPE;
 
 begin

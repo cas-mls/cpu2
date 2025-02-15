@@ -28,6 +28,7 @@ namespace CpuDebugger
             Break           = 3,
             BreakAt         = 4,
             BreakWhen       = 5,
+            Reset           = 6,
             RWRegisters     = 8,
             RWMemory        = 16 }
 
@@ -221,6 +222,18 @@ namespace CpuDebugger
                     (byte)DebugCmd.BreakWhen,
                     (ushort)((ushort)breakData.BreakWhen.Operation << 5 | (ushort)breakData.BreakWhen.Register),
                     (uint)breakData.BreakWhen.Value);
+            }
+        }
+        internal void Reset()
+        {
+            if (IsConnected
+                && cpuState.ExecutationState == Statuses.stopped)
+            {
+                SerialWishbone.write(
+                    port,
+                    (byte)DebugCmd.Reset,
+                    (ushort)0,
+                    (uint)0);
             }
         }
     }

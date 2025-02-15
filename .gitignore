@@ -48,6 +48,8 @@ xsim.dir
 *.hw
 *.runs
 *.sim
+.VSCodeCounter
+.continue
 
 ### IP synth
 *_synth_*

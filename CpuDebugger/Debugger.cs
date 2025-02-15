@@ -297,7 +297,15 @@ namespace CpuDebugger
 
         private void txtDebugger_Load(object sender, EventArgs e)
         {
-            cbRegOper.Items.AddRange( BreakData.Operations );
+            cbRegOper.Items.AddRange(BreakData.Operations);
+        }
+
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
+            WbAccess.Reset();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
         }
     }
 
