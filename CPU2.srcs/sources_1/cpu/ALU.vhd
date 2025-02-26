@@ -21,6 +21,7 @@
 
 library IEEE;
 library xil_defaultlib;
+
 use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 -- use ieee.std_logic_unsigned.all;
@@ -100,7 +101,28 @@ entity ALU is
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
         statusWord : out STATUS_WORD_TYPE := (others => '0');
         cpuRegs : out REG_TYPE;
-        AluDecodeDone : out std_logic
+        AluDecodeDone : out std_logic;
+        DEBUGIN     : in DEBUGINTYPE := (
+            DebugMode => '0',
+            BreakPoints => (others => (others => '0')),
+            Break => '0',
+            Step => '0',
+            Continue => '0',
+            BWhenReg => 0,
+            BWhenValue => (others => '0'),
+            BWhenOp => REG_NOTHING,
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )
+            )
     );
 
 end ALU;
@@ -606,6 +628,11 @@ begin
     
                         when others =>
                     end case;
+                when DEBUGWAIT_S =>
+                    if DEBUGIN.UpdateReg.Valid = '1' 
+                    then
+                        cpuRegs(DEBUGIN.UpdateReg.Number).Value <= DEBUGIN.UpdateReg.Value;
+                    end if;
                 when others =>
             end case;
 

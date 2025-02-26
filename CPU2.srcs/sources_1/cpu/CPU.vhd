@@ -145,7 +145,6 @@ entity CPU is
         MEM_ADDRB : out std_logic_vector(11 downto 0) := X"000";
         MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
         MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
-
         DEBUGIN     : in DEBUGINTYPE := (
             DebugMode => '0',
             BreakPoints => (others => (others => '0')),
@@ -155,7 +154,17 @@ entity CPU is
             BWhenReg => 0,
             BWhenValue => (others => '0'),
             BWhenOp => REG_NOTHING,
-            Reset => '0'
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )
             );
         DEBUGOUT    : out DEBUGOUTTYPE
     );
@@ -177,8 +186,29 @@ architecture Behavioral of CPU is
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             statusWord : out STATUS_WORD_TYPE;
             cpuRegs : out REG_TYPE;
-            AluDecodeDone : out std_logic
-        );
+            AluDecodeDone : out std_logic;
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')),
+                Break => '0',
+                Step => '0',
+                Continue => '0',
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING,
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
+                )
+            );
 
     end component;
 
@@ -303,7 +333,17 @@ architecture Behavioral of CPU is
                 BWhenReg => 0,
                 BWhenValue => (others => '0'),
                 BWhenOp => REG_NOTHING,
-                Reset => '0'
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
                 );
             DEBUGOUT : out DEBUGOUTTYPE
         );
@@ -386,36 +426,6 @@ architecture Behavioral of CPU is
     -- attribute keep of DebugStart : signal is "TRUE";
     -- attribute MARK_DEBUG of DebugStart : signal is "TRUE";
 
-    -- function debug_reg_compare(
-    --     RegLast : std_logic_vector;
-    --     Reg : std_logic_vector;
-    --     RegDebug : std_logic_vector;
-    --     Op : REG_COMPARE) return boolean is
-    -- begin
-    --     if (Op = REG_NOTHING) then
-    --         return false;
-    --     elsif Reg /= RegLast then
-    --         case Op is
-    --             when REG_EQUAL =>
-    --                 return RegDebug = Reg;
-    --             when REG_LESS =>
-    --                 return RegDebug < Reg;
-    --             when REG_GREATER =>
-    --                 return RegDebug > Reg;
-    --             when REG_CHANGE =>
-    --                 return true;
-    --             when REG_NOT_EQUAL =>
-    --                 return RegDebug /= Reg;
-    --             when REG_GREATER_EQUAL =>
-    --                 return RegDebug >= Reg;
-    --             when REG_LESS_EQUAL =>
-    --                 return RegDebug <= Reg;
-    --             when others =>
-    --                 return false;
-    --         end case;
-    --     end if;
-    --     return false;
-    -- end function;
 
 begin
 
@@ -441,7 +451,8 @@ begin
         interruptSpAddrValue => interruptSpAddrValue,
         statusWord => statusWord,
         cpuRegs => cpuRegs,
-        AluDecodeDone => AluDecodeDone
+        AluDecodeDone => AluDecodeDone,
+        DebugIn => DEBUGIN
     );
 
     memoryAccess_enity : MemoryAccess
@@ -823,106 +834,5 @@ begin
         end if;
 
     end process decode_Proc;
-
-    -- debug_proc : process(SYS_CLK)
-
-    -- begin
-    --     if rising_edge (SYS_CLK) then
-    --         if fsm_inst_cycle_p = RESET_STATE_S then
-    --             DEBUGOUT.Stopped        <= '0';
-    --             DEBUGOUT.CycleCount     <= (others => '0');
-    --             DEBUGOUT.ProgCounter    <= (others => '0');
-    --             DEBUGOUT.Regs           <= (others => (
-    --                 value => (others => '0'),
-    --                 opcode => oNOP,
-    --                 flag => '0',
-    --                 countdown => 0));
-    --             DEBUGOUT.Instruction    <= (others =>'0');
-    --             DEBUGOUT.Status         <= (others => '0');
-    --             DEBUGOUT.StatusMask     <= (others => '0');
-    --             DEBUGOUT.Interrupt      <= (others => '0');
-    --             DEBUGOUT.interruptMask  <= (others => '0');
-    --             DEBUGOUT.MEMORY_ARG     <= (others => '0');
-    --             StepWait <= '0';
-    --             DebugDisablePipline <= '0';
-    --             DebugStart <= '0';
-    --             ProgCounterLast <= X"000";
-    --             RegsLast <= (others => (
-    --                 value => (others => '0'),
-    --                 opcode => oNOP,
-    --                 flag => '0',
-    --                 countdown => 0));
-
-    --         elsif DEBUGIN.DebugMode = '1' then
-    --             if fsm_inst_cycle_p = DEBUGSTABLEIZE_S
-    --             then
-    --                 DEBUGOUT.Stopped <= '1';
-    --                 DebugStart <= '0';
-
-    --             elsif fsm_inst_cycle_p = DEBUGWAIT_S
-    --             then
-    --                 if DEBUGIN.Continue = '1'
-    --                 then
-    --                     DEBUGOUT.Stopped <= '0';
-    --                     StepWait <= '0';
-    --                     DebugDisablePipline <= '1';
-    --                 elsif DEBUGIN.Step = '1'
-    --                 then
-    --                     DEBUGOUT.Stopped <= '0';
-    --                     StepWait <= '1';
-    --                     DebugDisablePipline <= '1';
-    --                 end if;
-
-    --             else
-    --                 if  (ProgCounterLast /= ProgramCounter
-    --                     and (ProgramCounter = DEBUGIN.BreakPoints(0)
-    --                         or ProgramCounter = DEBUGIN.BreakPoints(1)
-    --                         or ProgramCounter = DEBUGIN.BreakPoints(2)
-    --                         or ProgramCounter = DEBUGIN.BreakPoints(3)))
-    --                     or debug_reg_compare(
-    --                             RegsLast(DEBUGIN.BWhenReg).Value,
-    --                             cpuRegs(DEBUGIN.BWhenReg).Value,
-    --                             DEBUGIN.BWhenValue, DEBUGIN.BWhenOp)
-    --                     or stepWait = '1'
-    --                     or DEBUGIN.Break = '1'
-    --                 then
-    --                     StepWait <= '0';
-    --                     DebugStart <= '1';
-    --                 end if;
-
-    --                 if fsm_inst_cycle_p = EXECUTE_S
-    --                 then
-    --                     DebugDisablePipline <= '0';
-    --                 end if;
-    --             end if;
-
-    --             -- Continue to update the debug information.
-    --             -- Good generic information for the simulator and ILA.
-    --             DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
-    --             DEBUGOUT.ProgCounter <= ProgramCounter;
-    --             DEBUGOUT.Instruction <= ffopcode
-    --                 & ffflag
-    --                 & ffmemop
-    --                 & std_logic_vector(to_unsigned(ffiregop1, 4))
-    --                 & std_logic_vector(to_unsigned(ffiregop2, 4))
-    --                 & ffimmop;
-    --             DEBUGOUT.Regs <= cpuRegs;
-    --             DEBUGOUT.Status <= statusWord;
-    --             DEBUGOUT.StatusMask <= statusMask;
-    --             DEBUGOUT.Interrupt <= INTERRUPT;
-    --             DEBUGOUT.interruptMask  <= interruptMask;
-    --             if ffmemop = ABSOLUTE or ffmemop = INDEX then
-    --                 DEBUGOUT.MEMORY_ARG <= MEM_DOUTB;
-    --             else
-    --                 DEBUGOUT.MEMORY_ARG <= (others => '0');
-    --             end if;
-
-    --             -- Capture last values to find when the current values changes.
-    --             ProgCounterLast <= ProgramCounter;
-    --             RegsLast <= cpuRegs;
-
-    --         end if;
-    --     end if;
-    -- end process debug_proc;
 
 end Behavioral;

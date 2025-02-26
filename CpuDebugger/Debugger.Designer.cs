@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             grpCommands = new GroupBox();
+            btnApply = new Button();
             cbRegOper = new ComboBox();
             label15 = new Label();
             label14 = new Label();
@@ -74,13 +75,20 @@
             btnDisConnect = new Button();
             bgwDebugStatus = new System.ComponentModel.BackgroundWorker();
             btnReset = new Button();
+            groupBox1 = new GroupBox();
+            txtMemAddr = new TextBox();
+            txtMemData = new TextBox();
+            label16 = new Label();
+            label13 = new Label();
             grpCommands.SuspendLayout();
             grpRegisters.SuspendLayout();
             grpInstruction.SuspendLayout();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // grpCommands
             // 
+            grpCommands.Controls.Add(btnApply);
             grpCommands.Controls.Add(cbRegOper);
             grpCommands.Controls.Add(label15);
             grpCommands.Controls.Add(label14);
@@ -97,10 +105,20 @@
             grpCommands.Margin = new Padding(3, 2, 3, 2);
             grpCommands.Name = "grpCommands";
             grpCommands.Padding = new Padding(3, 2, 3, 2);
-            grpCommands.Size = new Size(213, 321);
+            grpCommands.Size = new Size(213, 326);
             grpCommands.TabIndex = 0;
             grpCommands.TabStop = false;
             grpCommands.Text = "Commands";
+            // 
+            // btnApply
+            // 
+            btnApply.Location = new Point(114, 73);
+            btnApply.Name = "btnApply";
+            btnApply.Size = new Size(75, 23);
+            btnApply.TabIndex = 16;
+            btnApply.Text = "Apply";
+            btnApply.UseVisualStyleBackColor = true;
+            btnApply.Click += btnApply_Click;
             // 
             // cbRegOper
             // 
@@ -220,7 +238,7 @@
             // 
             grpRegisters.Controls.Add(txtRegs0);
             grpRegisters.Controls.Add(lblReg0);
-            grpRegisters.Location = new Point(623, 14);
+            grpRegisters.Location = new Point(555, 14);
             grpRegisters.Margin = new Padding(3, 2, 3, 2);
             grpRegisters.Name = "grpRegisters";
             grpRegisters.Padding = new Padding(3, 2, 3, 2);
@@ -273,7 +291,7 @@
             grpInstruction.Controls.Add(label2);
             grpInstruction.Controls.Add(label1);
             grpInstruction.Controls.Add(txtProgCount);
-            grpInstruction.Location = new Point(433, 14);
+            grpInstruction.Location = new Point(365, 14);
             grpInstruction.Margin = new Padding(3, 2, 3, 2);
             grpInstruction.Name = "grpInstruction";
             grpInstruction.Padding = new Padding(3, 2, 3, 2);
@@ -304,45 +322,45 @@
             // 
             lblStatusMask.BorderStyle = BorderStyle.FixedSingle;
             lblStatusMask.Font = new Font("Courier New", 9F);
-            lblStatusMask.Location = new Point(107, 248);
+            lblStatusMask.Location = new Point(99, 248);
             lblStatusMask.Name = "lblStatusMask";
-            lblStatusMask.Size = new Size(71, 18);
+            lblStatusMask.Size = new Size(79, 18);
             lblStatusMask.TabIndex = 32;
             // 
             // lblStatusWord
             // 
             lblStatusWord.BorderStyle = BorderStyle.FixedSingle;
             lblStatusWord.Font = new Font("Courier New", 9F);
-            lblStatusWord.Location = new Point(107, 225);
+            lblStatusWord.Location = new Point(99, 225);
             lblStatusWord.Name = "lblStatusWord";
-            lblStatusWord.Size = new Size(71, 18);
+            lblStatusWord.Size = new Size(79, 18);
             lblStatusWord.TabIndex = 31;
             // 
             // lblInterMask
             // 
             lblInterMask.BorderStyle = BorderStyle.FixedSingle;
             lblInterMask.Font = new Font("Courier New", 9F);
-            lblInterMask.Location = new Point(107, 199);
+            lblInterMask.Location = new Point(99, 199);
             lblInterMask.Name = "lblInterMask";
-            lblInterMask.Size = new Size(71, 18);
+            lblInterMask.Size = new Size(79, 18);
             lblInterMask.TabIndex = 30;
             // 
             // lblInterrupt
             // 
             lblInterrupt.BorderStyle = BorderStyle.FixedSingle;
             lblInterrupt.Font = new Font("Courier New", 9F);
-            lblInterrupt.Location = new Point(107, 176);
+            lblInterrupt.Location = new Point(99, 176);
             lblInterrupt.Name = "lblInterrupt";
-            lblInterrupt.Size = new Size(71, 18);
+            lblInterrupt.Size = new Size(79, 18);
             lblInterrupt.TabIndex = 29;
             // 
             // lblMemArg
             // 
             lblMemArg.BorderStyle = BorderStyle.FixedSingle;
             lblMemArg.Font = new Font("Courier New", 9F);
-            lblMemArg.Location = new Point(107, 149);
+            lblMemArg.Location = new Point(99, 149);
             lblMemArg.Name = "lblMemArg";
-            lblMemArg.Size = new Size(71, 18);
+            lblMemArg.Size = new Size(79, 18);
             lblMemArg.TabIndex = 28;
             // 
             // label7
@@ -454,12 +472,12 @@
             // btnCancel
             // 
             btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCancel.Location = new Point(704, 346);
+            btnCancel.Location = new Point(805, 346);
             btnCancel.Margin = new Padding(3, 2, 3, 2);
             btnCancel.Name = "btnCancel";
             btnCancel.Size = new Size(82, 22);
             btnCancel.TabIndex = 3;
-            btnCancel.Text = "Close";
+            btnCancel.Text = "Quit";
             btnCancel.UseVisualStyleBackColor = true;
             btnCancel.Click += btnCancel_Click;
             // 
@@ -552,12 +570,58 @@
             btnReset.UseVisualStyleBackColor = true;
             btnReset.Click += btnReset_Click;
             // 
+            // groupBox1
+            // 
+            groupBox1.Controls.Add(txtMemAddr);
+            groupBox1.Controls.Add(txtMemData);
+            groupBox1.Controls.Add(label16);
+            groupBox1.Controls.Add(label13);
+            groupBox1.Location = new Point(725, 14);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Size = new Size(161, 328);
+            groupBox1.TabIndex = 12;
+            groupBox1.TabStop = false;
+            groupBox1.Text = "Memory";
+            // 
+            // txtMemAddr
+            // 
+            txtMemAddr.Location = new Point(11, 39);
+            txtMemAddr.Name = "txtMemAddr";
+            txtMemAddr.Size = new Size(40, 23);
+            txtMemAddr.TabIndex = 4;
+            // 
+            // txtMemData
+            // 
+            txtMemData.Location = new Point(55, 38);
+            txtMemData.Name = "txtMemData";
+            txtMemData.Size = new Size(100, 23);
+            txtMemData.TabIndex = 3;
+            // 
+            // label16
+            // 
+            label16.AutoSize = true;
+            label16.Location = new Point(83, 19);
+            label16.Name = "label16";
+            label16.Size = new Size(52, 15);
+            label16.TabIndex = 1;
+            label16.Text = "Memory";
+            // 
+            // label13
+            // 
+            label13.AutoSize = true;
+            label13.Location = new Point(9, 21);
+            label13.Name = "label13";
+            label13.Size = new Size(36, 15);
+            label13.TabIndex = 0;
+            label13.Text = "Addr:";
+            // 
             // txtDebugger
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(797, 377);
+            ClientSize = new Size(898, 377);
+            Controls.Add(groupBox1);
             Controls.Add(btnReset);
             Controls.Add(btnDisConnect);
             Controls.Add(btnConnect);
@@ -580,6 +644,8 @@
             grpRegisters.PerformLayout();
             grpInstruction.ResumeLayout(false);
             grpInstruction.PerformLayout();
+            groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -632,5 +698,11 @@
         private Label label15;
         private ComboBox cbRegOper;
         private Button btnReset;
+        private GroupBox groupBox1;
+        private TextBox txtMemData;
+        private Label label16;
+        private Label label13;
+        private TextBox txtMemAddr;
+        private Button btnApply;
     }
 }

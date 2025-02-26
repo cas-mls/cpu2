@@ -139,6 +139,9 @@ package Utilities is
     ---------------------------------------------------------------------------
     -- Debug Information
 
+    subtype DEBUG_REG_TYPE is STD_LOGIC_VECTOR (31 downto 0);
+    type DEBUG_REG_ARR_TYPE is array (regOpMax downto 0) of DEBUG_REG_TYPE;
+
     -- Register compare types
     type REG_COMPARE is (
         REG_NOTHING,        -- Value 0
@@ -151,14 +154,22 @@ package Utilities is
         REG_LESS_EQUAL     -- Value 7
         );
 
-        constant NumBreakPoint : integer := 4;
-        type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
+    constant NumBreakPoint : integer := 4;
+    type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
     
+    constant RegisterNumberOffset : integer := 16;
+
+    type INPUT_VALUE_TYPE is record
+        Number : integer range 0 to 15;
+        Value : STD_LOGIC_VECTOR(31 downto 0);
+        Valid : STD_LOGIC;
+    end record;
+
     type DEBUGOUTTYPE is record
         Stopped     : STD_LOGIC;
         CycleCount  : unsigned(63 downto 0);
         ProgCounter : PCTYPE;
-        Regs        : REG_TYPE;
+        Regs        : DEBUG_REG_ARR_TYPE;
         Instruction : INSTRUCTIONTYPE;
         Interrupt   : STD_LOGIC_VECTOR(interruptNums downto 0);
         interruptMask
@@ -179,6 +190,8 @@ package Utilities is
         BWhenValue  : STD_LOGIC_VECTOR(31 downto 0);
         BWhenOp     : REG_COMPARE;
         Reset       : STD_LOGIC;
+        UpdateValue : INPUT_VALUE_TYPE;
+        UpdateReg   : INPUT_VALUE_TYPE;
     end record;
 
     subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);

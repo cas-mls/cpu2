@@ -1,12 +1,7 @@
 using System.Reflection;
 using System.IO.Ports;
-using System.Reflection.Emit;
 using System.Text.RegularExpressions;
-using System.Net.NetworkInformation;
 using System.ComponentModel;
-//using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using System.Text.RegularExpressions;
-using System.Net;
 
 
 namespace CpuDebugger
@@ -15,18 +10,29 @@ namespace CpuDebugger
     {
         TextBox[] RegsData = new TextBox[16];
         TextBox[] txtBreakAt = new TextBox[4];
+        TextBox[] MemAddr = new TextBox[15];
+        TextBox[] MemData = new TextBox[15];
+
         System.Windows.Forms.Label[] RegsLabel = new System.Windows.Forms.Label[16];
-        SerialPort port;
+
+        Dictionary<CmdStatusAddr, Control> DebugControls = new Dictionary<CmdStatusAddr, Control>();
+
         CpuState cpuState;
+        CpuState priorCpuState;
+        CpuState cpuStateUpdate;
+        int[] regChanges = new int[0];
         CpuAccess WbAccess;
         BreakData breakData;
         bool changeToStopped;
         Statuses lastExecutionState = Statuses.running;
 
+
         public txtDebugger()
         {
             InitializeComponent();
-            cpuState = new CpuState();
+            cpuState = new CpuState(true);
+            priorCpuState = new CpuState(true);
+            cpuStateUpdate = new CpuState(false);
             breakData = new BreakData();
             breakData.BreakWhen = new BreakData.BreakWhenStruct()
             {
@@ -35,11 +41,23 @@ namespace CpuDebugger
                 Value = 0
             };
 
-            WbAccess = new CpuAccess(cpuState, breakData);
+            WbAccess = new CpuAccess(cpuState, cpuStateUpdate, breakData);
             changeToStopped = false;
+
+            //DebugControls.Add(CmdStatusAddr.Status, txtStatus);
+            DebugControls.Add(CmdStatusAddr.ProgCounter, txtProgCount);
+            DebugControls.Add(CmdStatusAddr.Instruction, txtInstCode);
+            DebugControls.Add(CmdStatusAddr.Cycles, txtCycles);
+            DebugControls.Add(CmdStatusAddr.Interrupt, lblInterrupt);
+            DebugControls.Add(CmdStatusAddr.InterruptMask, lblInterMask);
+            DebugControls.Add(CmdStatusAddr.SwStatus, lblStatusWord);
+            DebugControls.Add(CmdStatusAddr.StatusMask, lblStatusMask);
+            DebugControls.Add(CmdStatusAddr.MemoryArg, lblMemArg);
+
 
             CreateRegisterControls();
             CreateBreakPointControls();
+            CreateMemoryControls();
 
         }
 
@@ -60,8 +78,9 @@ namespace CpuDebugger
         {
             RegsData[0] = txtRegs0;
             RegsData[0].Enabled = true;
-            RegsData[0].ReadOnly = true;
+            RegsData[0].ReadOnly = false;
             RegsData[0].BackColor = SystemColors.Window;
+            RegsData[0].TextChanged += TxtRegData_TextChanged;
             RegsLabel[0] = lblReg0;
             for (int i = 1; i < RegsData.Length; i++)
             {
@@ -73,11 +92,78 @@ namespace CpuDebugger
                 RegsData[i].Location = new Point(RegsData[0].Location.X, RegsData[0].Location.Y + 25 * i);
                 RegsData[i].Visible = true;
                 RegsData[i].Enabled = true;
-                RegsData[i].ReadOnly = true;
+                RegsData[i].ReadOnly = false;
+                RegsData[i].TextChanged += TxtRegData_TextChanged;
             }
             RegsData[0].Visible = true;
             RegsLabel[0].Visible = true;
             this.Refresh();
+        }
+
+
+        private void CreateMemoryControls()
+        {
+            MemAddr[0] = txtMemAddr;
+            MemAddr[0].Enabled = true;
+            MemAddr[0].ReadOnly = false;
+            MemAddr[0].BackColor = SystemColors.Window;
+            MemAddr[0].Tag = 0;
+            MemAddr[0].TextChanged += txtMemAddr_TextChanged;
+            MemData[0] = txtMemData;
+            MemData[0].Enabled = true;
+            MemData[0].ReadOnly = false;
+            MemData[0].BackColor = SystemColors.Window;
+            MemData[0].Tag = 0;
+            MemData[0].TextChanged += TxtMemData_TextChanged;
+            for (int i = 1; i < MemAddr.Length; i++)
+            {
+                MemAddr[i] = MemAddr[0].Clone();
+                MemAddr[i].Location = new Point(MemAddr[0].Location.X, MemAddr[0].Location.Y + 25 * i);
+                MemAddr[i].Visible = true;
+                MemAddr[i].Tag = i;
+                MemAddr[i].TextChanged += txtMemAddr_TextChanged;
+                MemData[i] = MemData[0].Clone();
+                MemData[i].Location = new Point(MemData[0].Location.X, MemData[0].Location.Y + 25 * i);
+                MemData[i].Visible = true;
+                MemData[i].Tag = i;
+
+            }
+            this.Refresh();
+        }
+
+        private void TxtMemData_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void TxtRegData_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void txtMemAddr_TextChanged(object? sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+            int i = (int)txt.Tag;
+            if (!string.IsNullOrEmpty(txt.Text))
+            {
+                cpuState.AddMemory(i, Convert.ToUInt16(txt.Text, 16));
+            }
+            else
+            {
+                cpuState.RemoveMemory(i);
+                MemData[i].Text = "";
+            }
+
         }
 
         private void cboComPorts_DropDown(object sender, EventArgs e)
@@ -106,6 +192,7 @@ namespace CpuDebugger
         {
             WbAccess.GetExecutionState();
             txtStatus.Text = cpuState.ExecutationState.ToString();
+            lastExecutionState = cpuState.ExecutationState;
         }
 
         private void SetDisplayData()
@@ -117,62 +204,72 @@ namespace CpuDebugger
 
             lblInstSplit.Text = cpuState.InstructionSplit;
             lblAssemInst.Text = cpuState.AssemblyInstruction(ckbHex.Checked);
-            lblMemArg.Text = cpuState.MemoryArg.ToString("x8");
-            lblInterrupt.Text = cpuState.Interrupt.ToString("x8");
-            lblInterMask.Text = cpuState.InterruptMask.ToString("x8");
-            lblStatusWord.Text = cpuState.StatusRegister.ToString("x8");
-            lblStatusMask.Text = cpuState.StatusMask.ToString("x8");
 
-            if (ckbHex.Checked)
+            foreach (CmdStatusAddr addr in Enum.GetValues(typeof(CmdStatusAddr)))
             {
-                txtProgCount.Text = cpuState.ProgramCounter.ToString("x3");
-                txtInstCode.Text = cpuState.InstructionCode.ToString("x8");
-                txtCycles.Text = cpuState.Cycles.ToString("x8");
+                if (DebugControls.ContainsKey(addr))
+                {
+                    if (ckbHex.Checked)
+                    {
+                        DebugControls[addr].Text = cpuState.getValue(addr).ToString("x8");
+                    }
+                    else
+                    {
+                        DebugControls[addr].Text = cpuState.getValue(addr).ToString("D10");
+                    }
+                }
             }
-            else
-            {
-                txtProgCount.Text = cpuState.ProgramCounter.ToString("d4");
-                txtInstCode.Text = cpuState.InstructionCode.ToString("D10");
-                txtCycles.Text = cpuState.Cycles.ToString("D10");
-            }
+
             for (int i = 0; i < 16; i++)
             {
                 if (ckbHex.Checked)
                 {
-                    RegsData[i].Text = cpuState.CpuRegisters[i].ToString("X8");
+                    RegsData[i].Text = cpuState.getRegisterValue(i).ToString("X8");
                 }
                 else
                 {
-                    RegsData[i].Text = cpuState.CpuRegisters[i].ToString("D8");
+                    RegsData[i].Text = cpuState.getRegisterValue(i).ToString("D8");
                 }
-                if (cpuState.CpuRegisters.RegisterChanged(i))
-                {
-                    RegsData[i].BackColor = Color.Green;
-                    RegsData[i].ForeColor = Color.White;
-                }
-                else
-                {
-                    RegsData[i].BackColor = SystemColors.Window;
-                    RegsData[i].ForeColor = Color.Black;
-                }
+
                 if (cpuState.Register1 == i)
                     RegsLabel[i].Text = i.ToString() + ":(R1)";
                 else if (cpuState.Register2 == i)
-                    RegsLabel[i].Text = i.ToString() + ":(R2)";
+                    if (cpuState.ValidRegZero)
+                        RegsLabel[i].Text = i.ToString() + ":(R2)";
+                    else
+                        RegsLabel[i].Text = i.ToString() + ":";
                 else
                     RegsLabel[i].Text = i.ToString() + ":";
 
             }
-            ushort address = 0;
-            if (cpuState.MemoryAccess == 2)
+            // Turn the old changes off.
+            foreach (int reg in regChanges)
             {
-                address = cpuState.Immediate;
+                RegsData[reg].BackColor = SystemColors.Window;
+                RegsData[reg].ForeColor = Color.Black;
             }
-            else if (cpuState.MemoryAccess == 3)
+            // Turn on the new changes.
+            regChanges = priorCpuState.Changes(cpuState);
+            foreach (int reg in regChanges)
             {
-                address = (ushort)(cpuState.Immediate + cpuState.CpuRegisters[cpuState.Register2]);
+                RegsData[reg].BackColor = Color.Green;
+                RegsData[reg].ForeColor = Color.White;
             }
 
+            foreach (Memory mem in cpuState.GetAllMemory())
+            {
+                if (ckbHex.Checked)
+                {
+                    MemAddr[mem.Index].Text = mem.Address.ToString("x3");
+                    MemData[mem.Index].Text = mem.Data.ToString("x8");
+                }
+                else
+                {
+                    MemAddr[mem.Index].Text = mem.Address.ToString("d4");
+                    MemData[mem.Index].Text = mem.Data.ToString("D10");
+                }
+            }
+            priorCpuState.copy(cpuState);
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
@@ -307,6 +404,64 @@ namespace CpuDebugger
             WbAccess.Reset();
             if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
         }
+
+        private void btnApply_Click(object sender, EventArgs e)
+        {
+            checkUserUpdatedMemory();
+            checkUserUpdatedRegister();
+            if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
+            while (bgwDebugStatus.IsBusy) Application.DoEvents();
+            WbAccess.UpdateMemory();
+            WbAccess.UpdateRegisters();
+            if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
+            SetDisplayData();
+        }
+
+        private void checkUserUpdatedMemory()
+        {
+            foreach (Memory mem in cpuState.GetAllMemory())
+            {
+                if (!string.IsNullOrEmpty(MemData[mem.Index].Text))
+                {
+                    uint data = Convert.ToUInt32(MemData[mem.Index].Text, 16);
+                    if (mem.Data != data)
+                    {
+                        cpuStateUpdate.AddMemory(mem.Index, mem.Address, data);
+                    }
+                    else
+                    {
+                        cpuStateUpdate.RemoveMemory(mem.Index);
+                    }
+                }
+                else
+                {
+                    cpuStateUpdate.RemoveMemory(mem.Index);
+                }
+            }
+        }
+        private void checkUserUpdatedRegister()
+        {
+            for (int regNum = 0; regNum < 16; regNum++)
+            {
+                if (!string.IsNullOrEmpty(RegsData[regNum].Text))
+                {
+                    uint data = Convert.ToUInt32(RegsData[regNum].Text, 16);
+                    if (cpuState.getRegisterValue(regNum) != data)
+                    {
+                        cpuStateUpdate.AddRegister(regNum, data);
+                    }
+                    else
+                    {
+                        cpuStateUpdate.RemoveMemory(regNum);
+                    }
+                }
+                else
+                {
+                    cpuStateUpdate.RemoveMemory(regNum);
+                }
+            }
+        }
+
     }
 
     public static class ControlExtensions

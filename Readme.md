@@ -112,7 +112,16 @@ This is a simple CPU architecture that I used to verify that I understand how to
 ## Instruction Format
 
 ```mermaid
-
+---
+title: "Instruction Layout"
+---
+packet-beta
+0-15: "Immediate Address"
+16-19: "Register 2"
+20-23: "Register 1"
+24-25: "Memory Access"
+26-26: "Flag"
+27-31: "Opcode"
 ```
 
 |              | Opcode | Flag         | Access <br />(Memory)                                        | Register 1                | Register 2     | Immediate / <br />Address |
@@ -1269,6 +1278,29 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 
 ### Serial  Protocol
 
+```mermaid
+---
+title: "Wishbone Read"
+---
+packet-beta
+0-7: "Command, Bit 0 is 0"
+8-23: "Address"
+24-31: "Response"
+32-63: "Data In"
+
+```
+```mermaid
+---
+title: "Wishbone Write"
+---
+packet-beta
+0-7: "Command, bit 0 is 1"
+8-23: "Address"
+24-55: "Data Out"
+56-63: "Response"
+
+```
+
 |   Byte 0    |     Byte 1     |     Byte 2     |       Byte 3       |     Byte 4      |     Byte 5      |     Byte 6      | Byte 7             |
 | :---------: | :------------: | :------------: | :----------------: | :-------------: | :-------------: | :-------------: | ------------------ |
 |  **Read**   |                |                |                    |                 |                 |                 |                    |
@@ -1276,11 +1308,11 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 |  **Write**  |                |                |                    |                 |                 |                 |                    |
 | Command (W) | Address Lo (W) | Address Hi (W) |  Data Out(0) (W)   | Data Out(1) (W) | Data Out(2) (W) | Data Out(3) (W) | Response (CMD) (R) |
 
-* Command - 
-* Address - 
-* Data In - 
-* Data Out - 
-* Response - 
+* Command - Bit 0  is Write Enable (WE_O) and Bits 1-7 is Address Tag Type (TGA_O).  The TGA_O is the command to process or data type that would transmitted.
+* Address - Address (ADR_O) of the register or memory.
+* Data In - Data Input Array (DAT_I).  This is the 32-bit data to be read from the Computer.
+* Data Out - Data Output Array (DAT_O).  This is the 32-bit data to be transmitted to the Computer. 
+* Response - Wishbone ACK_I / Echo the Command.  TODO: This should be extended to handle Error Ouput (ERR_I) and Retry (RTY_I).
 
 ## GCC Backend Processing
 

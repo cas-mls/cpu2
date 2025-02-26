@@ -93,7 +93,7 @@ architecture Behavioral of debug is
     end component;
 
     
-    signal dmemReadCount : integer;
+    signal dmemReadCount : integer range 0 to 7 := 0;
 
     -- Wishbone signals
     signal WB_ADDR : STD_LOGIC_VECTOR(15 downto 0);
@@ -105,6 +105,58 @@ architecture Behavioral of debug is
     signal WB_STALL : STD_LOGIC;
     signal WB_DIN : STD_LOGIC_VECTOR(31 downto 0);
     signal WB_DOUT : STD_LOGIC_VECTOR(31 downto 0);
+
+    attribute keep                          : STRING;
+    attribute MARK_DEBUG                    : string;
+    -- attribute keep          of rst          : signal is "TRUE";
+    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
+
+    -- Wishbone Elements ILA
+    attribute keep          of WB_TGA       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_TGA       : signal is "TRUE"; 
+    attribute keep          of WB_ADDR       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_ADDR       : signal is "TRUE"; 
+    attribute keep          of WB_WE       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_WE       : signal is "TRUE"; 
+    attribute keep          of WB_ACK       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_ACK       : signal is "TRUE"; 
+    attribute keep          of WB_CYC       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_CYC       : signal is "TRUE"; 
+    attribute keep          of WB_DIN       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_DIN       : signal is "TRUE"; 
+    attribute keep          of WB_DOUT       : signal is "TRUE"; 
+    attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
+
+    -- Memory Elements ILA
+    -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
+    -- attribute keep          of MEM_WEA          : signal is "TRUE";
+    -- attribute MARK_DEBUG    of MEM_WEA          : signal is "TRUE";
+    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DINA         : signal is "TRUE";
+    -- attribute MARK_DEBUG    of MEM_DINA         : signal is "TRUE";
+
+    -- DEBUG ELEMENTS
+    -- attribute keep          of DebugIn      : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugIn      : signal is "TRUE";
+    -- attribute keep          of DebugOut     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
+    -- attribute keep          of DebugOut     : signal is "TRUE";
+    -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
+    
+    -- attribute keep          of dmemReadCount         : signal is "TRUE";
+    -- attribute MARK_DEBUG    of dmemReadCount         : signal is "TRUE";
+    -- attribute keep          of dcontBtn    : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dcontBtn    : signal is "TRUE"; 
+    -- attribute keep          of dstepBtn    : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dstepBtn    : signal is "TRUE"; 
+    -- attribute keep          of dbreakBtn   : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of dbreakBtn   : signal is "TRUE"; 
+    -- attribute keep          of dmode       : signal is "TRUE";
+    -- attribute MARK_DEBUG    of dmode       : signal is "TRUE";
 
     
 begin
@@ -146,7 +198,17 @@ begin
                     BWhenReg => 0,
                     BWhenValue => (others => '0'),
                     BWhenOp => REG_NOTHING,
-                    Reset => '0'
+                    Reset => '0',
+                    UpdateValue => (
+                        Number => 0,
+                        Value => (others => '0'),
+                        Valid => '0'
+                    ),
+                    UpdateReg => (
+                        Number => 0,
+                        Value => (others => '0'),
+                        Valid => '0'
+                    )
                 );
                 dmemReadCount <= 0;
                 MEM_ADDRA <= (others => '0');
@@ -242,18 +304,17 @@ begin
 
                         when TGA_REGISTERS => -- REGISTER COMMAND
                             if WB_WE = '0' then
-                                WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0)))).Value;
+                                WB_DIN <= Debugout.Regs(to_integer(unsigned(WB_ADDR(3 downto 0))));
                             else
-                                -- TODO: Debug write CPU Registers.
-                                -- This would require DebugIn to have the CPURegs.
-                                -- Also, the CPU Regs for the ALU and Debug Needs to be MUXed.
-                                -- This is possible, not hard, but, I will leave it for later.
+                                DebugIn.UpdateReg.Number <= to_integer(unsigned(WB_ADDR(3 downto 0)));
+                                DebugIn.UpdateReg.Value <= WB_DOUT;
+                                DebugIn.UpdateReg.Valid <= '1';
                             end if;
                             WB_ACK <= '1';
 
                         when TGA_MEMORY => -- MEMORY COMMAND
                             if WB_WE = '0' then
-                                if dmemReadCount /= 3 then
+                                if dmemReadCount < 3 then
                                     MEM_ADDRA <= WB_ADDR(11 downto 0);
                                     MEM_ENA <= '1';
                                     MEM_WEA(0) <= '0';
@@ -265,7 +326,7 @@ begin
                                     dmemReadCount <= 0;
                                 end if;
                             else
-                                if dmemReadCount /= 1 then
+                                if dmemReadCount < 1 then
                                     MEM_ADDRA <= WB_ADDR(11 downto 0);
                                     MEM_ENA <= '1';
                                     MEM_WEA(0) <= '1';
@@ -283,6 +344,7 @@ begin
 
                 else
                     WB_ACK <= '0';
+                    dmemReadCount <= 0;
                 end if;
             end if;
         end if;

@@ -25,6 +25,7 @@ library xil_defaultlib;
 use IEEE.STD_LOGIC_1164.ALL;
 use xil_defaultlib.Utilities.all;
 
+
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 use IEEE.NUMERIC_STD.ALL;
@@ -57,8 +58,18 @@ entity cpu_debug is
             BWhenReg => 0,
             BWhenValue => (others => '0'),
             BWhenOp => REG_NOTHING,
-            Reset => '0'
-            );
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )            
+        );
         DebugOut    : out DEBUGOUTTYPE
     );
 end cpu_debug;
@@ -73,18 +84,6 @@ architecture Behavioral of cpu_debug is
         flag => '0',
         countdown => 0));
 
-    -- Decode information    
-    -- signal ffopcode : OPCODETYPE := "00000";
-    -- signal ffflag : std_logic := '0';
-    -- signal ffmemop : MEMTYPE;
-    -- signal ffiregop1 : integer;
-    -- signal ffiregop2 : integer;
-    -- signal ffimmop : IMMTYPE;
-    -- signal ireg1value : std_logic_vector(31 downto 0);
-    -- signal ireg2value : std_logic_vector(31 downto 0);
-    -- signal ffINSTRUCTION : std_logic_vector(31 downto 0);
-    
-    
     function debug_reg_compare(
         RegLast : std_logic_vector;
         Reg : std_logic_vector;
@@ -96,19 +95,19 @@ architecture Behavioral of cpu_debug is
         elsif Reg /= RegLast then
             case Op is
                 when REG_EQUAL =>
-                    return RegDebug = Reg;
+                    return Reg = RegDebug;
                 when REG_LESS =>
-                    return RegDebug < Reg;
+                    return Reg < RegDebug;
                 when REG_GREATER =>
-                    return RegDebug > Reg;
+                    return Reg > RegDebug;
                 when REG_CHANGE =>
                     return true;
                 when REG_NOT_EQUAL =>
-                    return RegDebug /= Reg;
+                    return Reg /= RegDebug;
                 when REG_GREATER_EQUAL =>
-                    return RegDebug >= Reg;
+                    return Reg >= RegDebug;
                 when REG_LESS_EQUAL =>
-                    return RegDebug <= Reg;
+                    return Reg <= RegDebug;
                 when others =>
                     return false;
             end case;
@@ -129,11 +128,7 @@ begin
                     stopped => '0',
                     cycleCount => (others => '0'),
                     progCounter => (others => '0'),
-                    Regs => (others => (
-                        value => (others => '0'),
-                        opcode => oNOP,
-                        flag => '0',
-                        countdown => 0)),
+                    Regs => (others => (others => '0')),
                     Instruction => (others =>'0'),
                     Interrupt => (others => '0'),
                     InterruptMask => (others => '0'),
@@ -198,25 +193,24 @@ begin
                     end if;
                 end if;
                 DEBUGOUT.Reset <= DEBUGIN.Reset;
-                
+
                 -- Continue to update the debug information.
                 -- Good generic information for the simulator and ILA.
-                DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
+                if DEBUGOUT.Stopped = '0'
+                then
+                    DEBUGOUT.CycleCount <= DEBUGOUT.CycleCount + 1;
+                end if;
                 DEBUGOUT.ProgCounter <= ProgramCounter;
-                -- DEBUGOUT.Instruction <= ffopcode
-                --     & ffflag
-                --     & ffmemop
-                --     & std_logic_vector(to_unsigned(ffiregop1, 4))
-                --     & std_logic_vector(to_unsigned(ffiregop2, 4))
-                --     & ffimmop;
-                -- DEBUGOUT.Instruction <= ffINTRUCTION;
-                DEBUGOUT.Regs <= cpuRegs;
+                for i in 0 to regOpMax loop
+                    DEBUGOUT.Regs(i) <= cpuRegs(i).Value;
+                end loop;
+                -- DEBUGOUT.Regs <= cpuRegs;
                 DEBUGOUT.Status <= statusWord;
                 DEBUGOUT.StatusMask <= statusMask;
                 DEBUGOUT.Interrupt <= INTERRUPT;
                 DEBUGOUT.interruptMask  <= interruptMask;
-                if INSTRUCTION(25 downto 24) = ABSOLUTE 
-                    or INSTRUCTION(25 downto 24) = INDEX
+                if DEBUGOUT.Instruction(25 downto 24) = ABSOLUTE 
+                    or DEBUGOUT.Instruction(25 downto 24) = INDEX
                 then
                     DEBUGOUT.MEMORY_ARG <= MEM_ARG;
                 else
