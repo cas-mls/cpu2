@@ -98,7 +98,28 @@ entity ProgCounter is
         MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
         ProgramCounter        : OUT PCTYPE;
-        JumpDisablePipline    : OUT STD_LOGIC
+        JumpDisablePipline    : OUT STD_LOGIC;
+        DEBUGIN     : in DEBUGINTYPE := (
+            DebugMode => '0',
+            BreakPoints => (others => (others => '0')),
+            Break => '0',
+            Step => '0',
+            Continue => '0',
+            BWhenReg => 0,
+            BWhenValue => (others => '0'),
+            BWhenOp => REG_NOTHING,
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )
+            )
     );
 end ProgCounter;
 
@@ -122,6 +143,8 @@ architecture Behavioral of ProgCounter is
     -- attribute MARK_DEBUG : string;
     -- attribute keep of ProgCounterLocal : signal is "TRUE";
     -- attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
+    -- attribute keep of ProgramCounter : signal is "TRUE";
+    -- attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
 
 
 begin
@@ -186,22 +209,22 @@ begin
                             when oJMP | oJSR =>
                                 case ffmemop is
                                     when REGREG     =>
-                                        ProgCounterLocal <= unsigned(ireg2value(11 downto 0)); 
+                                        ProgCounterLocal <= unsigned(ireg2value(ProgCounterLocal'Range)); 
                                     when IMMEDIATE  =>
-                                        ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                        ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                     when ABSOLUTE | INDEX =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when others     =>
                                 end case;
 
                             when oRTN | oRTI =>
                                 case ffmemop is
                                     when REGREG     =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when IMMEDIATE  =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when ABSOLUTE | INDEX =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when others     =>
                                 end case;
 
@@ -211,11 +234,11 @@ begin
                                         if  ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value = ireg2value)
                                             or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) = 0)
                                             or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -223,11 +246,11 @@ begin
                                         if  ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value = ireg2value)
                                             or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) = 0)
                                             or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -241,12 +264,12 @@ begin
                                             and ((ffflag = '0' and ireg1value < ireg2value) 
                                                 or (ffflag = '1' and ireg1value >= ireg2value)) 
                                                 then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and ((ffflag = '0' and signed(ireg1value) < 0) 
                                                 or (ffflag = '1' and signed(ireg1value) >= 0))
                                                 then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -255,12 +278,12 @@ begin
                                             and ((ffflag = '0' and ireg1value < ireg2value) 
                                                 or (ffflag = '1' and ireg1value >= ireg2value)) 
                                                 then
-                                                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                                    ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and ((ffflag = '0' and signed(ireg1value) < 0) 
                                                 or (ffflag = '1' and signed(ireg1value) >= 0))
                                         then
-                                            ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                            ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -273,11 +296,11 @@ begin
                                         if ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value > ireg2value) 
                                             or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) > 0) 
                                             or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(11 downto 0));
+                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -285,11 +308,11 @@ begin
                                         if ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value > ireg2value) 
                                             or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) > 0) 
                                             or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                                         else
                                             ProgCounterLocal <= ProgCounterLocal + 1;
                                         end if;
@@ -300,12 +323,19 @@ begin
                                 ProgCounterLocal <= ProgCounterLocal + 1;
                         end case;
                     end if;
+                when DEBUGWAIT_S =>
+                    if  DEBUGIN.UpdateValue.Valid = '1' then
+                        if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_PROG_COUNTER
+                        then
+                            ProgCounterLocal <= unsigned(DEBUGIN.UpdateValue.Value(ProgCounterLocal'Range));
+                        end if;
+                    end if;
                 when others =>
             end case;
 
             case fsm_interrupt_cycle_p is
                 when JUMP_S       =>
-                    ProgCounterLocal <= unsigned(MEM_ARG(11 downto 0));
+                    ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
                 when others =>
             end case;
 

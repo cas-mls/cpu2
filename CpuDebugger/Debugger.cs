@@ -2,6 +2,7 @@ using System.Reflection;
 using System.IO.Ports;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
+using System;
 
 
 namespace CpuDebugger
@@ -47,11 +48,11 @@ namespace CpuDebugger
             //DebugControls.Add(CmdStatusAddr.Status, txtStatus);
             DebugControls.Add(CmdStatusAddr.ProgCounter, txtProgCount);
             DebugControls.Add(CmdStatusAddr.Instruction, txtInstCode);
-            DebugControls.Add(CmdStatusAddr.Cycles, txtCycles);
-            DebugControls.Add(CmdStatusAddr.Interrupt, lblInterrupt);
-            DebugControls.Add(CmdStatusAddr.InterruptMask, lblInterMask);
-            DebugControls.Add(CmdStatusAddr.SwStatus, lblStatusWord);
-            DebugControls.Add(CmdStatusAddr.StatusMask, lblStatusMask);
+            DebugControls.Add(CmdStatusAddr.Cycles, lblCycles);
+            DebugControls.Add(CmdStatusAddr.Interrupt, txtInterrupt);
+            DebugControls.Add(CmdStatusAddr.InterruptMask, txtInterMask);
+            DebugControls.Add(CmdStatusAddr.SwStatus, txtStatusWord);
+            DebugControls.Add(CmdStatusAddr.StatusMask, txtStatusMask);
             DebugControls.Add(CmdStatusAddr.MemoryArg, lblMemArg);
 
 
@@ -211,7 +212,10 @@ namespace CpuDebugger
                 {
                     if (ckbHex.Checked)
                     {
-                        DebugControls[addr].Text = cpuState.getValue(addr).ToString("x8");
+                        if (addr == CmdStatusAddr.ProgCounter)
+                            DebugControls[addr].Text = cpuState.getValue(addr).ToString("x3");
+                        else
+                            DebugControls[addr].Text = cpuState.getValue(addr).ToString("x8");
                     }
                     else
                     {
@@ -409,10 +413,12 @@ namespace CpuDebugger
         {
             checkUserUpdatedMemory();
             checkUserUpdatedRegister();
+            checkUserUpdatedStatuses();
             if (bgwDebugStatus.IsBusy) bgwDebugStatus.CancelAsync();
             while (bgwDebugStatus.IsBusy) Application.DoEvents();
             WbAccess.UpdateMemory();
             WbAccess.UpdateRegisters();
+            WbAccess.UpdateStatuses();
             if (!bgwDebugStatus.IsBusy) bgwDebugStatus.RunWorkerAsync();
             SetDisplayData();
         }
@@ -462,6 +468,63 @@ namespace CpuDebugger
             }
         }
 
+        private void checkUserUpdatedStatuses()
+        {
+            foreach (CmdStatusAddr addr in Enum.GetValues(typeof(CmdStatusAddr)))
+            {
+                if (DebugControls.ContainsKey(addr))
+                {
+                    if (!string.IsNullOrEmpty(DebugControls[addr].Text))
+                    {
+                        uint data = Convert.ToUInt32(DebugControls[addr].Text, 16);
+                        if (cpuState.getValue(addr) != data)
+                        {
+                            cpuStateUpdate.AddStatus(addr, data);
+                        }
+                        else
+                        {
+                            cpuStateUpdate.RemoveStatus(addr);
+                        }
+                    }
+                    else
+                    {
+                        cpuStateUpdate.RemoveStatus(addr);
+                    }
+                }
+            }
+        }
+
+        private void txtInterrupt_TextChanged(object sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void txtInterMask_TextChanged(object sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void txtStatusWord_TextChanged(object sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void txtStatusMask_TextChanged(object sender, EventArgs e)
+        {
+            if (sender == null || !(sender is TextBox))
+                return;
+            TextBox txt = sender as TextBox;
+            txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
     }
 
     public static class ControlExtensions

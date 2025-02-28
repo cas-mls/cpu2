@@ -60,6 +60,16 @@ namespace CpuDebugger
                 memory[mem.Index] = mem;
         }
 
+        internal void AddStatus(CmdStatusAddr status, uint value)
+        {
+            debugValues[status] = value;
+        }
+
+        internal void RemoveStatus(CmdStatusAddr status)
+        {
+            debugValues.Remove(status);
+        }
+
         internal uint getValue(CmdStatusAddr status)
         {
             return debugValues[status];

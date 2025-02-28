@@ -249,7 +249,28 @@ architecture Behavioral of CPU is
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
             MEM_ADDRA : out std_logic_vector(11 downto 0);
             ProgramCounter : out PCTYPE;
-            JumpDisablePipline : out std_logic := '0'
+            JumpDisablePipline : out std_logic := '0';
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')),
+                Break => '0',
+                Step => '0',
+                Continue => '0',
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING,
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
+                )
 
         );
     end component ProgCounter;
@@ -306,7 +327,28 @@ architecture Behavioral of CPU is
             interruptSpNum : out integer range 0 to interruptNums;
             interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
             interruptReset : out STD_LOGIC := '0';
-            statusMask : out std_logic_vector(31 downto 0) := X"00000000"
+            statusMask : out std_logic_vector(31 downto 0) := X"00000000";
+            DEBUGIN     : in DEBUGINTYPE := (
+                DebugMode => '0',
+                BreakPoints => (others => (others => '0')),
+                Break => '0',
+                Step => '0',
+                Continue => '0',
+                BWhenReg => 0,
+                BWhenValue => (others => '0'),
+                BWhenOp => REG_NOTHING,
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
+                )
             );
     end component Interrupt_Entity;
 
@@ -423,8 +465,6 @@ architecture Behavioral of CPU is
     -- CPU Debugging ILA
     -- attribute keep of DebugDisablePipline : signal is "TRUE";
     -- attribute MARK_DEBUG of DebugDisablePipline : signal is "TRUE";
-    -- attribute keep of DebugStart : signal is "TRUE";
-    -- attribute MARK_DEBUG of DebugStart : signal is "TRUE";
 
 
 begin
@@ -491,7 +531,8 @@ begin
         MEM_WEA => MEM_WEA,
         MEM_ADDRA => MEM_ADDRA,
         ProgramCounter => ProgramCounter,
-        JumpDisablePipline => JumpDisablePipline
+        JumpDisablePipline => JumpDisablePipline,
+        DebugIn => DEBUGIN
     );
 
     IoProcess_enty : IoProcess
@@ -544,7 +585,8 @@ begin
         interruptSpNum => interruptSpNum,
         interruptSpAddrValue => interruptSpAddrValue,
         interruptReset => interruptReset,
-        statusMask => statusMask
+        statusMask => statusMask,
+        DebugIn => DEBUGIN
     );
 
     cpu_debug_enty : cpu_debug

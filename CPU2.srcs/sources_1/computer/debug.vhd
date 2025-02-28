@@ -106,26 +106,26 @@ architecture Behavioral of debug is
     signal WB_DIN : STD_LOGIC_VECTOR(31 downto 0);
     signal WB_DOUT : STD_LOGIC_VECTOR(31 downto 0);
 
-    attribute keep                          : STRING;
-    attribute MARK_DEBUG                    : string;
+    -- attribute keep                          : STRING;
+    -- attribute MARK_DEBUG                    : string;
     -- attribute keep          of rst          : signal is "TRUE";
     -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
     -- Wishbone Elements ILA
-    attribute keep          of WB_TGA       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_TGA       : signal is "TRUE"; 
-    attribute keep          of WB_ADDR       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_ADDR       : signal is "TRUE"; 
-    attribute keep          of WB_WE       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_WE       : signal is "TRUE"; 
-    attribute keep          of WB_ACK       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_ACK       : signal is "TRUE"; 
-    attribute keep          of WB_CYC       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_CYC       : signal is "TRUE"; 
-    attribute keep          of WB_DIN       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_DIN       : signal is "TRUE"; 
-    attribute keep          of WB_DOUT       : signal is "TRUE"; 
-    attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
+    -- attribute keep          of WB_TGA       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_TGA       : signal is "TRUE"; 
+    -- attribute keep          of WB_ADDR       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_ADDR       : signal is "TRUE"; 
+    -- attribute keep          of WB_WE       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_WE       : signal is "TRUE"; 
+    -- attribute keep          of WB_ACK       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_ACK       : signal is "TRUE"; 
+    -- attribute keep          of WB_CYC       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_CYC       : signal is "TRUE"; 
+    -- attribute keep          of WB_DIN       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_DIN       : signal is "TRUE"; 
+    -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
 
     -- Memory Elements ILA
     -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
@@ -258,6 +258,19 @@ begin
                                         WB_DIN <= DebugOut.MEMORY_ARG;
                                     when others =>
                                 end case;
+                            else
+                                case DEBUG_DATA'VAL(to_integer(unsigned(WB_ADDR))) is
+                                    when DBG_PROG_COUNTER  -- Only valid for updates
+                                            | DBG_INTERRUPT 
+                                            | DGB_INTERRUPT_MASK 
+                                            | DBG_STATUS 
+                                            | DBG_STATUS_MASK 
+                                            =>
+                                        DebugIn.UpdateValue.Number <= to_integer(unsigned(WB_ADDR(3 downto 0)));
+                                        DebugIn.UpdateValue.Value <= WB_DOUT;
+                                        DebugIn.UpdateValue.Valid <= '1';
+                                    when others =>
+                                end case;
                             end if;
                             WB_ACK <= '1';
                             
@@ -345,6 +358,8 @@ begin
                 else
                     WB_ACK <= '0';
                     dmemReadCount <= 0;
+                    DebugIn.UpdateReg.Valid <= '0';
+                    DebugIn.UpdateValue.Valid <= '0';
                 end if;
             end if;
         end if;

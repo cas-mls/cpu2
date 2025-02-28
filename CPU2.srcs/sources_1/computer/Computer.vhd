@@ -267,10 +267,10 @@ architecture Behavioral of Computer is
 
     signal dmemReadCount: integer range 0 to 3;
 
-    attribute keep                          : STRING;
-    attribute MARK_DEBUG                    : string;
-    attribute keep          of rst          : signal is "TRUE";
-    attribute MARK_DEBUG    of rst          : signal is "TRUE";
+    -- attribute keep                          : STRING;
+    -- attribute MARK_DEBUG                    : string;
+    -- attribute keep          of rst          : signal is "TRUE";
+    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
     -- IO Elements ILA
     -- attribute keep          of ioAddr       : signal is "TRUE";
@@ -313,10 +313,10 @@ architecture Behavioral of Computer is
     -- attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
     -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
-    attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
-    attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
 
 begin
 
@@ -338,28 +338,28 @@ begin
 
     cpu1 : CPU
     port map(
-        SYS_CLK       => SYS_CLK,
-        IO_ADDR       => ioAddr,
-        IOR_DATA      => IORdata,
-        IOW_DATA      => IOWdata,
-        IOR_ENA       => IORena,
-        IOW_ENA       => IOWena,
-        IO_STATUS     => IOStatus,
-        IO_STATUS_REQ => IOStatusReq,
-        INTERRUPT     => interrupt,
-        MEM_ENA   => CPU_MEM_ENA,
-        MEM_WEA   => CPU_MEM_WEA,
-        MEM_ADDRA => CPU_MEM_ADDRA,
-        MEM_DINA  => CPU_MEM_DINA,
-        MEM_DOUTA => CPU_MEM_DOUTA,
-        MEM_ENB   => MEM_ENB,
-        MEM_WEB   => MEM_WEB,
-        MEM_ADDRB => MEM_ADDRB,
-        MEM_DINB  => MEM_DINB,
-        MEM_DOUTB => MEM_DOUTB,
+        SYS_CLK         => SYS_CLK,
+        IO_ADDR         => ioAddr,
+        IOR_DATA        => IORdata,
+        IOW_DATA        => IOWdata,
+        IOR_ENA         => IORena,
+        IOW_ENA         => IOWena,
+        IO_STATUS       => IOStatus,
+        IO_STATUS_REQ   => IOStatusReq,
+        INTERRUPT       => interrupt,
+        MEM_ENA         => CPU_MEM_ENA,
+        MEM_WEA         => CPU_MEM_WEA,
+        MEM_ADDRA       => CPU_MEM_ADDRA,
+        MEM_DINA        => CPU_MEM_DINA,
+        MEM_DOUTA       => CPU_MEM_DOUTA,
+        MEM_ENB         => MEM_ENB,
+        MEM_WEB         => MEM_WEB,
+        MEM_ADDRB       => MEM_ADDRB,
+        MEM_DINB        => MEM_DINB,
+        MEM_DOUTB       => MEM_DOUTB,
 
-        DEBUGIN     => DebugIn,
-        DEBUGOUT    => DebugOut
+        DEBUGIN         => DebugIn,
+        DEBUGOUT        => DebugOut
     );
 
     uart : UartDevice
@@ -399,10 +399,14 @@ begin
         DebugOut => DebugOut
     );
 
-    interrupt <= interrupt_L(31 downto 13)
-                 & CpuUartInt
-                 & interrupt_L(11 downto 1)
-                 & rst;
+    interrupt <= DebugIn.UpdateValue.Value(31 downto 0)
+                when DebugIn.UpdateValue.Valid = '1'
+                    and DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_INTERRUPT
+                else
+                    interrupt_L(31 downto 13)
+                        & CpuUartInt
+                        & interrupt_L(11 downto 1)
+                        & rst;
 
     MEM_CLK <= SYS_CLK;
 

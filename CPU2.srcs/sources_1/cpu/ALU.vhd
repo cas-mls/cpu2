@@ -355,6 +355,8 @@ begin
                 divideZero := UUsrZeroReg(0);
                 divRegNum := to_integer(unsigned(UUsrZeroReg(4 downto 1)));
                 if divideZero = '0' then -- Not divide by zero
+                    -- XXX: This is not right for remainder values.  I think it is 31 downto 0.
+                    -- If using the register pair this needs to be worked out better.
                     cpuRegs(divRegNum).OpCode <= oNOP; 
                     cpuRegs(divRegNum).Value <= UQuotRem(63 downto 32); -- Quotent
                 end if;
@@ -529,6 +531,7 @@ begin
                                     SDivRegAValid <= '1';
                                     SDivRegBValid <= '1';
                                     SUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                    -- XXX: If remainder is used then need to set the remainder register to oDiv.
                                     cpuRegs(ffiregop1).OpCode <= oDiv;
                                 else
                                     UDivRegA <= std_logic_vector(a_reg_u(31 downto 0));
@@ -536,6 +539,7 @@ begin
                                     UDivRegAValid <= '1';
                                     UDivRegBValid <= '1';
                                     UUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                    -- XXX: If remainder is used then need to set the remainder register to oDiv.
                                     cpuRegs(ffiregop1).OpCode <= oDiv;
                                 end if;
                             end if;
@@ -632,6 +636,12 @@ begin
                     if DEBUGIN.UpdateReg.Valid = '1' 
                     then
                         cpuRegs(DEBUGIN.UpdateReg.Number).Value <= DEBUGIN.UpdateReg.Value;
+                    end if;
+                    if DEBUGIN.UpdateValue.Valid = '1' then
+                        if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_STATUS
+                        then
+                            statusWord <= DEBUGIN.UpdateValue.Value;
+                        end if;
                     end if;
                 when others =>
             end case;

@@ -115,6 +115,22 @@ namespace CpuDebugger
             }
         }
 
+        internal void UpdateStatuses()
+        {
+            if (IsConnected
+                && cpuState.ExecutationState == Statuses.stopped)
+            {
+                foreach (CmdStatusAddr regNum in cpuStateUpdate.getAllStatuses())
+                {
+                    SerialWishbone.write(
+                        port,
+                        (byte)DebugCmd.Status,
+                        (ushort)regNum,
+                        (uint)cpuStateUpdate.getValue(regNum));
+                }
+            }
+        }
+
         internal void GetMemory()
         {
             if (IsConnected

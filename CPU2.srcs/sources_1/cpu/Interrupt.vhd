@@ -132,7 +132,28 @@ entity Interrupt_Entity is
         interruptSpNum : out integer range 0 to interruptNums;
         interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
         interruptReset : out STD_LOGIC := '0';
-        statusMask : out std_logic_vector(31 downto 0) := X"00000000"
+        statusMask : out std_logic_vector(31 downto 0) := X"00000000";
+        DEBUGIN     : in DEBUGINTYPE := (
+            DebugMode => '0',
+            BreakPoints => (others => (others => '0')),
+            Break => '0',
+            Step => '0',
+            Continue => '0',
+            BWhenReg => 0,
+            BWhenValue => (others => '0'),
+            BWhenOp => REG_NOTHING,
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )
+            )
 
     );
 
@@ -345,6 +366,16 @@ begin
                 if ffopcode = oRTI
                 then
                     interruptMaskLocal <= MEM_ARG;
+                end if;
+            when DEBUGWAIT_S =>
+                if  DEBUGIN.UpdateValue.Valid = '1' then
+                    if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_STATUS_MASK
+                    then
+                        statusMask <= DEBUGIN.UpdateValue.Value;
+                    elsif DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DGB_INTERRUPT_MASK
+                    then
+                        interruptMaskLocal <= DEBUGIN.UpdateValue.Value;
+                    end if;
                 end if;
             when others =>
         end case;

@@ -48,10 +48,10 @@
             grpInstruction = new GroupBox();
             label8 = new Label();
             label9 = new Label();
-            lblStatusMask = new Label();
-            lblStatusWord = new Label();
-            lblInterMask = new Label();
-            lblInterrupt = new Label();
+            txtStatusMask = new TextBox();
+            txtStatusWord = new TextBox();
+            txtInterMask = new TextBox();
+            txtInterrupt = new TextBox();
             lblMemArg = new Label();
             label7 = new Label();
             label6 = new Label();
@@ -59,7 +59,7 @@
             label4 = new Label();
             lblInstSplit = new Label();
             lblAssemInst = new Label();
-            txtCycles = new TextBox();
+            lblCycles = new Label();
             txtInstCode = new TextBox();
             label3 = new Label();
             label2 = new Label();
@@ -274,10 +274,10 @@
             // 
             grpInstruction.Controls.Add(label8);
             grpInstruction.Controls.Add(label9);
-            grpInstruction.Controls.Add(lblStatusMask);
-            grpInstruction.Controls.Add(lblStatusWord);
-            grpInstruction.Controls.Add(lblInterMask);
-            grpInstruction.Controls.Add(lblInterrupt);
+            grpInstruction.Controls.Add(txtStatusMask);
+            grpInstruction.Controls.Add(txtStatusWord);
+            grpInstruction.Controls.Add(txtInterMask);
+            grpInstruction.Controls.Add(txtInterrupt);
             grpInstruction.Controls.Add(lblMemArg);
             grpInstruction.Controls.Add(label7);
             grpInstruction.Controls.Add(label6);
@@ -285,7 +285,7 @@
             grpInstruction.Controls.Add(label4);
             grpInstruction.Controls.Add(lblInstSplit);
             grpInstruction.Controls.Add(lblAssemInst);
-            grpInstruction.Controls.Add(txtCycles);
+            grpInstruction.Controls.Add(lblCycles);
             grpInstruction.Controls.Add(txtInstCode);
             grpInstruction.Controls.Add(label3);
             grpInstruction.Controls.Add(label2);
@@ -318,41 +318,41 @@
             label9.TabIndex = 33;
             label9.Text = "Status Wd";
             // 
-            // lblStatusMask
+            // txtStatusMask
             // 
-            lblStatusMask.BorderStyle = BorderStyle.FixedSingle;
-            lblStatusMask.Font = new Font("Courier New", 9F);
-            lblStatusMask.Location = new Point(99, 248);
-            lblStatusMask.Name = "lblStatusMask";
-            lblStatusMask.Size = new Size(79, 18);
-            lblStatusMask.TabIndex = 32;
+            txtStatusMask.Font = new Font("Courier New", 9F);
+            txtStatusMask.Location = new Point(99, 248);
+            txtStatusMask.Name = "txtStatusMask";
+            txtStatusMask.Size = new Size(79, 21);
+            txtStatusMask.TabIndex = 32;
+            txtStatusMask.TextChanged += txtStatusMask_TextChanged;
             // 
-            // lblStatusWord
+            // txtStatusWord
             // 
-            lblStatusWord.BorderStyle = BorderStyle.FixedSingle;
-            lblStatusWord.Font = new Font("Courier New", 9F);
-            lblStatusWord.Location = new Point(99, 225);
-            lblStatusWord.Name = "lblStatusWord";
-            lblStatusWord.Size = new Size(79, 18);
-            lblStatusWord.TabIndex = 31;
+            txtStatusWord.Font = new Font("Courier New", 9F);
+            txtStatusWord.Location = new Point(99, 225);
+            txtStatusWord.Name = "txtStatusWord";
+            txtStatusWord.Size = new Size(79, 21);
+            txtStatusWord.TabIndex = 31;
+            txtStatusWord.TextChanged += txtStatusWord_TextChanged;
             // 
-            // lblInterMask
+            // txtInterMask
             // 
-            lblInterMask.BorderStyle = BorderStyle.FixedSingle;
-            lblInterMask.Font = new Font("Courier New", 9F);
-            lblInterMask.Location = new Point(99, 199);
-            lblInterMask.Name = "lblInterMask";
-            lblInterMask.Size = new Size(79, 18);
-            lblInterMask.TabIndex = 30;
+            txtInterMask.Font = new Font("Courier New", 9F);
+            txtInterMask.Location = new Point(99, 199);
+            txtInterMask.Name = "txtInterMask";
+            txtInterMask.Size = new Size(79, 21);
+            txtInterMask.TabIndex = 30;
+            txtInterMask.TextChanged += txtInterMask_TextChanged;
             // 
-            // lblInterrupt
+            // txtInterrupt
             // 
-            lblInterrupt.BorderStyle = BorderStyle.FixedSingle;
-            lblInterrupt.Font = new Font("Courier New", 9F);
-            lblInterrupt.Location = new Point(99, 176);
-            lblInterrupt.Name = "lblInterrupt";
-            lblInterrupt.Size = new Size(79, 18);
-            lblInterrupt.TabIndex = 29;
+            txtInterrupt.Font = new Font("Courier New", 9F);
+            txtInterrupt.Location = new Point(99, 176);
+            txtInterrupt.Name = "txtInterrupt";
+            txtInterrupt.Size = new Size(79, 21);
+            txtInterrupt.TabIndex = 29;
+            txtInterrupt.TextChanged += txtInterrupt_TextChanged;
             // 
             // lblMemArg
             // 
@@ -417,13 +417,14 @@
             lblAssemInst.Size = new Size(172, 18);
             lblAssemInst.TabIndex = 22;
             // 
-            // txtCycles
+            // lblCycles
             // 
-            txtCycles.Location = new Point(66, 303);
-            txtCycles.Margin = new Padding(3, 2, 3, 2);
-            txtCycles.Name = "txtCycles";
-            txtCycles.Size = new Size(85, 23);
-            txtCycles.TabIndex = 16;
+            lblCycles.BorderStyle = BorderStyle.FixedSingle;
+            lblCycles.Location = new Point(66, 303);
+            lblCycles.Margin = new Padding(3, 2, 3, 2);
+            lblCycles.Name = "lblCycles";
+            lblCycles.Size = new Size(85, 23);
+            lblCycles.TabIndex = 16;
             // 
             // txtInstCode
             // 
@@ -466,7 +467,7 @@
             txtProgCount.Location = new Point(66, 20);
             txtProgCount.Margin = new Padding(3, 2, 3, 2);
             txtProgCount.Name = "txtProgCount";
-            txtProgCount.Size = new Size(78, 23);
+            txtProgCount.Size = new Size(44, 23);
             txtProgCount.TabIndex = 0;
             // 
             // btnCancel
@@ -664,7 +665,7 @@
         private Button btnContinue;
         private Button btnStep;
         private Button btnBreak;
-        private TextBox txtCycles;
+        private Label lblCycles;
         private Label label10;
         private TextBox txtStatus;
         private CheckBox ckbHex;
@@ -686,10 +687,10 @@
         private Label label4;
         private Label label8;
         private Label label9;
-        private Label lblStatusMask;
-        private Label lblStatusWord;
-        private Label lblInterMask;
-        private Label lblInterrupt;
+        private TextBox txtStatusMask;
+        private TextBox txtStatusWord;
+        private TextBox txtInterMask;
+        private TextBox txtInterrupt;
         private Label lblMemArg;
         private Label label7;
         private Label label6;
