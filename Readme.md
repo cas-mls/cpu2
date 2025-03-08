@@ -1087,22 +1087,15 @@ Return from Interrupt.
 | -------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
 | rti      | Register/Register | d000 | 8            | mem(reg(InterSP)+1) → PC <br />mem(reg(InterSP))+2) → IntEna<br />reg(InterSP)+2 → reg(InterSP) |
 
-RTI operation by Cycle
+RTI operation by Cycle:
 
-| Cycle            | Operation                                                    |      |
-| ---------------- | ------------------------------------------------------------ | ---- |
-| RESET_STATE_S    | N/A                                                          |      |
-| ADDRESS_S        | N/A                                                          |      |
-| INSTFETCH1_S     | N/A                                                          |      |
-| INSTFETCH2_S     | N/A                                                          |      |
-| DECODE_S         | (MEM) Set Memory Address to get Return Address From Stack    |      |
-| MEMFETCH1_S      | (MEM) Address Read Legacy, Set Memory Address to get Mask from the stack |      |
-| MEMFETCH2_S      | Address Read Legacy                                          |      |
-| EXECUTE_S        | (ALU) Increment Stack Pointer by 2, (PC) Set PC to Return Address (Memory Data Out) |      |
-| CLEANUP_S        |                                                              |      |
-| WAITS_S          |                                                              |      |
-| DEBUGSTABLEIZE_S |                                                              |      |
-| DEBUGWAIT_S      |                                                              |      |
+| Cycle       | Operation                           |
+| ----------- | ----------------------------------- |
+| DECODE_S    | (MEM)  ISP+1 → MEMADDR              |
+| MEMFETCH1_S | (MEM)  ISP+2 → MEMADDR              |
+| MEMFETCH2_S | Address Read Legacy                 |
+| EXECUTE_S   | (ALU) ISP+2 → ISP, (PC) MEMOUT → PC |
+| CLEANUP_S   | (Interrupt) MEMOUT → Interrupt Mask |
 
 
 
@@ -1276,7 +1269,7 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 
 | CMD (7 bits)  | WE_O | Address (16 bits)                                            | Data (32 bits)                              | Description                       |
 | ------------- | ---- | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------- |
-| 0 = Status    | R    | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                                   |
+| 0 = Status    | RW   | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                                   |
 |               |      | 1 = Program Counter                                          | The current program counter.                |                                   |
 |               |      | 2 = Instruction                                              | The next instruction which will be executed |                                   |
 |               |      | 3 = Cycles                                                   | Number of Cycles from the last reset.       |                                   |
