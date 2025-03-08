@@ -3,6 +3,7 @@ using System.IO.Ports;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 using System;
+using Common;
 
 
 namespace CpuDebugger
@@ -214,6 +215,8 @@ namespace CpuDebugger
                     {
                         if (addr == CmdStatusAddr.ProgCounter)
                             DebugControls[addr].Text = cpuState.getValue(addr).ToString("x3");
+                        else if (addr == CmdStatusAddr.Interrupt)
+                            DebugControls[addr].Text = cpuState.getValue(addr).ToString("x2");
                         else
                             DebugControls[addr].Text = cpuState.getValue(addr).ToString("x8");
                     }
@@ -458,12 +461,12 @@ namespace CpuDebugger
                     }
                     else
                     {
-                        cpuStateUpdate.RemoveMemory(regNum);
+                        cpuStateUpdate.RemoveRegister(regNum);
                     }
                 }
                 else
                 {
-                    cpuStateUpdate.RemoveMemory(regNum);
+                    cpuStateUpdate.RemoveRegister(regNum);
                 }
             }
         }
@@ -524,6 +527,17 @@ namespace CpuDebugger
                 return;
             TextBox txt = sender as TextBox;
             txt.Text = Regex.Replace(txt.Text, "[^0-9A-F]", "", RegexOptions.IgnoreCase);
+        }
+
+        private void btnUpload_Click(object sender, EventArgs e)
+        {
+            FileDialog fd = new OpenFileDialog();
+            fd.DefaultExt = ".wp";
+            fd.Filter = "Wishbone Program Files (*.wp)|*.wp|Binary files (*.bin)|*.bin";
+            if (fd.ShowDialog() == DialogResult.OK)
+            {
+                WbAccess.Upload(fd.FileName);
+            }
         }
     }
 

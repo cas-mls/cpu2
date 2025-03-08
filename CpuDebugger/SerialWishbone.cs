@@ -25,6 +25,7 @@ namespace CpuDebugger
             WbPort.Read(outbuf, 2, 1);
             WbPort.Read(outbuf, 3, 1);
             WbPort.Read(outbuf, 4, 1);
+            ReturnCode = outbuf[0];
             //outbuf = taskRead.Result;
 
             return BitConverter.ToUInt32(outbuf, 1);
@@ -44,7 +45,10 @@ namespace CpuDebugger
                 .CopyTo(inbuf, 3);
             WbPort.Write(inbuf, 0, 7);
             WbPort.Read(outbuf, 0, 1); // echo command.
+            ReturnCode = outbuf[0];
         }
+
+        internal static byte ReturnCode { get; private set; }
 
         internal static SerialPort Open(string portName)
         {

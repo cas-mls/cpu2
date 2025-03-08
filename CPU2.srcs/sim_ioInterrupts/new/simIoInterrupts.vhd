@@ -68,16 +68,26 @@ architecture Behavioral of SimCPU_Interrupt is
 
             DEBUGIN     : in DEBUGINTYPE := (
                 DebugMode => '0',
-                BreakPoints => (others => (others => '0')), 
-                Break => '0', 
-                Step => '0', 
+                BreakPoints => (others => (others => '0')),
+                Break => '0',
+                Step => '0',
                 Continue => '0',
                 BWhenReg => 0,
                 BWhenValue => (others => '0'),
                 BWhenOp => REG_NOTHING,
-                Reset => '0'
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
                 );
-            DEBUGOUT    : out DEBUGOUTTYPE
+                DEBUGOUT    : out DEBUGOUTTYPE
             );
     end component;
 
@@ -135,7 +145,17 @@ architecture Behavioral of SimCPU_Interrupt is
         BWhenReg => 0,
         BWhenValue => (others => '0'),
         BWhenOp => REG_NOTHING,
-        Reset => '0');
+        Reset => '0',
+        UpdateValue => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        ),
+        UpdateReg => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        ));
     signal DebugOut     : DEBUGOUTTYPE;
 
 begin

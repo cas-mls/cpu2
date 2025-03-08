@@ -360,7 +360,7 @@ architecture Behavioral of CPU is
             programCounter : in PCTYPE;
             cpuRegs : in REG_TYPE;
             MEM_ARG : in STD_LOGIC_VECTOR(31 downto 0);
-            INTERRUPT : in STD_LOGIC_VECTOR(31 downto 0);
+            interruptNum : in integer range 0 to interruptNums;
             interruptMask : in STD_LOGIC_VECTOR(interruptNums downto 0);
             statusWord : in STATUS_WORD_TYPE := (others => '0');
             statusMask : in STD_LOGIC_VECTOR(31 downto 0);
@@ -453,18 +453,21 @@ architecture Behavioral of CPU is
     signal DebugStart : STD_LOGIC := '0';
 
     -- Help with ILA debugging by flattening the Wires.
-    -- attribute keep : string;
-    -- attribute MARK_DEBUG : string;
+    attribute keep : string;
+    attribute MARK_DEBUG : string;
     -- attribute keep of cpuRegs : signal is "TRUE";
     -- attribute MARK_DEBUG of cpuRegs : signal is "TRUE";
-    -- attribute keep of fsm_inst_cycle_p : signal is "TRUE";
-    -- attribute MARK_DEBUG of fsm_inst_cycle_p : signal is "TRUE";
-    -- attribute keep of ProgramCounter : signal is "TRUE";
-    -- attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
+    attribute keep of fsm_inst_cycle_p : signal is "TRUE";
+    attribute MARK_DEBUG of fsm_inst_cycle_p : signal is "TRUE";
+    attribute keep of ProgramCounter : signal is "TRUE";
+    attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
 
     -- CPU Debugging ILA
     -- attribute keep of DebugDisablePipline : signal is "TRUE";
     -- attribute MARK_DEBUG of DebugDisablePipline : signal is "TRUE";
+    attribute keep of DebugStart : signal is "TRUE";
+    attribute MARK_DEBUG of DebugStart : signal is "TRUE";
+
 
 
 begin
@@ -597,7 +600,7 @@ begin
         programCounter => ProgramCounter,
         cpuRegs => cpuRegs,
         MEM_ARG => MEM_DOUTB,
-        INTERRUPT => INTERRUPT,
+        interruptNum => interruptNum,
         interruptMask => interruptMask,
         statusWord => statusWord,
         statusMask => statusMask,

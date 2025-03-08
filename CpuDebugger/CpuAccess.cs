@@ -6,33 +6,15 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Common;
+using System.Diagnostics.Eventing.Reader;
+using BinConverter;
+using static System.Net.Mime.MediaTypeNames;
+using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CpuDebugger
 {
-    internal enum CmdStatusAddr { 
-            Status = 0, 
-            ProgCounter, 
-            Instruction, 
-            Cycles,
-            Interrupt,
-            InterruptMask,
-            SwStatus,
-            StatusMask,
-            MemoryArg
-    };
-
-    internal enum DebugCmd { 
-            Status          = 0,
-            Step            = 1,
-            Continue        = 2,
-            Break           = 3,
-            BreakAt         = 4,
-            BreakWhen       = 5,
-            Reset           = 6,
-            RWRegisters     = 8,
-            RWMemory        = 16 }
-
-
 
     internal class CpuAccess
     {
@@ -263,6 +245,62 @@ namespace CpuDebugger
                     (ushort)0,
                     (uint)0);
             }
+        }
+
+        internal void Upload(string fileName)
+        {
+            string[] lines = [];
+            StringBuilder log = new StringBuilder();
+
+            if (Path.GetExtension(fileName) == ".bin")
+            {
+                byte[] bytes = File.ReadAllBytes(fileName);
+                UInt32[] words = new UInt32[bytes.Length / 4];
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    int pos = (3 - (i % 4)) * 8;
+                    UInt32 word = ((UInt32)bytes[i]) << pos;
+                    words[i / 4] = words[i / 4] | word;
+                }
+                lines = Regex.Split(WishboneFormatter.Formatter(words), "\r\n|\r|\n");
+            }
+            else if (Path.GetExtension(fileName) == ".wp")
+            {
+                lines = File.ReadAllLines(fileName);
+            }
+
+            foreach (string line in lines)
+            {
+                string[] parts = line.Split(',');
+                if (parts.Length == 4)
+                {
+                    if (Enum.TryParse(parts[0], out DebugCmd cmd))
+                    {
+                        if (parts[1] == "1")
+                        {
+                            SerialWishbone.write(
+                                port,
+                                (byte)cmd,
+                                Convert.ToUInt16(parts[2], 16),
+                                Convert.ToUInt32(parts[3], 16));
+                            log.AppendFormat("{0},{1},{2:X4},{3:X8},{4:X2}",
+                                parts[0], 1, parts[2], parts[3], SerialWishbone.ReturnCode);
+                            log.AppendLine();
+                        }
+                        else
+                        {
+                            uint Data = SerialWishbone.read(
+                                port,
+                                (byte)cmd,
+                                Convert.ToUInt16(parts[2], 16));
+                            log.AppendFormat("{0},{1},{2:X4},{3:X8},{4:X2}",
+                                parts[0], 0, parts[2], Data, SerialWishbone.ReturnCode);
+                            log.AppendLine();
+                        }
+                    }
+                }
+            }
+            File.WriteAllText(Path.ChangeExtension(fileName, ".log"), log.ToString());
         }
     }
 }

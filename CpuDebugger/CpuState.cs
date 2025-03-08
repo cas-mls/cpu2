@@ -5,11 +5,11 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Common;
 
 namespace CpuDebugger
 {
 
-    enum Statuses { notconnected, stopped, running };
 
     internal class CpuState
     
@@ -213,15 +213,18 @@ namespace CpuDebugger
             get
             {
                 if (Register2 == 0)
-                    if (Opcode == 0x0C
+                    if ( Opcode == 0x0C
                         | Opcode == 0x0E
                         | Opcode == 0x10
                         | Opcode == 0x14)
                         return false;
                     else if (MemoryAccessDecode == "IMMED")
                         if (Opcode == 0x01
+                            | Opcode == 0x02
                             | Opcode == 0x03
+                            | Opcode == 0x04
                             | Opcode == 0x05
+                            | Opcode == 0x06
                             | Opcode == 0x07)
                             return false;
                         else

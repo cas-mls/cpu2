@@ -1087,6 +1087,25 @@ Return from Interrupt.
 | -------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
 | rti      | Register/Register | d000 | 8            | mem(reg(InterSP)+1) → PC <br />mem(reg(InterSP))+2) → IntEna<br />reg(InterSP)+2 → reg(InterSP) |
 
+RTI operation by Cycle
+
+| Cycle            | Operation                                                    |      |
+| ---------------- | ------------------------------------------------------------ | ---- |
+| RESET_STATE_S    | N/A                                                          |      |
+| ADDRESS_S        | N/A                                                          |      |
+| INSTFETCH1_S     | N/A                                                          |      |
+| INSTFETCH2_S     | N/A                                                          |      |
+| DECODE_S         | (MEM) Set Memory Address to get Return Address From Stack    |      |
+| MEMFETCH1_S      | (MEM) Address Read Legacy, Set Memory Address to get Mask from the stack |      |
+| MEMFETCH2_S      | Address Read Legacy                                          |      |
+| EXECUTE_S        | (ALU) Increment Stack Pointer by 2, (PC) Set PC to Return Address (Memory Data Out) |      |
+| CLEANUP_S        |                                                              |      |
+| WAITS_S          |                                                              |      |
+| DEBUGSTABLEIZE_S |                                                              |      |
+| DEBUGWAIT_S      |                                                              |      |
+
+
+
 #### Hardware Interrupt
 
 | **Cycle**        | **Interrupt Process**                         |

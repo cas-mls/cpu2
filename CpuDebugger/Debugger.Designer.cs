@@ -80,6 +80,7 @@
             txtMemData = new TextBox();
             label16 = new Label();
             label13 = new Label();
+            btnUpload = new Button();
             grpCommands.SuspendLayout();
             grpRegisters.SuspendLayout();
             grpInstruction.SuspendLayout();
@@ -348,9 +349,9 @@
             // txtInterrupt
             // 
             txtInterrupt.Font = new Font("Courier New", 9F);
-            txtInterrupt.Location = new Point(99, 176);
+            txtInterrupt.Location = new Point(146, 176);
             txtInterrupt.Name = "txtInterrupt";
-            txtInterrupt.Size = new Size(79, 21);
+            txtInterrupt.Size = new Size(32, 21);
             txtInterrupt.TabIndex = 29;
             txtInterrupt.TextChanged += txtInterrupt_TextChanged;
             // 
@@ -386,9 +387,9 @@
             label5.AutoSize = true;
             label5.Location = new Point(6, 177);
             label5.Name = "label5";
-            label5.Size = new Size(53, 15);
+            label5.Size = new Size(117, 15);
             label5.TabIndex = 25;
-            label5.Text = "Interrupt";
+            label5.Text = "Interrupt Num (0-31)";
             // 
             // label4
             // 
@@ -616,12 +617,23 @@
             label13.TabIndex = 0;
             label13.Text = "Addr:";
             // 
+            // btnUpload
+            // 
+            btnUpload.Location = new Point(12, 346);
+            btnUpload.Name = "btnUpload";
+            btnUpload.Size = new Size(75, 23);
+            btnUpload.TabIndex = 13;
+            btnUpload.Text = "Upload...";
+            btnUpload.UseVisualStyleBackColor = true;
+            btnUpload.Click += btnUpload_Click;
+            // 
             // txtDebugger
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
             ClientSize = new Size(898, 377);
+            Controls.Add(btnUpload);
             Controls.Add(groupBox1);
             Controls.Add(btnReset);
             Controls.Add(btnDisConnect);
@@ -705,5 +717,6 @@
         private Label label13;
         private TextBox txtMemAddr;
         private Button btnApply;
+        private Button btnUpload;
     }
 }

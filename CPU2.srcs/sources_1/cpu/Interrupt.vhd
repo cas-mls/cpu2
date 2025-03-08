@@ -178,15 +178,17 @@ architecture Behavioral of Interrupt_Entity is
     signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal ffimmop : IMMTYPE;
 
-    -- attribute keep : string;
-    -- attribute MARK_DEBUG : string;
+    attribute keep : string;
+    attribute MARK_DEBUG : string;
 
-    -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
-    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
+    attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
+    attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
     -- attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
     -- attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
-    -- attribute keep of        INTERRUPT : signal is "TRUE";
-    -- attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
+    attribute keep of        INTERRUPT : signal is "TRUE";
+    attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
+    attribute keep of        interruptNum : signal is "TRUE";
+    attribute MARK_DEBUG of  interruptNum : signal is "TRUE";
 
     -- attribute keep of        timerAlarm : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerAlarm : signal is "TRUE";
@@ -367,7 +369,7 @@ begin
                 then
                     interruptMaskLocal <= MEM_ARG;
                 end if;
-            when DEBUGWAIT_S =>
+                when DEBUGWAIT_S =>
                 if  DEBUGIN.UpdateValue.Valid = '1' then
                     if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_STATUS_MASK
                     then
@@ -375,6 +377,11 @@ begin
                     elsif DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DGB_INTERRUPT_MASK
                     then
                         interruptMaskLocal <= DEBUGIN.UpdateValue.Value;
+                    elsif DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_INTERRUPT
+                    then
+                        interruptNum <= to_integer(unsigned(DEBUGIN.UpdateValue.Value(4 downto 0)));
+                        interruptSpAddrValue <= to_integer(unsigned(cpuRegs(interruptSpNumLocal).Value));
+                        interruptRun <= '1';
                     end if;
                 end if;
             when others =>
@@ -409,12 +416,12 @@ begin
 
         case fsm_interrupt_cycle_n is
             when INTRWAIT_S =>
-            when SAVEENA_S =>
-            when JMPADDR_S =>
+            when SAVEENA_S =>   -- MemoryAccess uses this state
+            when JMPADDR_S =>   -- MemoryAccess uses this state
             when JMPFETCH1_S =>
-            when JMPFETCH2_S =>
-            when JUMP_S =>
-            when DISABLEINT_S =>    
+            when JMPFETCH2_S => -- MemoryAccess uses this state
+            when JUMP_S =>      -- ProgramCounter and ALU uses this state
+            when DISABLEINT_S =>    -- MemoryAccess uses this state
                 interruptMaskLocal <= (others => '0');
             when DONE_S =>
                 interruptNum <= 0;

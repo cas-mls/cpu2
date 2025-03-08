@@ -43,7 +43,7 @@ entity cpu_debug is
         programCounter : in PCTYPE;
         cpuRegs : in REG_TYPE;
         MEM_ARG : in std_logic_vector(31 downto 0);
-        INTERRUPT : in std_logic_vector (31 downto 0);
+        interruptNum : in integer range 0 to interruptNums;
         interruptMask : in std_logic_vector(interruptNums downto 0);
         statusWord : in STATUS_WORD_TYPE := (others => '0');
         statusMask : in std_logic_vector(31 downto 0);
@@ -169,8 +169,14 @@ begin
                         DEBUGOUT.Stopped <= '0';
                         StepWait <= '1';
                         DebugDisablePipline <= '1';
+                    elsif DEBUGIN.UpdateValue.Valid = '1' 
+                        and DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_INTERRUPT
+                    then
+                        StepWait <= '1';
+                        -- DebugStart <= '1';
+                        DebugDisablePipline <= '1';
                     end if;
-                else
+                    else
                     if  (ProgCounterLast /= ProgramCounter
                         and (ProgramCounter = DEBUGIN.BreakPoints(0)
                             or ProgramCounter = DEBUGIN.BreakPoints(1)
@@ -207,7 +213,7 @@ begin
                 -- DEBUGOUT.Regs <= cpuRegs;
                 DEBUGOUT.Status <= statusWord;
                 DEBUGOUT.StatusMask <= statusMask;
-                DEBUGOUT.Interrupt <= INTERRUPT;
+                DEBUGOUT.Interrupt <= std_logic_vector(to_unsigned(interruptNum,32));
                 DEBUGOUT.interruptMask  <= interruptMask;
                 if DEBUGOUT.Instruction(25 downto 24) = ABSOLUTE 
                     or DEBUGOUT.Instruction(25 downto 24) = INDEX

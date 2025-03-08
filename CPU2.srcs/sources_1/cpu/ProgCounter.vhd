@@ -139,10 +139,10 @@ architecture Behavioral of ProgCounter is
 
     signal ProgCounterLocal : PCTYPE;
 
-    -- attribute keep : string;
-    -- attribute MARK_DEBUG : string;
-    -- attribute keep of ProgCounterLocal : signal is "TRUE";
-    -- attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
+    attribute keep : string;
+    attribute MARK_DEBUG : string;
+    attribute keep of ProgCounterLocal : signal is "TRUE";
+    attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
     -- attribute keep of ProgramCounter : signal is "TRUE";
     -- attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
 
@@ -218,16 +218,8 @@ begin
                                 end case;
 
                             when oRTN | oRTI =>
-                                case ffmemop is
-                                    when REGREG     =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
-                                    when IMMEDIATE  =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
-                                    when ABSOLUTE | INDEX =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
-                                    when others     =>
-                                end case;
-
+                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+    
                             when oBE =>
                                 case ffmemop is
                                     when IMMEDIATE  =>
@@ -323,6 +315,7 @@ begin
                                 ProgCounterLocal <= ProgCounterLocal + 1;
                         end case;
                     end if;
+                when DEBUGSTABLEIZE_S =>
                 when DEBUGWAIT_S =>
                     if  DEBUGIN.UpdateValue.Valid = '1' then
                         if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_PROG_COUNTER

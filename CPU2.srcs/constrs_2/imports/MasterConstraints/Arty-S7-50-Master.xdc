@@ -215,3 +215,176 @@ set_operating_conditions -design_power_budget 10.0
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+create_debug_core u_ila_0 ila
+set_property ALL_PROBE_SAME_MU true [get_debug_cores u_ila_0]
+set_property ALL_PROBE_SAME_MU_CNT 2 [get_debug_cores u_ila_0]
+set_property C_ADV_TRIGGER false [get_debug_cores u_ila_0]
+set_property C_DATA_DEPTH 2048 [get_debug_cores u_ila_0]
+set_property C_EN_STRG_QUAL true [get_debug_cores u_ila_0]
+set_property C_INPUT_PIPE_STAGES 0 [get_debug_cores u_ila_0]
+set_property C_TRIGIN_EN false [get_debug_cores u_ila_0]
+set_property C_TRIGOUT_EN false [get_debug_cores u_ila_0]
+set_property port_width 1 [get_debug_ports u_ila_0/clk]
+connect_debug_port u_ila_0/clk [get_nets [list SYS_CLK_IBUF_BUFG]]
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe0]
+set_property port_width 7 [get_debug_ports u_ila_0/probe0]
+connect_debug_port u_ila_0/probe0 [get_nets [list {debugger/WB_TGA[0]} {debugger/WB_TGA[1]} {debugger/WB_TGA[2]} {debugger/WB_TGA[3]} {debugger/WB_TGA[4]} {debugger/WB_TGA[5]} {debugger/WB_TGA[6]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe1]
+set_property port_width 32 [get_debug_ports u_ila_0/probe1]
+connect_debug_port u_ila_0/probe1 [get_nets [list {debugger/WB_DIN[0]} {debugger/WB_DIN[1]} {debugger/WB_DIN[2]} {debugger/WB_DIN[3]} {debugger/WB_DIN[4]} {debugger/WB_DIN[5]} {debugger/WB_DIN[6]} {debugger/WB_DIN[7]} {debugger/WB_DIN[8]} {debugger/WB_DIN[9]} {debugger/WB_DIN[10]} {debugger/WB_DIN[11]} {debugger/WB_DIN[12]} {debugger/WB_DIN[13]} {debugger/WB_DIN[14]} {debugger/WB_DIN[15]} {debugger/WB_DIN[16]} {debugger/WB_DIN[17]} {debugger/WB_DIN[18]} {debugger/WB_DIN[19]} {debugger/WB_DIN[20]} {debugger/WB_DIN[21]} {debugger/WB_DIN[22]} {debugger/WB_DIN[23]} {debugger/WB_DIN[24]} {debugger/WB_DIN[25]} {debugger/WB_DIN[26]} {debugger/WB_DIN[27]} {debugger/WB_DIN[28]} {debugger/WB_DIN[29]} {debugger/WB_DIN[30]} {debugger/WB_DIN[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe2]
+set_property port_width 16 [get_debug_ports u_ila_0/probe2]
+connect_debug_port u_ila_0/probe2 [get_nets [list {debugger/WB_ADDR[0]} {debugger/WB_ADDR[1]} {debugger/WB_ADDR[2]} {debugger/WB_ADDR[3]} {debugger/WB_ADDR[4]} {debugger/WB_ADDR[5]} {debugger/WB_ADDR[6]} {debugger/WB_ADDR[7]} {debugger/WB_ADDR[8]} {debugger/WB_ADDR[9]} {debugger/WB_ADDR[10]} {debugger/WB_ADDR[11]} {debugger/WB_ADDR[12]} {debugger/WB_ADDR[13]} {debugger/WB_ADDR[14]} {debugger/WB_ADDR[15]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe3]
+set_property port_width 32 [get_debug_ports u_ila_0/probe3]
+connect_debug_port u_ila_0/probe3 [get_nets [list {debugger/WB_DOUT[0]} {debugger/WB_DOUT[1]} {debugger/WB_DOUT[2]} {debugger/WB_DOUT[3]} {debugger/WB_DOUT[4]} {debugger/WB_DOUT[5]} {debugger/WB_DOUT[6]} {debugger/WB_DOUT[7]} {debugger/WB_DOUT[8]} {debugger/WB_DOUT[9]} {debugger/WB_DOUT[10]} {debugger/WB_DOUT[11]} {debugger/WB_DOUT[12]} {debugger/WB_DOUT[13]} {debugger/WB_DOUT[14]} {debugger/WB_DOUT[15]} {debugger/WB_DOUT[16]} {debugger/WB_DOUT[17]} {debugger/WB_DOUT[18]} {debugger/WB_DOUT[19]} {debugger/WB_DOUT[20]} {debugger/WB_DOUT[21]} {debugger/WB_DOUT[22]} {debugger/WB_DOUT[23]} {debugger/WB_DOUT[24]} {debugger/WB_DOUT[25]} {debugger/WB_DOUT[26]} {debugger/WB_DOUT[27]} {debugger/WB_DOUT[28]} {debugger/WB_DOUT[29]} {debugger/WB_DOUT[30]} {debugger/WB_DOUT[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe4]
+set_property port_width 12 [get_debug_ports u_ila_0/probe4]
+connect_debug_port u_ila_0/probe4 [get_nets [list {MEM_ADDRA[0]} {MEM_ADDRA[1]} {MEM_ADDRA[2]} {MEM_ADDRA[3]} {MEM_ADDRA[4]} {MEM_ADDRA[5]} {MEM_ADDRA[6]} {MEM_ADDRA[7]} {MEM_ADDRA[8]} {MEM_ADDRA[9]} {MEM_ADDRA[10]} {MEM_ADDRA[11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe5]
+set_property port_width 32 [get_debug_ports u_ila_0/probe5]
+connect_debug_port u_ila_0/probe5 [get_nets [list {MEM_DOUTB[0]} {MEM_DOUTB[1]} {MEM_DOUTB[2]} {MEM_DOUTB[3]} {MEM_DOUTB[4]} {MEM_DOUTB[5]} {MEM_DOUTB[6]} {MEM_DOUTB[7]} {MEM_DOUTB[8]} {MEM_DOUTB[9]} {MEM_DOUTB[10]} {MEM_DOUTB[11]} {MEM_DOUTB[12]} {MEM_DOUTB[13]} {MEM_DOUTB[14]} {MEM_DOUTB[15]} {MEM_DOUTB[16]} {MEM_DOUTB[17]} {MEM_DOUTB[18]} {MEM_DOUTB[19]} {MEM_DOUTB[20]} {MEM_DOUTB[21]} {MEM_DOUTB[22]} {MEM_DOUTB[23]} {MEM_DOUTB[24]} {MEM_DOUTB[25]} {MEM_DOUTB[26]} {MEM_DOUTB[27]} {MEM_DOUTB[28]} {MEM_DOUTB[29]} {MEM_DOUTB[30]} {MEM_DOUTB[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe6]
+set_property port_width 12 [get_debug_ports u_ila_0/probe6]
+connect_debug_port u_ila_0/probe6 [get_nets [list {MEM_ADDRB[0]} {MEM_ADDRB[1]} {MEM_ADDRB[2]} {MEM_ADDRB[3]} {MEM_ADDRB[4]} {MEM_ADDRB[5]} {MEM_ADDRB[6]} {MEM_ADDRB[7]} {MEM_ADDRB[8]} {MEM_ADDRB[9]} {MEM_ADDRB[10]} {MEM_ADDRB[11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe7]
+set_property port_width 32 [get_debug_ports u_ila_0/probe7]
+connect_debug_port u_ila_0/probe7 [get_nets [list {MEM_DOUTA[0]} {MEM_DOUTA[1]} {MEM_DOUTA[2]} {MEM_DOUTA[3]} {MEM_DOUTA[4]} {MEM_DOUTA[5]} {MEM_DOUTA[6]} {MEM_DOUTA[7]} {MEM_DOUTA[8]} {MEM_DOUTA[9]} {MEM_DOUTA[10]} {MEM_DOUTA[11]} {MEM_DOUTA[12]} {MEM_DOUTA[13]} {MEM_DOUTA[14]} {MEM_DOUTA[15]} {MEM_DOUTA[16]} {MEM_DOUTA[17]} {MEM_DOUTA[18]} {MEM_DOUTA[19]} {MEM_DOUTA[20]} {MEM_DOUTA[21]} {MEM_DOUTA[22]} {MEM_DOUTA[23]} {MEM_DOUTA[24]} {MEM_DOUTA[25]} {MEM_DOUTA[26]} {MEM_DOUTA[27]} {MEM_DOUTA[28]} {MEM_DOUTA[29]} {MEM_DOUTA[30]} {MEM_DOUTA[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe8]
+set_property port_width 32 [get_debug_ports u_ila_0/probe8]
+connect_debug_port u_ila_0/probe8 [get_nets [list {cpu1/Interrupt_enty/p_0_in[0]} {cpu1/Interrupt_enty/p_0_in[1]} {cpu1/Interrupt_enty/p_0_in[2]} {cpu1/Interrupt_enty/p_0_in[3]} {cpu1/Interrupt_enty/p_0_in[4]} {cpu1/Interrupt_enty/p_0_in[5]} {cpu1/Interrupt_enty/p_0_in[6]} {cpu1/Interrupt_enty/p_0_in[7]} {cpu1/Interrupt_enty/p_0_in[8]} {cpu1/Interrupt_enty/p_0_in[9]} {cpu1/Interrupt_enty/p_0_in[10]} {cpu1/Interrupt_enty/p_0_in[11]} {cpu1/Interrupt_enty/p_0_in[12]} {cpu1/Interrupt_enty/p_0_in[13]} {cpu1/Interrupt_enty/p_0_in[14]} {cpu1/Interrupt_enty/p_0_in[15]} {cpu1/Interrupt_enty/p_0_in[16]} {cpu1/Interrupt_enty/p_0_in[17]} {cpu1/Interrupt_enty/p_0_in[18]} {cpu1/Interrupt_enty/p_0_in[19]} {cpu1/Interrupt_enty/p_0_in[20]} {cpu1/Interrupt_enty/p_0_in[21]} {cpu1/Interrupt_enty/p_0_in[22]} {cpu1/Interrupt_enty/p_0_in[23]} {cpu1/Interrupt_enty/p_0_in[24]} {cpu1/Interrupt_enty/p_0_in[25]} {cpu1/Interrupt_enty/p_0_in[26]} {cpu1/Interrupt_enty/p_0_in[27]} {cpu1/Interrupt_enty/p_0_in[28]} {cpu1/Interrupt_enty/p_0_in[29]} {cpu1/Interrupt_enty/p_0_in[30]} {cpu1/Interrupt_enty/p_0_in[31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe9]
+set_property port_width 4 [get_debug_ports u_ila_0/probe9]
+connect_debug_port u_ila_0/probe9 [get_nets [list {cpu1/Interrupt_enty/fsm_interrupt_cycle_p[0]} {cpu1/Interrupt_enty/fsm_interrupt_cycle_p[1]} {cpu1/Interrupt_enty/fsm_interrupt_cycle_p[2]} {cpu1/Interrupt_enty/fsm_interrupt_cycle_p[3]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe10]
+set_property port_width 5 [get_debug_ports u_ila_0/probe10]
+connect_debug_port u_ila_0/probe10 [get_nets [list {cpu1/Interrupt_enty/interruptNum[0]} {cpu1/Interrupt_enty/interruptNum[1]} {cpu1/Interrupt_enty/interruptNum[2]} {cpu1/Interrupt_enty/interruptNum[3]} {cpu1/Interrupt_enty/interruptNum[4]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe11]
+set_property port_width 12 [get_debug_ports u_ila_0/probe11]
+connect_debug_port u_ila_0/probe11 [get_nets [list {cpu1/ProgramCounter[0]} {cpu1/ProgramCounter[1]} {cpu1/ProgramCounter[2]} {cpu1/ProgramCounter[3]} {cpu1/ProgramCounter[4]} {cpu1/ProgramCounter[5]} {cpu1/ProgramCounter[6]} {cpu1/ProgramCounter[7]} {cpu1/ProgramCounter[8]} {cpu1/ProgramCounter[9]} {cpu1/ProgramCounter[10]} {cpu1/ProgramCounter[11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe12]
+set_property port_width 4 [get_debug_ports u_ila_0/probe12]
+connect_debug_port u_ila_0/probe12 [get_nets [list {cpu1/fsm_inst_cycle_p[0]} {cpu1/fsm_inst_cycle_p[1]} {cpu1/fsm_inst_cycle_p[2]} {cpu1/fsm_inst_cycle_p[3]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe13]
+set_property port_width 12 [get_debug_ports u_ila_0/probe13]
+connect_debug_port u_ila_0/probe13 [get_nets [list {debugger/DebugIn[BreakPoints][0][0]} {debugger/DebugIn[BreakPoints][0][1]} {debugger/DebugIn[BreakPoints][0][2]} {debugger/DebugIn[BreakPoints][0][3]} {debugger/DebugIn[BreakPoints][0][4]} {debugger/DebugIn[BreakPoints][0][5]} {debugger/DebugIn[BreakPoints][0][6]} {debugger/DebugIn[BreakPoints][0][7]} {debugger/DebugIn[BreakPoints][0][8]} {debugger/DebugIn[BreakPoints][0][9]} {debugger/DebugIn[BreakPoints][0][10]} {debugger/DebugIn[BreakPoints][0][11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe14]
+set_property port_width 12 [get_debug_ports u_ila_0/probe14]
+connect_debug_port u_ila_0/probe14 [get_nets [list {debugger/DebugIn[BreakPoints][2][0]} {debugger/DebugIn[BreakPoints][2][1]} {debugger/DebugIn[BreakPoints][2][2]} {debugger/DebugIn[BreakPoints][2][3]} {debugger/DebugIn[BreakPoints][2][4]} {debugger/DebugIn[BreakPoints][2][5]} {debugger/DebugIn[BreakPoints][2][6]} {debugger/DebugIn[BreakPoints][2][7]} {debugger/DebugIn[BreakPoints][2][8]} {debugger/DebugIn[BreakPoints][2][9]} {debugger/DebugIn[BreakPoints][2][10]} {debugger/DebugIn[BreakPoints][2][11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe15]
+set_property port_width 4 [get_debug_ports u_ila_0/probe15]
+connect_debug_port u_ila_0/probe15 [get_nets [list {debugger/DebugIn[UpdateValue][Number][0]} {debugger/DebugIn[UpdateValue][Number][1]} {debugger/DebugIn[UpdateValue][Number][2]} {debugger/DebugIn[UpdateValue][Number][3]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe16]
+set_property port_width 12 [get_debug_ports u_ila_0/probe16]
+connect_debug_port u_ila_0/probe16 [get_nets [list {debugger/DebugIn[BreakPoints][3][0]} {debugger/DebugIn[BreakPoints][3][1]} {debugger/DebugIn[BreakPoints][3][2]} {debugger/DebugIn[BreakPoints][3][3]} {debugger/DebugIn[BreakPoints][3][4]} {debugger/DebugIn[BreakPoints][3][5]} {debugger/DebugIn[BreakPoints][3][6]} {debugger/DebugIn[BreakPoints][3][7]} {debugger/DebugIn[BreakPoints][3][8]} {debugger/DebugIn[BreakPoints][3][9]} {debugger/DebugIn[BreakPoints][3][10]} {debugger/DebugIn[BreakPoints][3][11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe17]
+set_property port_width 32 [get_debug_ports u_ila_0/probe17]
+connect_debug_port u_ila_0/probe17 [get_nets [list {debugger/DebugIn[UpdateValue][Value][0]} {debugger/DebugIn[UpdateValue][Value][1]} {debugger/DebugIn[UpdateValue][Value][2]} {debugger/DebugIn[UpdateValue][Value][3]} {debugger/DebugIn[UpdateValue][Value][4]} {debugger/DebugIn[UpdateValue][Value][5]} {debugger/DebugIn[UpdateValue][Value][6]} {debugger/DebugIn[UpdateValue][Value][7]} {debugger/DebugIn[UpdateValue][Value][8]} {debugger/DebugIn[UpdateValue][Value][9]} {debugger/DebugIn[UpdateValue][Value][10]} {debugger/DebugIn[UpdateValue][Value][11]} {debugger/DebugIn[UpdateValue][Value][12]} {debugger/DebugIn[UpdateValue][Value][13]} {debugger/DebugIn[UpdateValue][Value][14]} {debugger/DebugIn[UpdateValue][Value][15]} {debugger/DebugIn[UpdateValue][Value][16]} {debugger/DebugIn[UpdateValue][Value][17]} {debugger/DebugIn[UpdateValue][Value][18]} {debugger/DebugIn[UpdateValue][Value][19]} {debugger/DebugIn[UpdateValue][Value][20]} {debugger/DebugIn[UpdateValue][Value][21]} {debugger/DebugIn[UpdateValue][Value][22]} {debugger/DebugIn[UpdateValue][Value][23]} {debugger/DebugIn[UpdateValue][Value][24]} {debugger/DebugIn[UpdateValue][Value][25]} {debugger/DebugIn[UpdateValue][Value][26]} {debugger/DebugIn[UpdateValue][Value][27]} {debugger/DebugIn[UpdateValue][Value][28]} {debugger/DebugIn[UpdateValue][Value][29]} {debugger/DebugIn[UpdateValue][Value][30]} {debugger/DebugIn[UpdateValue][Value][31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe18]
+set_property port_width 4 [get_debug_ports u_ila_0/probe18]
+connect_debug_port u_ila_0/probe18 [get_nets [list {debugger/DebugIn[UpdateReg][Number][0]} {debugger/DebugIn[UpdateReg][Number][1]} {debugger/DebugIn[UpdateReg][Number][2]} {debugger/DebugIn[UpdateReg][Number][3]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe19]
+set_property port_width 3 [get_debug_ports u_ila_0/probe19]
+connect_debug_port u_ila_0/probe19 [get_nets [list {debugger/DebugIn[BWhenOp][0]} {debugger/DebugIn[BWhenOp][1]} {debugger/DebugIn[BWhenOp][2]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe20]
+set_property port_width 32 [get_debug_ports u_ila_0/probe20]
+connect_debug_port u_ila_0/probe20 [get_nets [list {debugger/DebugIn[BWhenReg][0]} {debugger/DebugIn[BWhenReg][1]} {debugger/DebugIn[BWhenReg][2]} {debugger/DebugIn[BWhenReg][3]} {debugger/DebugIn[BWhenReg][4]} {debugger/DebugIn[BWhenReg][5]} {debugger/DebugIn[BWhenReg][6]} {debugger/DebugIn[BWhenReg][7]} {debugger/DebugIn[BWhenReg][8]} {debugger/DebugIn[BWhenReg][9]} {debugger/DebugIn[BWhenReg][10]} {debugger/DebugIn[BWhenReg][11]} {debugger/DebugIn[BWhenReg][12]} {debugger/DebugIn[BWhenReg][13]} {debugger/DebugIn[BWhenReg][14]} {debugger/DebugIn[BWhenReg][15]} {debugger/DebugIn[BWhenReg][16]} {debugger/DebugIn[BWhenReg][17]} {debugger/DebugIn[BWhenReg][18]} {debugger/DebugIn[BWhenReg][19]} {debugger/DebugIn[BWhenReg][20]} {debugger/DebugIn[BWhenReg][21]} {debugger/DebugIn[BWhenReg][22]} {debugger/DebugIn[BWhenReg][23]} {debugger/DebugIn[BWhenReg][24]} {debugger/DebugIn[BWhenReg][25]} {debugger/DebugIn[BWhenReg][26]} {debugger/DebugIn[BWhenReg][27]} {debugger/DebugIn[BWhenReg][28]} {debugger/DebugIn[BWhenReg][29]} {debugger/DebugIn[BWhenReg][30]} {debugger/DebugIn[BWhenReg][31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe21]
+set_property port_width 12 [get_debug_ports u_ila_0/probe21]
+connect_debug_port u_ila_0/probe21 [get_nets [list {debugger/DebugIn[BreakPoints][1][0]} {debugger/DebugIn[BreakPoints][1][1]} {debugger/DebugIn[BreakPoints][1][2]} {debugger/DebugIn[BreakPoints][1][3]} {debugger/DebugIn[BreakPoints][1][4]} {debugger/DebugIn[BreakPoints][1][5]} {debugger/DebugIn[BreakPoints][1][6]} {debugger/DebugIn[BreakPoints][1][7]} {debugger/DebugIn[BreakPoints][1][8]} {debugger/DebugIn[BreakPoints][1][9]} {debugger/DebugIn[BreakPoints][1][10]} {debugger/DebugIn[BreakPoints][1][11]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe22]
+set_property port_width 32 [get_debug_ports u_ila_0/probe22]
+connect_debug_port u_ila_0/probe22 [get_nets [list {debugger/DebugIn[BWhenValue][0]} {debugger/DebugIn[BWhenValue][1]} {debugger/DebugIn[BWhenValue][2]} {debugger/DebugIn[BWhenValue][3]} {debugger/DebugIn[BWhenValue][4]} {debugger/DebugIn[BWhenValue][5]} {debugger/DebugIn[BWhenValue][6]} {debugger/DebugIn[BWhenValue][7]} {debugger/DebugIn[BWhenValue][8]} {debugger/DebugIn[BWhenValue][9]} {debugger/DebugIn[BWhenValue][10]} {debugger/DebugIn[BWhenValue][11]} {debugger/DebugIn[BWhenValue][12]} {debugger/DebugIn[BWhenValue][13]} {debugger/DebugIn[BWhenValue][14]} {debugger/DebugIn[BWhenValue][15]} {debugger/DebugIn[BWhenValue][16]} {debugger/DebugIn[BWhenValue][17]} {debugger/DebugIn[BWhenValue][18]} {debugger/DebugIn[BWhenValue][19]} {debugger/DebugIn[BWhenValue][20]} {debugger/DebugIn[BWhenValue][21]} {debugger/DebugIn[BWhenValue][22]} {debugger/DebugIn[BWhenValue][23]} {debugger/DebugIn[BWhenValue][24]} {debugger/DebugIn[BWhenValue][25]} {debugger/DebugIn[BWhenValue][26]} {debugger/DebugIn[BWhenValue][27]} {debugger/DebugIn[BWhenValue][28]} {debugger/DebugIn[BWhenValue][29]} {debugger/DebugIn[BWhenValue][30]} {debugger/DebugIn[BWhenValue][31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe23]
+set_property port_width 32 [get_debug_ports u_ila_0/probe23]
+connect_debug_port u_ila_0/probe23 [get_nets [list {debugger/DebugIn[UpdateReg][Value][0]} {debugger/DebugIn[UpdateReg][Value][1]} {debugger/DebugIn[UpdateReg][Value][2]} {debugger/DebugIn[UpdateReg][Value][3]} {debugger/DebugIn[UpdateReg][Value][4]} {debugger/DebugIn[UpdateReg][Value][5]} {debugger/DebugIn[UpdateReg][Value][6]} {debugger/DebugIn[UpdateReg][Value][7]} {debugger/DebugIn[UpdateReg][Value][8]} {debugger/DebugIn[UpdateReg][Value][9]} {debugger/DebugIn[UpdateReg][Value][10]} {debugger/DebugIn[UpdateReg][Value][11]} {debugger/DebugIn[UpdateReg][Value][12]} {debugger/DebugIn[UpdateReg][Value][13]} {debugger/DebugIn[UpdateReg][Value][14]} {debugger/DebugIn[UpdateReg][Value][15]} {debugger/DebugIn[UpdateReg][Value][16]} {debugger/DebugIn[UpdateReg][Value][17]} {debugger/DebugIn[UpdateReg][Value][18]} {debugger/DebugIn[UpdateReg][Value][19]} {debugger/DebugIn[UpdateReg][Value][20]} {debugger/DebugIn[UpdateReg][Value][21]} {debugger/DebugIn[UpdateReg][Value][22]} {debugger/DebugIn[UpdateReg][Value][23]} {debugger/DebugIn[UpdateReg][Value][24]} {debugger/DebugIn[UpdateReg][Value][25]} {debugger/DebugIn[UpdateReg][Value][26]} {debugger/DebugIn[UpdateReg][Value][27]} {debugger/DebugIn[UpdateReg][Value][28]} {debugger/DebugIn[UpdateReg][Value][29]} {debugger/DebugIn[UpdateReg][Value][30]} {debugger/DebugIn[UpdateReg][Value][31]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe24]
+set_property port_width 1 [get_debug_ports u_ila_0/probe24]
+connect_debug_port u_ila_0/probe24 [get_nets [list {debugger/DebugIn[Break]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe25]
+set_property port_width 1 [get_debug_ports u_ila_0/probe25]
+connect_debug_port u_ila_0/probe25 [get_nets [list {debugger/DebugIn[Continue]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe26]
+set_property port_width 1 [get_debug_ports u_ila_0/probe26]
+connect_debug_port u_ila_0/probe26 [get_nets [list {debugger/DebugIn[DebugMode]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe27]
+set_property port_width 1 [get_debug_ports u_ila_0/probe27]
+connect_debug_port u_ila_0/probe27 [get_nets [list {debugger/DebugIn[Reset]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe28]
+set_property port_width 1 [get_debug_ports u_ila_0/probe28]
+connect_debug_port u_ila_0/probe28 [get_nets [list {debugger/DebugIn[Step]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe29]
+set_property port_width 1 [get_debug_ports u_ila_0/probe29]
+connect_debug_port u_ila_0/probe29 [get_nets [list {debugger/DebugIn[UpdateReg][Valid]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe30]
+set_property port_width 1 [get_debug_ports u_ila_0/probe30]
+connect_debug_port u_ila_0/probe30 [get_nets [list {debugger/DebugIn[UpdateValue][Valid]}]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe31]
+set_property port_width 1 [get_debug_ports u_ila_0/probe31]
+connect_debug_port u_ila_0/probe31 [get_nets [list cpu1/DebugStart]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe32]
+set_property port_width 1 [get_debug_ports u_ila_0/probe32]
+connect_debug_port u_ila_0/probe32 [get_nets [list MEM_ENA]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe33]
+set_property port_width 1 [get_debug_ports u_ila_0/probe33]
+connect_debug_port u_ila_0/probe33 [get_nets [list MEM_ENB]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe34]
+set_property port_width 1 [get_debug_ports u_ila_0/probe34]
+connect_debug_port u_ila_0/probe34 [get_nets [list debugger/WB_ACK]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe35]
+set_property port_width 1 [get_debug_ports u_ila_0/probe35]
+connect_debug_port u_ila_0/probe35 [get_nets [list debugger/WB_CYC]]
+create_debug_port u_ila_0 probe
+set_property PROBE_TYPE DATA_AND_TRIGGER [get_debug_ports u_ila_0/probe36]
+set_property port_width 1 [get_debug_ports u_ila_0/probe36]
+connect_debug_port u_ila_0/probe36 [get_nets [list debugger/WB_WE]]
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets SYS_CLK_IBUF_BUFG]
