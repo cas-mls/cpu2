@@ -139,10 +139,10 @@ architecture Behavioral of ProgCounter is
 
     signal ProgCounterLocal : PCTYPE;
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
-    attribute keep of ProgCounterLocal : signal is "TRUE";
-    attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
+    -- attribute keep of ProgCounterLocal : signal is "TRUE";
+    -- attribute MARK_DEBUG of ProgCounterLocal : signal is "TRUE";
     -- attribute keep of ProgramCounter : signal is "TRUE";
     -- attribute MARK_DEBUG of ProgramCounter : signal is "TRUE";
 

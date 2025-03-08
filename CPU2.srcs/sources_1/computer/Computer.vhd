@@ -267,8 +267,8 @@ architecture Behavioral of Computer is
 
     signal dmemReadCount: integer range 0 to 3;
 
-    attribute keep                          : STRING;
-    attribute MARK_DEBUG                    : string;
+    -- attribute keep                          : STRING;
+    -- attribute MARK_DEBUG                    : string;
     -- attribute keep          of rst          : signal is "TRUE";
     -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
 
@@ -303,20 +303,20 @@ architecture Behavioral of Computer is
     -- attribute MARK_DEBUG    of RdStatus     : signal is "TRUE";
 
     -- Memory Elements ILA
-    attribute keep          of MEM_ENA          : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
-    attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
-    attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
-    attribute keep          of MEM_ENB          : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
+    -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
+    -- attribute keep          of MEM_ENB          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
     -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
-    attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
-    attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
-    attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
+    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
 
 begin
 

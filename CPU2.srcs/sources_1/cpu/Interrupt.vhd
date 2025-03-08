@@ -181,14 +181,14 @@ architecture Behavioral of Interrupt_Entity is
     attribute keep : string;
     attribute MARK_DEBUG : string;
 
-    attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
-    attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
+    -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
     -- attribute keep of        fsm_interrupt_cycle_n : signal is "TRUE";
     -- attribute MARK_DEBUG of  fsm_interrupt_cycle_n : signal is "TRUE";
-    attribute keep of        INTERRUPT : signal is "TRUE";
-    attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
-    attribute keep of        interruptNum : signal is "TRUE";
-    attribute MARK_DEBUG of  interruptNum : signal is "TRUE";
+    -- attribute keep of        INTERRUPT : signal is "TRUE";
+    -- attribute MARK_DEBUG of  INTERRUPT : signal is "TRUE";
+    -- attribute keep of        interruptNum : signal is "TRUE";
+    -- attribute MARK_DEBUG of  interruptNum : signal is "TRUE";
 
     -- attribute keep of        timerAlarm : signal is "TRUE";
     -- attribute MARK_DEBUG of  timerAlarm : signal is "TRUE";
