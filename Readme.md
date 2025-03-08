@@ -1087,18 +1087,6 @@ Return from Interrupt.
 | -------- | ----------------- | ---- | ------------ | ------------------------------------------------------------ |
 | rti      | Register/Register | d000 | 8            | mem(reg(InterSP)+1) → PC <br />mem(reg(InterSP))+2) → IntEna<br />reg(InterSP)+2 → reg(InterSP) |
 
-RTI operation by Cycle:
-
-| Cycle       | Operation                           |
-| ----------- | ----------------------------------- |
-| DECODE_S    | (MEM)  ISP+1 → MEMADDR              |
-| MEMFETCH1_S | (MEM)  ISP+2 → MEMADDR              |
-| MEMFETCH2_S | Address Read Legacy                 |
-| EXECUTE_S   | (ALU) ISP+2 → ISP, (PC) MEMOUT → PC |
-| CLEANUP_S   | (Interrupt) MEMOUT → Interrupt Mask |
-
-
-
 #### Hardware Interrupt
 
 | **Cycle**        | **Interrupt Process**                         |
