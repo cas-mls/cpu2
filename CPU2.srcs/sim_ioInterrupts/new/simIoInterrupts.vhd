@@ -1,3 +1,4 @@
+-- vhdl-linter-disable component
 ----------------------------------------------------------------------------------
 -- Company: 
 -- Engineer: 
@@ -67,15 +68,26 @@ architecture Behavioral of SimCPU_Interrupt is
 
             DEBUGIN     : in DEBUGINTYPE := (
                 DebugMode => '0',
-                BreakPoints => (others => (others => '0')), 
-                Break => '0', 
-                Step => '0', 
+                BreakPoints => (others => (others => '0')),
+                Break => '0',
+                Step => '0',
                 Continue => '0',
                 BWhenReg => 0,
                 BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING
+                BWhenOp => REG_NOTHING,
+                Reset => '0',
+                UpdateValue => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                ),
+                UpdateReg => (
+                    Number => 0,
+                    Value => (others => '0'),
+                    Valid => '0'
+                )
                 );
-            DEBUGOUT    : out DEBUGOUTTYPE
+                DEBUGOUT    : out DEBUGOUTTYPE
             );
     end component;
 
@@ -94,7 +106,7 @@ architecture Behavioral of SimCPU_Interrupt is
             dinb  : in  STD_LOGIC_VECTOR(31 downto 0);
             doutb : out STD_LOGIC_VECTOR(31 downto 0)
         );
-    end component;
+    end component; -- vhdl-linter-disable-line component
 
     constant HALF_PERIOD : TIME := 5 ns;
 
@@ -132,7 +144,18 @@ architecture Behavioral of SimCPU_Interrupt is
         Continue => '0',
         BWhenReg => 0,
         BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING);
+        BWhenOp => REG_NOTHING,
+        Reset => '0',
+        UpdateValue => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        ),
+        UpdateReg => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        ));
     signal DebugOut     : DEBUGOUTTYPE;
 
 begin

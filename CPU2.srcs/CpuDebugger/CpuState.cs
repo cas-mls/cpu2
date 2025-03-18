@@ -4,35 +4,107 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using Common;
 
 namespace CpuDebugger
 {
 
-    enum Statuses { notconnected, stopped, running };
 
     internal class CpuState
     
     {
+
+        Dictionary<int, Memory> memory = new Dictionary<int, Memory>();
+
+        Dictionary<CmdStatusAddr, uint> debugValues = new Dictionary<CmdStatusAddr, uint>();
+
+        Dictionary<int, uint> regVaues = new Dictionary<int, uint>();
+
         Statuses status;
+
         Dictionary<byte, string> AccessMap = new Dictionary<byte, string>()
             {   {0, "REGREG" },
                 {1, "IMMED" },
                 {2, "ABSOLUTE" },
                 {3, "INDEX" } };
 
-        public CpuState() 
+        public CpuState(bool initValues)
         {
+            if (initValues)
+            {
+                foreach (CmdStatusAddr addr in Enum.GetValues(typeof(CmdStatusAddr)))
+                    debugValues[addr] = 0;
+                for (int regNum = 0; regNum < 16; regNum++)
+                    regVaues[regNum] = 0;
+            }
         }
-        internal Statuses ExecutationState { get; set; }
-        internal uint ProgramCounter { get; set; }
-        internal uint InstructionCode { get; set; }
-        internal uint Cycles { get; set; }
-        internal Registers CpuRegisters { get; } = new Registers();
+
+        public CpuState(CpuState cpuState)
+        {
+            foreach (CmdStatusAddr addr in cpuState.getAllStatuses())
+                debugValues[addr] = cpuState.getValue(addr);
+            foreach (int regNum in cpuState.getAllRegNum())
+                regVaues[regNum] = cpuState.getRegisterValue(regNum);
+            foreach (Memory mem in cpuState.GetAllMemory())
+                memory[mem.Index] = mem;
+         }
+
+        internal void copy (CpuState cpuState)
+        {
+            foreach (CmdStatusAddr addr in cpuState.getAllStatuses())
+                debugValues[addr] = cpuState.getValue(addr);
+            foreach (int regNum in cpuState.getAllRegNum())
+                regVaues[regNum] = cpuState.getRegisterValue(regNum);
+            foreach (Memory mem in cpuState.GetAllMemory())
+                memory[mem.Index] = mem;
+        }
+
+        internal void AddStatus(CmdStatusAddr status, uint value)
+        {
+            debugValues[status] = value;
+        }
+
+        internal void RemoveStatus(CmdStatusAddr status)
+        {
+            debugValues.Remove(status);
+        }
+
+        internal uint getValue(CmdStatusAddr status)
+        {
+            return debugValues[status];
+        }
+        internal void setValue(CmdStatusAddr status, uint value)
+        {
+            debugValues[status] = value;
+        }
+
+        internal CmdStatusAddr[] getAllStatuses()
+        {
+            return debugValues.Keys.ToArray();
+        }
+
+        internal Statuses ExecutationState 
+        { 
+            get { return (Statuses)debugValues[CmdStatusAddr.Status]; } 
+        }
+
+        internal int[] Changes(CpuState cpuState)
+        {
+            List<int> changes = new List<int>();
+            foreach (int regNum in getAllRegNum())
+            {
+                if (getRegisterValue(regNum) != cpuState.getRegisterValue(regNum))
+                    changes.Add(regNum);
+            }
+            return changes.ToArray();
+        }
+
         internal byte Opcode 
         {
             get
             {
-                uint Op = InstructionCode & 0xf8000000;
+                uint Op = debugValues[CmdStatusAddr.Instruction] & 0xf8000000;
                 Op >>= 27;
                 return (byte)Op;
             }
@@ -136,11 +208,38 @@ namespace CpuDebugger
             }
         }
 
+        internal bool ValidRegZero
+        {
+            get
+            {
+                if (Register2 == 0)
+                    if ( Opcode == 0x0C
+                        | Opcode == 0x0E
+                        | Opcode == 0x10
+                        | Opcode == 0x14)
+                        return false;
+                    else if (MemoryAccessDecode == "IMMED")
+                        if (Opcode == 0x01
+                            | Opcode == 0x02
+                            | Opcode == 0x03
+                            | Opcode == 0x04
+                            | Opcode == 0x05
+                            | Opcode == 0x06
+                            | Opcode == 0x07)
+                            return false;
+                        else
+                            return true;
+                    else
+                        return true;
+                else
+                    return true;
+            }
+        }
         internal byte Flag
         {
             get
             {
-                uint OpFlag = InstructionCode & 0x04000000;
+                uint OpFlag = debugValues[CmdStatusAddr.Instruction] & 0x04000000;
                 OpFlag >>= 26;
                 return (byte)OpFlag;
             }
@@ -149,7 +248,7 @@ namespace CpuDebugger
         {
             get
             {
-                uint OpAccess = InstructionCode & 0x03000000;
+                uint OpAccess = debugValues[CmdStatusAddr.Instruction] & 0x03000000;
                 OpAccess >>= 24;
                 return (byte)OpAccess;
             }
@@ -166,7 +265,7 @@ namespace CpuDebugger
         {
             get
             {
-                uint OpReg1 = InstructionCode & 0x00f00000;
+                uint OpReg1 = debugValues[CmdStatusAddr.Instruction] & 0x00f00000;
                 OpReg1 >>= 20;
                 return (byte)OpReg1;
             }
@@ -175,7 +274,7 @@ namespace CpuDebugger
         {
             get
             {
-                uint OpReg2 = InstructionCode & 0x000f0000;
+                uint OpReg2 = debugValues[CmdStatusAddr.Instruction] & 0x000f0000;
                 OpReg2 >>= 16;
                 return (byte)OpReg2;
             }
@@ -184,21 +283,52 @@ namespace CpuDebugger
         {
             get
             {
-                uint OpImm = InstructionCode & 0x0000ffff;
+                uint OpImm = debugValues[CmdStatusAddr.Instruction] & 0x0000ffff;
                 return (ushort)OpImm;
             }
         }
-        internal uint Memory { get; set; }
-        
-        internal uint MemoryArg { get; set; }
 
-        internal uint Interrupt { get; set; }
+        internal void AddRegister(int regNum, uint value)
+        {
+            regVaues[regNum] = value;
+        }
 
-        internal uint InterruptMask { get; set; }
+        internal void RemoveRegister(int regNum)
+        {
+            regVaues.Remove(regNum);
+        }
 
-        internal uint StatusRegister { get; set; }
+        internal uint getRegisterValue(int regNum)
+        {
+            return regVaues[regNum];
+        }
 
-        internal uint StatusMask { get; set; }
+        internal void setRegisterValue(int regNum, uint value)
+        {
+            regVaues[regNum] = value;
+        }
+
+        internal int[] getAllRegNum()
+        {
+            return regVaues.Keys.ToArray();
+        }
+        internal void AddMemory ( int index, ushort Address)
+        {
+            memory[index] = new Memory(index, Address);
+        }
+        internal void AddMemory(int index, ushort Address, uint Data)
+        {
+            memory[index] = new Memory(index, Address, Data);
+        }
+        internal void RemoveMemory (int index)
+        {
+            memory.Remove(index);
+        }
+
+        internal Memory[] GetAllMemory()
+        {
+            return memory.Values.ToArray();
+        }
 
         internal string AssemblyInstruction(bool hex)
         {
@@ -210,10 +340,16 @@ namespace CpuDebugger
                     results = OpcodeDecode + " R" + Register1.ToString() + ", R" + Register2.ToString();
                     break;
                 case "IMMED":
-                    results = OpcodeDecode + " R" + Register1.ToString() + ", #" + ImmString;
+                    results = OpcodeDecode 
+                        + " R" + Register1.ToString() 
+                        + (ValidRegZero ? ", R" + Register2.ToString() : "")
+                        + ", #" + ImmString;
                     break;
                 case "ABSOLUTE":
-                    results = OpcodeDecode + " R" + Register1.ToString() + ", [" + ImmString + "]";
+                    results = OpcodeDecode 
+                        + " R" + Register1.ToString()
+                        + (ValidRegZero ? ", R" + Register2.ToString() : "")
+                        + ", [" + ImmString + "]";
                     break;
                 case "INDEX":
                     results = OpcodeDecode + " R" + Register1.ToString()  + ", [" + ImmString + "+R" + Register2.ToString() + "]";

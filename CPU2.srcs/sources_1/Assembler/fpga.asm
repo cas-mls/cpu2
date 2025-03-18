@@ -8,7 +8,7 @@ INT0:
     #d32    START
 
 SP1 = 15 ; Stack Pointer Register
-Stack1 = 0xB00 ; Stack Location
+Stack1 = 0xAFF ; Stack Location
 
 testdata1 = 0x1234
 testdata2 = 0x5678

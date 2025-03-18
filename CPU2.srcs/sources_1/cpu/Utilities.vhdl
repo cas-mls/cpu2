@@ -79,7 +79,7 @@ package Utilities is
         Value       : std_logic_vector(31 downto 0);
         OpCode      : OPCODETYPE;   -- Instruction OpCode
         Flag        : STD_LOGIC;    -- Instruction Flag
-        Countdown   : integer;      -- Countdown Timer.
+        Countdown   : integer range 0 to 7;      -- Countdown Timer.
     end record;
 
     type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;
@@ -139,6 +139,9 @@ package Utilities is
     ---------------------------------------------------------------------------
     -- Debug Information
 
+    subtype DEBUG_REG_TYPE is STD_LOGIC_VECTOR (31 downto 0);
+    type DEBUG_REG_ARR_TYPE is array (regOpMax downto 0) of DEBUG_REG_TYPE;
+
     -- Register compare types
     type REG_COMPARE is (
         REG_NOTHING,        -- Value 0
@@ -151,14 +154,22 @@ package Utilities is
         REG_LESS_EQUAL     -- Value 7
         );
 
-        constant NumBreakPoint : integer := 4;
-        type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
+    constant NumBreakPoint : integer := 4;
+    type BREAKPOINTS_TYPE is array (NumBreakPoint-1 downto 0) of PCTYPE;
     
+    constant RegisterNumberOffset : integer := 16;
+
+    type INPUT_VALUE_TYPE is record
+        Number : integer range 0 to 15;
+        Value : STD_LOGIC_VECTOR(31 downto 0);
+        Valid : STD_LOGIC;
+    end record;
+
     type DEBUGOUTTYPE is record
         Stopped     : STD_LOGIC;
         CycleCount  : unsigned(63 downto 0);
         ProgCounter : PCTYPE;
-        Regs        : REG_TYPE;
+        Regs        : DEBUG_REG_ARR_TYPE;
         Instruction : INSTRUCTIONTYPE;
         Interrupt   : STD_LOGIC_VECTOR(interruptNums downto 0);
         interruptMask
@@ -166,6 +177,7 @@ package Utilities is
         Status      : STD_LOGIC_VECTOR(31 downto 0);
         StatusMask  : STD_LOGIC_VECTOR(31 downto 0);
         MEMORY_ARG  : STD_LOGIC_VECTOR(31 downto 0);
+        Reset       : STD_LOGIC;
     end record;
 
     type DEBUGINTYPE is record
@@ -177,6 +189,9 @@ package Utilities is
         BWhenReg    : integer;
         BWhenValue  : STD_LOGIC_VECTOR(31 downto 0);
         BWhenOp     : REG_COMPARE;
+        Reset       : STD_LOGIC;
+        UpdateValue : INPUT_VALUE_TYPE;
+        UpdateReg   : INPUT_VALUE_TYPE;
     end record;
 
     subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);
@@ -187,6 +202,7 @@ package Utilities is
     constant TGA_BREAK      : TGA_TYPE := std_logic_vector(to_unsigned(     3 , TGA_TYPE'length));
     constant TGA_BREAKAT    : TGA_TYPE := std_logic_vector(to_unsigned(     4 , TGA_TYPE'length));
     constant TGA_BREAKWHEN  : TGA_TYPE := std_logic_vector(to_unsigned(     5 , TGA_TYPE'length));
+    constant TGA_RESET      : TGA_TYPE := std_logic_vector(to_unsigned(     6 , TGA_TYPE'length));
     constant TGA_REGISTERS  : TGA_TYPE := std_logic_vector(to_unsigned(     8 , TGA_TYPE'length));
     constant TGA_MEMORY     : TGA_TYPE := std_logic_vector(to_unsigned(    16 , TGA_TYPE'length));
 

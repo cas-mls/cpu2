@@ -21,6 +21,7 @@
 
 library IEEE;
 library xil_defaultlib;
+
 use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 -- use ieee.std_logic_unsigned.all;
@@ -100,7 +101,28 @@ entity ALU is
         interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
         statusWord : out STATUS_WORD_TYPE := (others => '0');
         cpuRegs : out REG_TYPE;
-        AluDecodeDone : out std_logic
+        AluDecodeDone : out std_logic;
+        DEBUGIN     : in DEBUGINTYPE := (
+            DebugMode => '0',
+            BreakPoints => (others => (others => '0')),
+            Break => '0',
+            Step => '0',
+            Continue => '0',
+            BWhenReg => 0,
+            BWhenValue => (others => '0'),
+            BWhenOp => REG_NOTHING,
+            Reset => '0',
+            UpdateValue => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            ),
+            UpdateReg => (
+                Number => 0,
+                Value => (others => '0'),
+                Valid => '0'
+            )
+            )
     );
 
 end ALU;
@@ -272,6 +294,7 @@ begin
 
             -- Check each cycle for changes in the long operations and update the registers.
             for reg in cpuRegs'range loop
+                    -- Countdown to 1 instead of zero, the last cycle is the result.
                     if cpuRegs(reg).Countdown > 0 then
                         cpuRegs(reg).Countdown <= cpuRegs(reg).Countdown - 1;
                     else
@@ -333,6 +356,8 @@ begin
                 divideZero := UUsrZeroReg(0);
                 divRegNum := to_integer(unsigned(UUsrZeroReg(4 downto 1)));
                 if divideZero = '0' then -- Not divide by zero
+                    -- XXX: This is not right for remainder values.  I think it is 31 downto 0.
+                    -- If using the register pair this needs to be worked out better.
                     cpuRegs(divRegNum).OpCode <= oNOP; 
                     cpuRegs(divRegNum).Value <= UQuotRem(63 downto 32); -- Quotent
                 end if;
@@ -384,19 +409,29 @@ begin
                         when REGREG =>
                             a_reg_u := resize(unsigned(ireg1value),33);
                             b_reg_u := resize(unsigned(ireg2value),33);
+                            a_reg_s := signed(ireg1value);
+                            b_reg_s := signed(ireg2value);
 
                         when IMMEDIATE =>
                             if ffiregop2 = 0 then
                                 a_reg_u := resize(unsigned(ireg1value),33);
                                 b_reg_u := resize(unsigned(ffimmop),33);
+                                a_reg_s := signed(ireg1value);
+                                b_reg_s := resize(signed(ffimmop),32);
                             else
                                 a_reg_u := resize(unsigned(ireg2value),33);
                                 b_reg_u := resize(unsigned(ffimmop),33);
+                                a_reg_s := signed(ireg2value);
+                                b_reg_s := resize(signed(ffimmop),32);
                             end if;
 
                         when ABSOLUTE | INDEX =>
-                            a_reg_u := resize(unsigned(ireg1value),33);
-                            b_reg_u := resize(unsigned(MEM_ARG),33);
+                        a_reg_u := resize(unsigned(ireg1value),33);
+                        b_reg_u := resize(unsigned(MEM_ARG),33);
+                        if ffflag = '0' then
+                            a_reg_s := signed(ireg1value);
+                            b_reg_s := signed(MEM_ARG);
+                        end if;
 
                         when others =>
 
@@ -404,119 +439,87 @@ begin
 
                     case ffopcode is
                         when oLD =>
-                            case ffmemop is
-                                when REGREG =>
-                                    cpuRegs(ffiregop1).Value <= ireg2value;
-                                when IMMEDIATE =>
-                                    if ffflag = '1' then
-                                        cpuRegs(ffiregop1).Value(31 downto 16) <= ffimmop;
-                                    else
-                                        cpuRegs(ffiregop1).Value(15 downto 0) <= ffimmop;
-                                    end if;
-                                when ABSOLUTE | INDEX =>
-                                    cpuRegs(ffiregop1).Value <= MEM_ARG;
-                                when others =>
-                            end case;
-
-                        when oRTN =>
-                            if ffmemop = REGREG then
-                                cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                        to_integer(unsigned(ireg1value)) + 1, 32));
-                            end if;
-
-                        when oRTI =>
-                            if ffmemop = REGREG then
-                                cpuRegs(interruptSpNum).Value <= std_logic_vector(to_unsigned(
-                                                            interruptSpAddrValue + 2, 32));
-                            end if;
-
-                        when oADD | oSUB | oMul | oDiv =>
-                            if ffflag = '0' then
                                 case ffmemop is
                                     when REGREG =>
-                                        a_reg_s := signed(ireg1value);
-                                        b_reg_s := signed(ireg2value);
+                                        cpuRegs(ffiregop1).Value <= ireg2value;
                                     when IMMEDIATE =>
-                                            if ffiregop2 = 0 then
-                                                a_reg_s := signed(ireg1value);
-                                                b_reg_s := resize(signed(ffimmop),32);
-                                            else
-                                                a_reg_s := signed(ireg2value);
-                                                b_reg_s := resize(signed(ffimmop),32);
-                                            end if;
-                                    when ABSOLUTE | INDEX =>
-                                        if ffflag = '0' then
-                                            a_reg_s := signed(ireg1value);
-                                            b_reg_s := signed(MEM_ARG);
+                                        if ffflag = '1' then
+                                            cpuRegs(ffiregop1).Value(31 downto 16) <= ffimmop;
+                                        else
+                                            cpuRegs(ffiregop1).Value(15 downto 0) <= ffimmop;
                                         end if;
+                                    when ABSOLUTE | INDEX =>
+                                        cpuRegs(ffiregop1).Value <= MEM_ARG;
                                     when others =>
                                 end case;
+    
+                        when oADD =>
+                            if ffflag = '0' then
+                                results_reg_s := a_reg_s + b_reg_s;
+                                cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
+                                AValS <= resize(a_reg_s,33);
+                                BValS <= resize(b_reg_s,33);
+                                RValS <= resize(results_reg_s,33);
+
+                            else
+                                results_reg_u := a_reg_u + b_reg_u;
+                                cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
+                                RValU <= resize(results_reg_u,33);
                             end if;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).Countdown <= 1;
 
-                            if ffopcode = oAdd then
-                                if ffflag = '0' then
-                                    results_reg_s := a_reg_s + b_reg_s;
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
-                                    cpuRegs(ffiregop1).OpCode <= oAdd;
-                                    cpuRegs(ffiregop1).Flag <= '0';
-                                    cpuRegs(ffiregop1).Countdown <= 1;
-                                    AValS <= resize(a_reg_s,33);
-                                    BValS <= resize(b_reg_s,33);
+                        when oSUB =>
+                            if ffflag = '0' then
+                                results_reg_s := a_reg_s - b_reg_s;
+                                cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
+                                AValS <= resize(a_reg_s,33);
+                                BValS <= resize(b_reg_s,33);
+                                RValS <= resize(results_reg_s,33);
 
-                                else
-                                    results_reg_u := a_reg_u + b_reg_u;
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
-                                    RValU <= resize(results_reg_u,33);
+                            else
+                                results_reg_u := a_reg_u - b_reg_u;
+                                cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
+                                AValU <= resize(a_reg_u,33);
+                                BValU <= resize(b_reg_u,33);
+                                RValU <= resize(results_reg_u,33);
 
-                                end if;
-                            elsif ffopcode = oSub then
-                                if ffflag = '0' then
-                                    results_reg_s := a_reg_s - b_reg_s;
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(results_reg_s);
-                                    AValS <= resize(a_reg_s,33);
-                                    BValS <= resize(b_reg_s,33);
-                                    RValS <= resize(results_reg_s,33);
-
-                                else
-                                    results_reg_u := a_reg_u - b_reg_u;
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(resize(results_reg_u,32));
-                                    AValU <= resize(a_reg_u,33);
-                                    BValU <= resize(b_reg_u,33);
-                                    RValU <= resize(results_reg_u,33);
-
-                                end if;
-                            elsif ffopcode = oMul then
-                                if ffflag = '0' then
-                                    SMultRegA <= std_logic_vector(a_reg_s);
-                                    SMultRegB <= std_logic_vector(b_reg_s);
-                                    cpuRegs(ffiregop1).OpCode <= oMul;
-                                    cpuRegs(ffiregop1).Flag <= '0';
-                                    cpuRegs(ffiregop1).Countdown <= 6;
-                                else
-                                    UMultRegA <= std_logic_vector(a_reg_u(31 downto 0));
-                                    UMultRegB <= std_logic_vector(b_reg_u(31 downto 0));
-                                    cpuRegs(ffiregop1).OpCode <= oMul;
-                                    cpuRegs(ffiregop1).Flag <= '1';
-                                    cpuRegs(ffiregop1).Countdown <= 6;
-                                end if;
-
-                            elsif ffopcode = oDiv then
-                                if ffflag = '0' then
-                                    SDivRegA <= std_logic_vector(a_reg_s);
-                                    SDivRegB <= std_logic_vector(b_reg_s);
-                                    SDivRegAValid <= '1';
-                                    SDivRegBValid <= '1';
-                                    SUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
-                                    cpuRegs(ffiregop1).OpCode <= oDiv;
-                                else
-                                    UDivRegA <= std_logic_vector(a_reg_u(31 downto 0));
-                                    UDivRegB <= std_logic_vector(b_reg_u(31 downto 0));
-                                    UDivRegAValid <= '1';
-                                    UDivRegBValid <= '1';
-                                    UUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
-                                    cpuRegs(ffiregop1).OpCode <= oDiv;
-                                end if;
                             end if;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).Countdown <= 1;
+
+                        when oMul =>
+                            if ffflag = '0' then
+                                SMultRegA <= std_logic_vector(a_reg_s);
+                                SMultRegB <= std_logic_vector(b_reg_s);
+                            else
+                                UMultRegA <= std_logic_vector(a_reg_u(31 downto 0));
+                                UMultRegB <= std_logic_vector(b_reg_u(31 downto 0));
+                            end if;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).Countdown <= 6;
+
+                        when oDiv =>
+                            if ffflag = '0' then
+                                SDivRegA <= std_logic_vector(a_reg_s);
+                                SDivRegB <= std_logic_vector(b_reg_s);
+                                SDivRegAValid <= '1';
+                                SDivRegBValid <= '1';
+                                SUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                -- XXX: If remainder is used then need to set the remainder register to oDiv.
+                            else
+                                UDivRegA <= std_logic_vector(a_reg_u(31 downto 0));
+                                UDivRegB <= std_logic_vector(b_reg_u(31 downto 0));
+                                UDivRegAValid <= '1';
+                                UDivRegBValid <= '1';
+                                UUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
+                                -- XXX: If remainder is used then need to set the remainder register to oDiv.
+                            end if;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
 
                         when oAND =>
                             if ffflag = '0' then
@@ -547,34 +550,12 @@ begin
                             end if;
 
                         when oJSR =>
-                            case ffmemop is
-                                when REGREG =>
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                        to_integer(unsigned(ireg1value)) - 1, 32));
-                                when IMMEDIATE =>
-                                    cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                        to_integer(unsigned(ireg1value)) - 1, 32));
-                                when others =>
-                            end case;
+                            cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
+                                to_integer(unsigned(ireg1value)) - 1, 32));
 
                         when oRWIO =>
-                            case ffmemop is
-                                when REGREG =>
-                                    if ffflag = '0' then
-                                        cpuRegs(ffiregop1).Value <= IOR_DATA;
-                                    end if;
-                                when IMMEDIATE =>
-                                    if ffflag = '0' then
-                                        cpuRegs(ffiregop1).Value <= IOR_DATA;
-                                    end if;
-                                when others =>
-                            end case;
-
-                        when  oIOST =>
-                            if ffmemop = REGREG then
-                                cpuRegs(ffiregop1).Value <= IO_STATUS;
-                            elsif ffmemop = IMMEDIATE then
-                                cpuRegs(ffiregop1).Value <= IO_STATUS;
+                            if ffmemop = REGREG or ffmemop = IMMEDIATE then
+                                cpuRegs(ffiregop1).Value <= IOR_DATA;
                             end if;
 
                         when oPUSHPOP =>
@@ -596,6 +577,25 @@ begin
                                 when others =>
                             end case;
                         
+                        when oRTI =>
+                            if ffmemop = REGREG then
+                                cpuRegs(interruptSpNum).Value <= std_logic_vector(to_unsigned(
+                                                            interruptSpAddrValue + 2, 32));
+                            end if;
+
+                        when  oIOST =>
+                            if ffmemop = REGREG then
+                                cpuRegs(ffiregop1).Value <= IO_STATUS;
+                            elsif ffmemop = IMMEDIATE then
+                                cpuRegs(ffiregop1).Value <= IO_STATUS;
+                            end if;
+
+                        when oRTN =>
+                            if ffmemop = REGREG then
+                                cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
+                                                    to_integer(unsigned(ireg1value)) + 1, 32));
+                            end if;
+
                         when  oSWDM =>
                             if  ffflag = SWDFLAG 
                                 and ffmemop = REGREG
@@ -606,6 +606,17 @@ begin
     
                         when others =>
                     end case;
+                when DEBUGWAIT_S =>
+                    if DEBUGIN.UpdateReg.Valid = '1' 
+                    then
+                        cpuRegs(DEBUGIN.UpdateReg.Number).Value <= DEBUGIN.UpdateReg.Value;
+                    end if;
+                    if DEBUGIN.UpdateValue.Valid = '1' then
+                        if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_STATUS
+                        then
+                            statusWord <= DEBUGIN.UpdateValue.Value;
+                        end if;
+                    end if;
                 when others =>
             end case;
 

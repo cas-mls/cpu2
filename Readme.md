@@ -112,7 +112,16 @@ This is a simple CPU architecture that I used to verify that I understand how to
 ## Instruction Format
 
 ```mermaid
-
+---
+title: "Instruction Layout"
+---
+packet-beta
+0-15: "Immediate Address"
+16-19: "Register 2"
+20-23: "Register 1"
+24-25: "Memory Access"
+26-26: "Flag"
+27-31: "Opcode"
 ```
 
 |              | Opcode | Flag         | Access <br />(Memory)                                        | Register 1                | Register 2     | Immediate / <br />Address |
@@ -714,11 +723,11 @@ stateDiagram
 | 5    | `ble r1, r2, imm<br />bg r1, r0, imm`             |                |                                      | `woi r1, imm`           | `wsoi r1, imm` |       | `iena r1, imm`       | `swm r1, imm`       |
 | 6    | `ble r1, r2, mem[addr]<br />bg r1, r0, mem[addr]` |                |                                      | `woi r1, mem[addr]`     |                |       | `iena r1, mem[addr]` | `swm r1, mem[addr]` |
 | 7    |                                                   |                |                                      | `woi r1, r2, mem[addr]` |                |       |                      |                     |
-| 8    |                                                   |                |                                      |                         |                |       |                      |                     |
+| 8    | fadd                                              | fsub           | fmul                                 | fdiv                    | i2f            |       |                      | cmp                 |
 | 9    |                                                   |                |                                      |                         |                |       |                      |                     |
 | a    |                                                   |                |                                      |                         |                |       |                      |                     |
 | b    |                                                   |                |                                      |                         |                |       |                      |                     |
-| c    |                                                   |                |                                      |                         |                |       |                      |                     |
+| c    |                                                   |                |                                      |                         | f2i            |       |                      |                     |
 | d    |                                                   |                |                                      |                         |                |       |                      |                     |
 | e    |                                                   |                |                                      |                         |                |       |                      |                     |
 | f    |                                                   |                |                                      |                         |                |       |                      |                     |
@@ -1094,13 +1103,13 @@ Return from Interrupt.
 
 Return from interrupt processing:
 
-| **Cycle** | **Return Process**                       |
-| --------- | ---------------------------------------- |
-| DECODES   | reg(InterSP)+1 → addrB                   |
-| MEMRWAIT  | reg(InterSP))+2 → addrB                  |
-| MEMR      | Wait                                     |
-| EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
-| MEMW      | DoutB → IntEna                           |
+| **Cycle** | Process           | **Return Process**                         |
+| --------- | ----------------- | ------------------------------------------ |
+| DECODES   | MemoryAccess      | reg(InterSP)+1 → addrB                     |
+| MEMFETCH1 | MemoryAccess      | reg(InterSP))+2 → addrB                    |
+| MEMFETCH2 |                   | Wait                                       |
+| EXECUTE   | ProgCounter / ALU | DoutB → PC / reg(InterSP)+2 → reg(InterSP) |
+| MEMW      | Interrupt         | DoutB → IntEna                             |
 
 #### Special Interrupts
 
@@ -1157,15 +1166,7 @@ Read/Write Status word is formatted with the following fields:
 | 9      | Frame Error   | Read            | Indicates that a frame error has occurred after the last time the status register was read. Frame error is defined as detection of a stop bit with the value 0. The receive character is ignored and not written to the receive FIFO. |
 | 10     | Parity Error  | Read            | Indicates that a parity error has occurred after the last time the status register was read. If the UART is configured without any parity handling, this bit is always 0. |
 
-## Debug
-
-Links: 
-
-* [Wishbone Interconnect](https://wishbone-interconnect.readthedocs.io/en/latest/03_classic.html)
-
-Wishbone/UART interconnect where UART is the master and the Computer.vhd is the slave.
-
-
+### AXI4
 
 | Globals |              |                                                              | UART |
 | ------- | ------------ | ------------------------------------------------------------ | ---- |
@@ -1190,31 +1191,115 @@ Wishbone/UART interconnect where UART is the master and the Computer.vhd is the 
 | RVALID  | Slave        | Read valid. This signal indicates that the channel is signaling the required read data. See Channel handshake signals on page  A3-40. | Yes  |
 | RREADY  | Master       | Read ready. This signal indicates that the master can accept the read data and response information.  See Channel handshake signals on page A3-40. | Yes  |
 
+## Debug
 
+Links: 
+
+* [Wishbone Interconnect](https://wishbone-interconnect.readthedocs.io/en/latest/03_classic.html)
+
+Wishbone/UART interconnect where UART is the master and the Computer.vhd is the slave.
+
+```mermaid
+---
+title: Wishbone State Model
+---
+
+sequenceDiagram
+    Master(uart)->>Slave(computer): command (WE / TAGN)
+    Master(uart)->>Slave(computer): Address (WB_ADR)
+    alt read
+    Master(uart)->>Slave(computer): Data (DAT_I)
+    end
+     Master(uart)->>Slave(computer): WB_STB=1
+     Master(uart)->>Slave(computer): WB_CYC=1   
+     Slave(computer)->>Master(uart): WB_ACK=1
+     alt WB_STALL = 0
+     alt WB_ACK = 1
+     Master(uart)->>Slave(computer): WB_STB=0
+     Master(uart)->>Slave(computer): WB_CYC=0   
+     Slave(computer)->>Master(uart): Response (CMD)
+     alt write
+     Slave(computer)->>Master(uart): Data
+     end
+     end
+     end
+    
+```
+
+```mermaid
+---
+title: Wishbone State Model
+---
+stateDiagram-v2
+    [*] --> cmd
+    cmd --> cmd
+    cmd --> addr_low : byte received
+    addr_low --> addr_high : byte received
+    addr_high --> dout0 : read
+    addr_high --> request : write
+    dout0 --> dout1 : byte received
+    dout1 --> dout2 : byte received
+    dout2 --> dout3 : byte received
+    dout3 --> request : byte received
+    request --> wait4ack : WB_STALL=0
+    request --> request
+    wait4ack --> response : WB_ACK=1
+    response --> cmd : read
+    response --> din0
+    din0 --> din1
+    din1 --> din2
+    din2 --> din3
+    din3 --> cmd
+
+```
 
 Below are the current Wishbone UART interface commands.  The command (CMD) is not a wishbone data signal, but it is used to encode wishbone WE_O (CMD bit 0) and TGA_O (CMD bits 1-7) signals.  Address is 16 bits and Data is 32 bits.
 
-| CMD           | WE_O | Address (16 bits)                                            | Data (32 bits)                              | Description           |
-| ------------- | ---- | ------------------------------------------------------------ | ------------------------------------------- | --------------------- |
-| 0 = Status    | R    | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                       |
-|               |      | 1 = Program Counter                                          | The current program counter.                |                       |
-|               |      | 2 = Instruction                                              | The next instruction which will be executed |                       |
-|               |      | 3 = Cycles                                                   | Number of Cycles from the last reset.       |                       |
-|               |      | 4 = Interrupt Word                                           |                                             |                       |
-|               |      | 5 = Interrupt Mask Word                                      |                                             |                       |
-|               |      | 6 = Status Word                                              |                                             |                       |
-|               |      | 7 = Status Mask Word                                         |                                             |                       |
-|               |      | 8 = Memory Argument                                          |                                             |                       |
-|               |      |                                                              |                                             |                       |
-| 1 = Step      | W    | 0                                                            | 0                                           |                       |
-| 2 = Continue  | W    | 0                                                            | 0                                           |                       |
-| 3 = Break     | W    | 0                                                            | 0                                           |                       |
-| 4 = Break At  | W    | 1-4 = Break At Location                                      | Break At Address                            |                       |
-| 5= Break When | W    | bits 0-3: Register (0-15)<br />bit 4: X<br />bit 5-7: Operation:<br />0 = Nothing, 1 = Equal, 2 = Less than, 3= Greater than, 4 = Change, 5 = Not Equal, 6 = Greater Equal, 7 = Less Equal | Value                                       |                       |
-| 8 = Register  | RW   | Register Number (0-15)                                       | Register Content                            | Write Not Implemented |
-| 16 = Memory   | RW   | Memory Address                                               | Memory Data                                 | Not Implemented       |
+| CMD (7 bits)  | WE_O | Address (16 bits)                                            | Data (32 bits)                              | Description                       |
+| ------------- | ---- | ------------------------------------------------------------ | ------------------------------------------- | --------------------------------- |
+| 0 = Status    | RW   | 0 (Status)                                                   | 0 = Running<br />1 = Stopped                |                                   |
+|               |      | 1 = Program Counter                                          | The current program counter.                |                                   |
+|               |      | 2 = Instruction                                              | The next instruction which will be executed |                                   |
+|               |      | 3 = Cycles                                                   | Number of Cycles from the last reset.       |                                   |
+|               |      | 4 = Interrupt Word                                           |                                             |                                   |
+|               |      | 5 = Interrupt Mask Word                                      |                                             |                                   |
+|               |      | 6 = Status Word                                              |                                             |                                   |
+|               |      | 7 = Status Mask Word                                         |                                             |                                   |
+|               |      | 8 = Memory Argument                                          |                                             |                                   |
+|               |      |                                                              |                                             |                                   |
+| 1 = Step      | W    | X                                                            | X                                           |                                   |
+| 2 = Continue  | W    | X                                                            | X                                           |                                   |
+| 3 = Break     | W    | X                                                            | X                                           |                                   |
+| 4 = Break At  | W    | 1-4 = Break At Location                                      | Break At Address                            |                                   |
+| 5= Break When | W    | bits 0-3: Register (0-15)<br />bit 4: X<br />bit 5-7: Operation:<br />0 = Nothing, 1 = Equal, 2 = Less than, 3= Greater than, 4 = Change, 5 = Not Equal, 6 = Greater Equal, 7 = Less Equal | Value                                       |                                   |
+| 6 = CPU Reset | W    | X                                                            | X                                           | Resets the CPU, Not the Computer. |
+| 8 = Register  | RW   | Register Number (0-15)                                       | Register Content                            | Write Not Implemented             |
+| 16 = Memory   | RW   | Memory Address                                               | Memory Data                                 | Not Implemented                   |
 
 ### Serial  Protocol
+
+```mermaid
+---
+title: "Wishbone Read"
+---
+packet-beta
+0-7: "Command, Bit 0 is 0"
+8-23: "Address"
+24-31: "Response"
+32-63: "Data In"
+
+```
+```mermaid
+---
+title: "Wishbone Write"
+---
+packet-beta
+0-7: "Command, bit 0 is 1"
+8-23: "Address"
+24-55: "Data Out"
+56-63: "Response"
+
+```
 
 |   Byte 0    |     Byte 1     |     Byte 2     |       Byte 3       |     Byte 4      |     Byte 5      |     Byte 6      | Byte 7             |
 | :---------: | :------------: | :------------: | :----------------: | :-------------: | :-------------: | :-------------: | ------------------ |
@@ -1223,11 +1308,11 @@ Below are the current Wishbone UART interface commands.  The command (CMD) is no
 |  **Write**  |                |                |                    |                 |                 |                 |                    |
 | Command (W) | Address Lo (W) | Address Hi (W) |  Data Out(0) (W)   | Data Out(1) (W) | Data Out(2) (W) | Data Out(3) (W) | Response (CMD) (R) |
 
-* Command - 
-* Address - 
-* Data In - 
-* Data Out - 
-* Response - 
+* Command - Bit 0  is Write Enable (WE_O) and Bits 1-7 is Address Tag Type (TGA_O).  The TGA_O is the command to process or data type that would transmitted.
+* Address - Address (ADR_O) of the register or memory.
+* Data In - Data Input Array (DAT_I).  This is the 32-bit data to be read from the Computer.
+* Data Out - Data Output Array (DAT_O).  This is the 32-bit data to be transmitted to the Computer. 
+* Response - Wishbone ACK_I / Echo the Command.  TODO: This should be extended to handle Error Ouput (ERR_I) and Retry (RTY_I).
 
 ## GCC Backend Processing
 

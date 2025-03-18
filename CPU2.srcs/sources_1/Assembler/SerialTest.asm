@@ -7,7 +7,7 @@
 #bank program
 
 SP1 = 15 ; Stack Pointer Register
-Stack1 = 0xB00 ; Stack Location
+Stack1 = 0xAFF ; Stack Location
 IOADDR = 4;
 RINDEX = 5;
 WINDEX = 6;

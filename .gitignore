@@ -48,6 +48,8 @@ xsim.dir
 *.hw
 *.runs
 *.sim
+.VSCodeCounter
+.continue
 
 ### IP synth
 *_synth_*
@@ -117,7 +119,7 @@ hw_handoff
 ipshared
 
 # Microsoft Visual Studio 
-*/bin
-*/obj
-*/.vs
-*/*.user
+**/bin/
+**/obj/
+**/.vs/
+**/*.user

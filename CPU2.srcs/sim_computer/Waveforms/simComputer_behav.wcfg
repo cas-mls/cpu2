@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="759.501 ns"></ZoomEndTime>
-      <Cursor1Time time="515.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000000000 ms"></ZoomStartTime>
+      <ZoomEndTime time="15.750000001 ms"></ZoomEndTime>
+      <Cursor1Time time="2.800000000 ms"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="231"></NameColumnWidth>
+      <NameColumnWidth column_width="221"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="28" />
+   <WVObjectSize size="40" />
    <wvobject fp_name="/simComputer/CLK" type="logic">
       <obj_property name="ElementShortName">CLK</obj_property>
       <obj_property name="ObjectShortName">CLK</obj_property>
@@ -51,13 +51,25 @@
       <obj_property name="ElementShortName">dcont</obj_property>
       <obj_property name="ObjectShortName">dcont</obj_property>
    </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/dcontBtn" type="logic">
+      <obj_property name="ElementShortName">dcontBtn</obj_property>
+      <obj_property name="ObjectShortName">dcontBtn</obj_property>
+   </wvobject>
    <wvobject fp_name="/simComputer/dstep" type="logic">
       <obj_property name="ElementShortName">dstep</obj_property>
       <obj_property name="ObjectShortName">dstep</obj_property>
    </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/dstepBtn" type="logic">
+      <obj_property name="ElementShortName">dstepBtn</obj_property>
+      <obj_property name="ObjectShortName">dstepBtn</obj_property>
+   </wvobject>
    <wvobject fp_name="/simComputer/dbreak" type="logic">
       <obj_property name="ElementShortName">dbreak</obj_property>
       <obj_property name="ObjectShortName">dbreak</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/dbreakBtn" type="logic">
+      <obj_property name="ElementShortName">dbreakBtn</obj_property>
+      <obj_property name="ObjectShortName">dbreakBtn</obj_property>
    </wvobject>
    <wvobject fp_name="/simComputer/CMD" type="array">
       <obj_property name="ElementShortName">CMD[7:0]</obj_property>
@@ -164,5 +176,41 @@
    <wvobject fp_name="/simComputer/computer_UUT/cpu1/DEBUGIN.BreakPoints" type="array">
       <obj_property name="ElementShortName">.BreakPoints[3:0][11:0]</obj_property>
       <obj_property name="ObjectShortName">.BreakPoints[3:0][11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_ADDR" type="array">
+      <obj_property name="ElementShortName">WB_ADDR[15:0]</obj_property>
+      <obj_property name="ObjectShortName">WB_ADDR[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_WE" type="logic">
+      <obj_property name="ElementShortName">WB_WE</obj_property>
+      <obj_property name="ObjectShortName">WB_WE</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_ACK" type="logic">
+      <obj_property name="ElementShortName">WB_ACK</obj_property>
+      <obj_property name="ObjectShortName">WB_ACK</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_CYC" type="logic">
+      <obj_property name="ElementShortName">WB_CYC</obj_property>
+      <obj_property name="ObjectShortName">WB_CYC</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_STB" type="logic">
+      <obj_property name="ElementShortName">WB_STB</obj_property>
+      <obj_property name="ObjectShortName">WB_STB</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_TGA" type="array">
+      <obj_property name="ElementShortName">WB_TGA[6:0]</obj_property>
+      <obj_property name="ObjectShortName">WB_TGA[6:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_STALL" type="logic">
+      <obj_property name="ElementShortName">WB_STALL</obj_property>
+      <obj_property name="ObjectShortName">WB_STALL</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_DIN" type="array">
+      <obj_property name="ElementShortName">WB_DIN[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WB_DIN[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/simComputer/computer_UUT/debugger/WB_DOUT" type="array">
+      <obj_property name="ElementShortName">WB_DOUT[31:0]</obj_property>
+      <obj_property name="ObjectShortName">WB_DOUT[31:0]</obj_property>
    </wvobject>
 </wave_config>
