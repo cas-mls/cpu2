@@ -79,7 +79,7 @@ package Utilities is
         Value       : std_logic_vector(31 downto 0);
         OpCode      : OPCODETYPE;   -- Instruction OpCode
         Flag        : STD_LOGIC;    -- Instruction Flag
-        Countdown   : integer;      -- Countdown Timer.
+        Countdown   : integer range 0 to 7;      -- Countdown Timer.
     end record;
 
     type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;

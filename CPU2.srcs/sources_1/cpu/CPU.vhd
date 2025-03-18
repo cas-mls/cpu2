@@ -227,6 +227,7 @@ architecture Behavioral of CPU is
             interruptNum : in integer range 0 to interruptNums := 0;
             ProgramCounter : in PCTYPE;
             interruptMask : in std_logic_vector(interruptNums downto 0);
+            AluDecodeDone : in std_logic;
 
             MEM_ENB : out std_logic := '1';
             MEM_WEB : out std_logic_vector(0 downto 0) := "0";
@@ -250,6 +251,7 @@ architecture Behavioral of CPU is
             MEM_ADDRA : out std_logic_vector(11 downto 0);
             ProgramCounter : out PCTYPE;
             JumpDisablePipline : out std_logic := '0';
+            AluDecodeDone : in std_logic;
             DEBUGIN     : in DEBUGINTYPE := (
                 DebugMode => '0',
                 BreakPoints => (others => (others => '0')),
@@ -513,6 +515,7 @@ begin
         interruptNum => interruptNum,
         ProgramCounter => ProgramCounter,
         interruptMask => interruptMask,
+        AluDecodeDone => AluDecodeDone,
 
         MEM_ENB => MEM_ENB,
         MEM_WEB => MEM_WEB,
@@ -535,6 +538,7 @@ begin
         MEM_ADDRA => MEM_ADDRA,
         ProgramCounter => ProgramCounter,
         JumpDisablePipline => JumpDisablePipline,
+        AluDecodeDone => AluDecodeDone,
         DebugIn => DEBUGIN
     );
 

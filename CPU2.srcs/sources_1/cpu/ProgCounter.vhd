@@ -99,6 +99,7 @@ entity ProgCounter is
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
         ProgramCounter        : OUT PCTYPE;
         JumpDisablePipline    : OUT STD_LOGIC;
+        AluDecodeDone         : in std_logic;
         DEBUGIN     : in DEBUGINTYPE := (
             DebugMode => '0',
             BreakPoints => (others => (others => '0')),
@@ -183,26 +184,30 @@ begin
                     ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
 
-                    if     opcode = oJMP 
-                        or opcode = oBE 
-                        or opcode = oBLT 
-                        or opcode = oBGT 
-                        or opcode = oJSR 
-                        or opcode = oRTN 
-                        or opcode = oRTI 
-                        or (opcode = oSWIENA and flag = SWIFLAG)
-                    then -- Branch / Jump operations.
-                        MEM_ENA <= '0';
-                        JumpDisablePipline <= '1';
-                    else -- ignore all Jump operations.
-                        MEM_ENA <= '1';
-                        MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
-                        JumpDisablePipline <= '0';
+                    -- Continued until the ALU is done.
+                    if AluDecodeDone = '1' then
+                        if     opcode = oJMP 
+                            or opcode = oBE 
+                            or opcode = oBLT 
+                            or opcode = oBGT 
+                            or opcode = oJSR 
+                            or opcode = oRTN 
+                            or opcode = oRTI 
+                            or (opcode = oSWIENA and flag = SWIFLAG)
+                        then -- Branch / Jump operations.
+                            MEM_ENA <= '0';
+                            JumpDisablePipline <= '1';
+                        else -- ignore all Jump operations.
+                            MEM_ENA <= '1';
+                            MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
+                            JumpDisablePipline <= '0';
+                        end if;
+                    else
+                        null;
                     end if;
 
                 when EXECUTE_S    =>
-                    if cpuRegs(ffiregop1).OpCode = oNOP 
-                        and cpuRegs(ffiregop2).OpCode = oNOP
+                    if AluDecodeDone = '1' 
                     then -- Execute Instruction
 
                         case ffopcode is

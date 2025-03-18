@@ -1103,13 +1103,13 @@ Return from Interrupt.
 
 Return from interrupt processing:
 
-| **Cycle** | **Return Process**                       |
-| --------- | ---------------------------------------- |
-| DECODES   | reg(InterSP)+1 → addrB                   |
-| MEMRWAIT  | reg(InterSP))+2 → addrB                  |
-| MEMR      | Wait                                     |
-| EXECUTE   | DoutB → PC reg(InterSP)+2 → reg(InterSP) |
-| MEMW      | DoutB → IntEna                           |
+| **Cycle** | Process           | **Return Process**                         |
+| --------- | ----------------- | ------------------------------------------ |
+| DECODES   | MemoryAccess      | reg(InterSP)+1 → addrB                     |
+| MEMFETCH1 | MemoryAccess      | reg(InterSP))+2 → addrB                    |
+| MEMFETCH2 |                   | Wait                                       |
+| EXECUTE   | ProgCounter / ALU | DoutB → PC / reg(InterSP)+2 → reg(InterSP) |
+| MEMW      | Interrupt         | DoutB → IntEna                             |
 
 #### Special Interrupts
 

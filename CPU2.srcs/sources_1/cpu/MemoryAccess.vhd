@@ -103,6 +103,7 @@ entity MemoryAccess is
         interruptNum : in integer range 0 to interruptNums := 0;
         ProgramCounter : in PCTYPE;
         interruptMask : in std_logic_vector(interruptNums downto 0);
+        AluDecodeDone         : in std_logic;
 
         MEM_ENB : out std_logic := '1';
         MEM_WEB : out std_logic_vector(0 downto 0) := "0";
@@ -254,43 +255,46 @@ begin
                     end case;
 
                 when EXECUTE_S =>
-                    case ffmemop is
-                        when ABSOLUTE =>
-                            case ffopcode is
-                                when oSTR =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "1";
-                                    MEM_ADDRB <= ffimmop(11 downto 0);
-                                    MEM_DINB <= ireg1value;
-                                when oRWIO =>
-                                    if ffflag = '0' then
+                    if AluDecodeDone = '1' 
+                    then
+                        case ffmemop is
+                            when ABSOLUTE =>
+                                case ffopcode is
+                                    when oSTR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= ffimmop(11 downto 0);
-                                        MEM_DINB <= IOR_DATA;
-                                    end if;
-                                when others =>
-                            end case;
-                        when INDEX =>
-                            case ffopcode is
-                                when oSTR =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "1";
-                                    MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
-                                                to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
-                                    MEM_DINB <= ireg1value;
-                                when oRWIO =>
-                                    if ffflag = '0' then
+                                        MEM_DINB <= ireg1value;
+                                    when oRWIO =>
+                                        if ffflag = '0' then
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "1";
+                                            MEM_ADDRB <= ffimmop(11 downto 0);
+                                            MEM_DINB <= IOR_DATA;
+                                        end if;
+                                    when others =>
+                                end case;
+                            when INDEX =>
+                                case ffopcode is
+                                    when oSTR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
                                                     to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
-                                        MEM_DINB <= IOR_DATA;
-                                    end if;
-                                when others =>
-                            end case;
-                        when others =>
-                    end case;
+                                        MEM_DINB <= ireg1value;
+                                    when oRWIO =>
+                                        if ffflag = '0' then
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "1";
+                                            MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
+                                                        to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
+                                            MEM_DINB <= IOR_DATA;
+                                        end if;
+                                    when others =>
+                                end case;
+                            when others =>
+                        end case;
+                    end if;
                 when others =>
             end case;
 
