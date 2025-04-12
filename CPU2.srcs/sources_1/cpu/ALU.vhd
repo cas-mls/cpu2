@@ -554,8 +554,12 @@ begin
                                 to_integer(unsigned(ireg1value)) - 1, 32));
 
                         when oRWIO =>
-                            if ffmemop = REGREG or ffmemop = IMMEDIATE then
-                                cpuRegs(ffiregop1).Value <= IOR_DATA;
+                            if ffflag = '0' then -- Read from IO
+                                if ffmemop = REGREG or ffmemop = IMMEDIATE then
+                                    cpuRegs(ffiregop1).Value <= IOR_DATA;
+                                end if;
+                            else
+                                null;
                             end if;
 
                         when oPUSHPOP =>

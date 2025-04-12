@@ -273,6 +273,8 @@ begin
                                             MEM_DINB <= IOR_DATA;
                                         end if;
                                     when others =>
+                                        MEM_ENB <= '0';
+                                        MEM_WEB <= "0";
                                 end case;
                             when INDEX =>
                                 case ffopcode is
@@ -291,8 +293,12 @@ begin
                                             MEM_DINB <= IOR_DATA;
                                         end if;
                                     when others =>
+                                        MEM_ENB <= '0';
+                                        MEM_WEB <= "0";
                                 end case;
                             when others =>
+                                MEM_ENB <= '0';
+                                MEM_WEB <= "0";
                         end case;
                     end if;
                 when others =>

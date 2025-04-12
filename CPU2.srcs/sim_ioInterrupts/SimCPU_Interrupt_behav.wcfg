@@ -12,12 +12,12 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="1,006,350.833 ns"></ZoomStartTime>
-      <ZoomEndTime time="1,006,403.834 ns"></ZoomEndTime>
-      <Cursor1Time time="1,006,395.000 ns"></Cursor1Time>
+      <ZoomStartTime time="7,642.500 ns"></ZoomStartTime>
+      <ZoomEndTime time="9,217.501 ns"></ZoomEndTime>
+      <Cursor1Time time="8,355.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="226"></NameColumnWidth>
+      <NameColumnWidth column_width="221"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="43" />
@@ -222,70 +222,6 @@
    <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs" type="array">
       <obj_property name="ElementShortName">cpuRegs[15:0]</obj_property>
       <obj_property name="ObjectShortName">cpuRegs[15:0]</obj_property>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[15]" type="array">
-         <obj_property name="ElementShortName">[15]</obj_property>
-         <obj_property name="ObjectShortName">[15]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[14]" type="array">
-         <obj_property name="ElementShortName">[14]</obj_property>
-         <obj_property name="ObjectShortName">[14]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[13]" type="array">
-         <obj_property name="ElementShortName">[13]</obj_property>
-         <obj_property name="ObjectShortName">[13]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[12]" type="array">
-         <obj_property name="ElementShortName">[12]</obj_property>
-         <obj_property name="ObjectShortName">[12]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[11]" type="array">
-         <obj_property name="ElementShortName">[11]</obj_property>
-         <obj_property name="ObjectShortName">[11]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[10]" type="array">
-         <obj_property name="ElementShortName">[10]</obj_property>
-         <obj_property name="ObjectShortName">[10]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[9]" type="array">
-         <obj_property name="ElementShortName">[9]</obj_property>
-         <obj_property name="ObjectShortName">[9]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[8]" type="array">
-         <obj_property name="ElementShortName">[8]</obj_property>
-         <obj_property name="ObjectShortName">[8]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[7]" type="array">
-         <obj_property name="ElementShortName">[7]</obj_property>
-         <obj_property name="ObjectShortName">[7]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[6]" type="array">
-         <obj_property name="ElementShortName">[6]</obj_property>
-         <obj_property name="ObjectShortName">[6]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[5]" type="array">
-         <obj_property name="ElementShortName">[5]</obj_property>
-         <obj_property name="ObjectShortName">[5]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[4]" type="array">
-         <obj_property name="ElementShortName">[4]</obj_property>
-         <obj_property name="ObjectShortName">[4]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[3]" type="array">
-         <obj_property name="ElementShortName">[3]</obj_property>
-         <obj_property name="ObjectShortName">[3]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[2]" type="array">
-         <obj_property name="ElementShortName">[2]</obj_property>
-         <obj_property name="ObjectShortName">[2]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[1]" type="array">
-         <obj_property name="ElementShortName">[1]</obj_property>
-         <obj_property name="ObjectShortName">[1]</obj_property>
-      </wvobject>
-      <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/cpuRegs[0]" type="array">
-         <obj_property name="ElementShortName">[0]</obj_property>
-         <obj_property name="ObjectShortName">[0]</obj_property>
-      </wvobject>
    </wvobject>
    <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/AluDecodeDone" type="logic">
       <obj_property name="ElementShortName">AluDecodeDone</obj_property>

@@ -727,7 +727,7 @@ begin
                                             fsm_inst_cycle_n <= EXECUTE_S;
                                         end if;
                                     else
-                                        fsm_inst_cycle_n <= ADDRESS_S; -- Should not happen
+                                        fsm_inst_cycle_n <= INSTFETCH1_S; -- Should not happen
                                     end if;
                                 when others =>
                                     if DebugStart = '1' then
@@ -804,17 +804,17 @@ begin
                             then -- Specific requirement for only WAIT
                                 fsm_inst_cycle_n <= WAITS_S;
                             else
-                                fsm_inst_cycle_n <= ADDRESS_S;
+                                fsm_inst_cycle_n <= INSTFETCH1_S;
                             end if;
                         else
-                            fsm_inst_cycle_n <= ADDRESS_S;
+                            fsm_inst_cycle_n <= INSTFETCH1_S;
                         end if;
 
                     elsif JumpDisablePipline = '1'
                         or DebugDisablePipline = '1'
                         or interruptRun = '1'
                     then -- Jump / Branch go back to the Address state.
-                        fsm_inst_cycle_n <= ADDRESS_S;
+                        fsm_inst_cycle_n <= INSTFETCH1_S;
                     else -- All other operations.
                         if ffmemop = ABSOLUTE or ffmemop = INDEX then
                             fsm_inst_cycle_n <= DECODE_S;
@@ -840,7 +840,7 @@ begin
                 if opcode = oRTI and waitRun = '1' then
                     fsm_inst_cycle_n <= WAITS_S;
                 else
-                    fsm_inst_cycle_n <= ADDRESS_S;
+                    fsm_inst_cycle_n <= INSTFETCH1_S;
                 end if;
 
             ----------------------------------------------------------------
@@ -861,7 +861,7 @@ begin
             end if;
 
             when others =>
-                fsm_inst_cycle_n <= ADDRESS_S;
+                fsm_inst_cycle_n <= INSTFETCH1_S;
         end case;
     end process;
 
