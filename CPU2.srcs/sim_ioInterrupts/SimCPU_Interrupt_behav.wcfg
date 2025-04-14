@@ -12,12 +12,12 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="7,642.500 ns"></ZoomStartTime>
-      <ZoomEndTime time="9,217.501 ns"></ZoomEndTime>
-      <Cursor1Time time="8,355.000 ns"></Cursor1Time>
+      <ZoomStartTime time="9,449.600 ns"></ZoomStartTime>
+      <ZoomEndTime time="9,504.101 ns"></ZoomEndTime>
+      <Cursor1Time time="9,495.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="221"></NameColumnWidth>
+      <NameColumnWidth column_width="211"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="43" />
@@ -120,6 +120,7 @@
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.CycleCount" type="array">
          <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
          <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.ProgCounter" type="array">
          <obj_property name="ElementShortName">.ProgCounter[11:0]</obj_property>

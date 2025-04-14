@@ -621,7 +621,7 @@ begin
                 fsm_inst_cycle_p <= RESET_STATE_S;
             else
                 if interruptRun = '1' then
-                    fsm_inst_cycle_p <= ADDRESS_S;
+                    fsm_inst_cycle_p <= WAITS_S;
                 else
                     fsm_inst_cycle_p <= fsm_inst_cycle_n;
                 end if;
@@ -649,16 +649,7 @@ begin
         case fsm_inst_cycle_p is
                 -- CPU RESET
             when RESET_STATE_S =>
-                fsm_inst_cycle_n <= ADDRESS_S;
-
-                ----------------------------------------------------------------
-                -- This sets up the instruction address to read.
-            when ADDRESS_S =>
-                if interruptRun = '1' then
-                    fsm_inst_cycle_n <= ADDRESS_S;
-                else
-                    fsm_inst_cycle_n <= INSTFETCH1_S;
-                end if;
+                fsm_inst_cycle_n <= WAITS_S;
 
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
@@ -827,8 +818,9 @@ begin
             when WAITS_S =>
                 if waitAlarm = '1'
                     or waitCancel = '1'
+                    or fsm_interrupt_cycle_p = DONE_S
                 then
-                    fsm_inst_cycle_n <= ADDRESS_S;
+                    fsm_inst_cycle_n <= INSTFETCH1_S;
                 else
                     fsm_inst_cycle_n <= WAITS_S;
                 end if;

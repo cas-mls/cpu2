@@ -38,7 +38,7 @@ package Utilities is
 
     type CYCLETYPE_FSM is (
         RESET_STATE_S,  -- State 0
-        ADDRESS_S,      -- State 1
+        DUMMY1_S,      -- State 1
         INSTFETCH1_S,   -- State 2
         INSTFETCH2_S,   -- State 3
         DECODE_S,       -- State 4

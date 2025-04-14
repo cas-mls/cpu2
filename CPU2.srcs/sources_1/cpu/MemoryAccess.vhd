@@ -152,12 +152,9 @@ begin
                     MEM_WEB <= "0";
                     MEM_ADDRB <= X"000";
                     MEM_DINB <= X"00000000";
-                when ADDRESS_S =>
-                    if interruptRun = '0'
-                        then
-                        MEM_ENB <= '0';
-                        MEM_WEB <= "0";
-                    end if;
+                when INSTFETCH1_S =>
+                    MEM_ENB <= '0';
+                    MEM_WEB <= "0";
                 when DECODE_S =>
 
                     -- Maintain Flip-Flop (Memory) protions of the instruction.
