@@ -239,36 +239,45 @@ During each cycle, the Access (Memory) value is selected (Case statement) and th
 
 #### Instruction State Diagram
 
-| Cycle      | Description                                                  |
-| ---------- | ------------------------------------------------------------ |
-| ADDRESS    | Sets the instruction address.<br />Start interrupt processing |
-| INSTFETCH1 | Wait for instruction data.                                   |
-| INSTFETCH2 | Wait for instruction data.                                   |
-| DECODE     | Instruction Data is available and the Instruction is separated into different fields.<br/>The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1 the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address. |
-| MEMFETCH1  | Wait for Access (Memory) types 2 and 3.<br />The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask. |
-| MEMFETCH2  | Wait for Read for Access (Memory) types 2 and 3.             |
-| EXECUTE    | Perform the operations.                                      |
-| CLEANUP    | Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state to reset the enable flag. |
+| Cycle          | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| INSTFETCH1     | Wait for instruction data.                                   |
+| INSTFETCH2     | Wait for instruction data.                                   |
+| DECODE         | Instruction Data is available and the Instruction is separated into different fields.<br/>The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1 the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address. |
+| MEMFETCH1      | Wait for Access (Memory) types 2 and 3.<br />The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask. |
+| MEMFETCH2      | Wait for Read for Access (Memory) types 2 and 3.             |
+| EXECUTE        | Perform the operations.                                      |
+| CLEANUP        | Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state to reset the enable flag. |
+| WAIT           | Wait for the pre-interrupt processing to complete.  Wait for instructions. |
+| DEBUGSTABILIZE | Cycle once for debug information to stabilize when the program stops. |
+| DEBUGWAIT      | The program stopped for debugging.                           |
 
 
 
 
 ```mermaid
 stateDiagram
-    [*] --> ADDRESS_S : Reset
-    ADDRESS_S --> INSTFETCH1_S
+    [*] --> RESET_S : Reset (Interrupt 0)
+    RESET_S --> WAIT_S
     INSTFETCH1_S --> INSTFETCH2_S
     INSTFETCH2_S --> DECODE_S
     DECODE_S --> MEMFETCH1_S : addr modes 2 & 3
     MEMFETCH1_S --> MEMFETCH2_S
     MEMFETCH2_S --> EXECUTE_S
+    MEMFETCH2_S --> DEBUGSTABLEIZE_S : Debug Stop
+    DECODE_S --> DEBUGSTABLEIZE_S : Debug Stop
     DECODE_S --> EXECUTE_S : addr modes 0 & 1
-    EXECUTE_S --> ADDRESS_S : jumps & branches
+    EXECUTE_S --> INSTFETCH1_S : jumps & branches
     EXECUTE_S --> CLEANUP_S : rio & wio
-    EXECUTE_S --> DECODE_S : addr modes 2 & 3
+    EXECUTE_S --> DECODE_S : addr modes 2 & 3 -or- multi-cycle operations
     EXECUTE_S --> INSTFETCH2_S : addr modes 0 & 1
-    CLEANUP_S --> ADDRESS_S
+    CLEANUP_S --> INSTFETCH1_S
+    %%WAIT_S --> WAIT_S
+    WAIT_S --> INSTFETCH1_S
     
+    
+    DEBUGSTABLEIZE_S --> DEBUGWAIT_S : DebugOut.Stopped = 0
+    DEBUGWAIT_S --> EXECUTE_S
 ```
 
 ------
