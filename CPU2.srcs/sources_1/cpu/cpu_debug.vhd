@@ -82,6 +82,7 @@ architecture Behavioral of cpu_debug is
         value => (others => '0'),
         opcode => oNOP,
         flag => '0',
+        memop => RegReg,
         countdown => 0));
 
     function debug_reg_compare(
@@ -145,6 +146,7 @@ begin
                     value => (others => '0'),
                     opcode => oNOP,
                     flag => '0',
+                    memop => RegReg,
                     countdown => 0));
             elsif fsm_inst_cycle_p = DECODE_S then
                 -- Maintain Flip-Flop (Memory) portions of the instruction.

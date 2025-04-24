@@ -421,6 +421,7 @@ architecture Behavioral of CPU is
                 value => (others => '0'),
                 opcode => oNOP,
                 flag => '0',
+                memop => REGREG,
                 countdown => 0));
 
     -- interrupts
@@ -450,6 +451,7 @@ architecture Behavioral of CPU is
         value => (others => '0'),
         opcode => oNOP,
         flag => '0',
+        memop => REGREG,
         countdown => 0));
     signal DebugDisablePipline : STD_LOGIC := '0';
     signal DebugStart : STD_LOGIC := '0';
@@ -781,24 +783,17 @@ begin
                     fsm_inst_cycle_n <= DECODE_S;
                 else
 
-                    -- Find the next cycle state....
-                    if ffopcode = oRWIO
-                        or ffopcode = oRTI
-                        or ffopcode = oIOST
-                    then -- Need additional step.
-                        fsm_inst_cycle_n <= CLEANUP_S;
-
-                    elsif ffopcode = oWAIT then
+                    if ffopcode = oWAIT then
                         if ffflag = '0' -- Wait, Not Cancel
                         then
                             if ffiregop2 = 0 -- Wait, Not Timer
                             then -- Specific requirement for only WAIT
                                 fsm_inst_cycle_n <= WAITS_S;
                             else
-                                fsm_inst_cycle_n <= INSTFETCH1_S;
+                                fsm_inst_cycle_n <= DECODE_S;
                             end if;
                         else
-                            fsm_inst_cycle_n <= INSTFETCH1_S;
+                            fsm_inst_cycle_n <= DECODE_S;
                         end if;
 
                     elsif JumpDisablePipline = '1'
@@ -806,6 +801,10 @@ begin
                         or interruptRun = '1'
                     then -- Jump / Branch go back to the Address state.
                         fsm_inst_cycle_n <= INSTFETCH1_S;
+
+                    elsif opcode = oRTI and waitRun = '1' then
+                        fsm_inst_cycle_n <= WAITS_S;
+
                     else -- All other operations.
                         if ffmemop = ABSOLUTE or ffmemop = INDEX then
                             fsm_inst_cycle_n <= DECODE_S;
@@ -820,7 +819,7 @@ begin
                     or waitCancel = '1'
                     or fsm_interrupt_cycle_p = DONE_S
                 then
-                    fsm_inst_cycle_n <= INSTFETCH1_S;
+                    fsm_inst_cycle_n <= DECODE_S;
                 else
                     fsm_inst_cycle_n <= WAITS_S;
                 end if;
@@ -828,12 +827,12 @@ begin
                 -- Update the program counter.
                 -- All of these could be included in the Execute cycle and
                 -- this state could be eliminated.
-            when CLEANUP_S =>
-                if opcode = oRTI and waitRun = '1' then
-                    fsm_inst_cycle_n <= WAITS_S;
-                else
-                    fsm_inst_cycle_n <= INSTFETCH1_S;
-                end if;
+            -- when CLEANUP_S =>
+            --     if opcode = oRTI and waitRun = '1' then
+            --         fsm_inst_cycle_n <= WAITS_S;
+            --     else
+            --         fsm_inst_cycle_n <= INSTFETCH1_S;
+            --     end if;
 
             ----------------------------------------------------------------
             -- This is set when the DEBUG.Stopped is set and the next cycle

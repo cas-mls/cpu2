@@ -168,10 +168,8 @@ begin
                     MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
                     JumpDisablePipline <= '0';
-                -- when ADDRESS_S    =>
-                --     MEM_ENA <= '1';
-                --     MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal));
-                when DECODE_S     =>
+
+                    when DECODE_S     =>
 
                     -- Maintain Flip-Flop (Memory) protions of the instruction.
                     -- This removes the timing violations and make the processor faster.
@@ -201,7 +199,6 @@ begin
                             JumpDisablePipline <= '1';
                         else -- ignore all Jump operations.
                             MEM_ENA <= '1';
-                            -- MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
                             varLocalProgCounter := ProgCounterLocal + 1;
                             JumpDisablePipline <= '0';
                         end if;

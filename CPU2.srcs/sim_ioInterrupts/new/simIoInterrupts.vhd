@@ -228,8 +228,6 @@ begin
             IOStatus <= X"00000010";
         elsif ioaddr = X"05" and IOWena = '1' then
             interrupt(3) <= IOWdata(0);
-        else
-            IOStatus <= X"00000000";
         end if;
     end loop;
 

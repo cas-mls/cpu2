@@ -61,7 +61,8 @@ package Utilities is
         JMPFETCH1_S,    -- State 5
         JMPFETCH2_S,    -- State 6
         JUMP_S,         -- State 7
-        DONE_S          -- State 8
+        JUMP2_S,        -- State 8
+        DONE_S          -- State 9
     );
 
     -- Program Counter
@@ -78,6 +79,7 @@ package Utilities is
     type REG_TYPE_REC is record
         Value       : std_logic_vector(31 downto 0);
         OpCode      : OPCODETYPE;   -- Instruction OpCode
+        MemOp       : MEMTYPE;     -- Memory OpCode
         Flag        : STD_LOGIC;    -- Instruction Flag
         Countdown   : integer range 0 to 7;      -- Countdown Timer.
     end record;

@@ -12,15 +12,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="9,449.600 ns"></ZoomStartTime>
-      <ZoomEndTime time="9,504.101 ns"></ZoomEndTime>
-      <Cursor1Time time="9,495.000 ns"></Cursor1Time>
+      <ZoomStartTime time="3,988.333 ns"></ZoomStartTime>
+      <ZoomEndTime time="4,100.334 ns"></ZoomEndTime>
+      <Cursor1Time time="4,199.933 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="211"></NameColumnWidth>
+      <NameColumnWidth column_width="196"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="43" />
+   <WVObjectSize size="54" />
    <wvobject fp_name="/SimCPU_Interrupt/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -120,7 +120,6 @@
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.CycleCount" type="array">
          <obj_property name="ElementShortName">.CycleCount[63:0]</obj_property>
          <obj_property name="ObjectShortName">.CycleCount[63:0]</obj_property>
-         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.ProgCounter" type="array">
          <obj_property name="ElementShortName">.ProgCounter[11:0]</obj_property>
@@ -134,6 +133,7 @@
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.Instruction" type="array">
          <obj_property name="ElementShortName">.Instruction[31:0]</obj_property>
          <obj_property name="ObjectShortName">.Instruction[31:0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU_Interrupt/DebugOut.Interrupt" type="array">
          <obj_property name="ElementShortName">.Interrupt[31:0]</obj_property>
@@ -239,5 +239,49 @@
    <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/MEM_DOUTA" type="array">
       <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
       <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/ioAddr" type="array">
+      <obj_property name="ElementShortName">ioAddr[7:0]</obj_property>
+      <obj_property name="ObjectShortName">ioAddr[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/IORdata" type="array">
+      <obj_property name="ElementShortName">IORdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IORdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/IORena" type="logic">
+      <obj_property name="ElementShortName">IORena</obj_property>
+      <obj_property name="ObjectShortName">IORena</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/IOWdata" type="array">
+      <obj_property name="ElementShortName">IOWdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IOWdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/IOWena" type="logic">
+      <obj_property name="ElementShortName">IOWena</obj_property>
+      <obj_property name="ObjectShortName">IOWena</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffopcode" type="array">
+      <obj_property name="ElementShortName">ffopcode[4:0]</obj_property>
+      <obj_property name="ObjectShortName">ffopcode[4:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffflag" type="logic">
+      <obj_property name="ElementShortName">ffflag</obj_property>
+      <obj_property name="ObjectShortName">ffflag</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffmemop" type="array">
+      <obj_property name="ElementShortName">ffmemop[1:0]</obj_property>
+      <obj_property name="ObjectShortName">ffmemop[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffiregop1" type="other">
+      <obj_property name="ElementShortName">ffiregop1</obj_property>
+      <obj_property name="ObjectShortName">ffiregop1</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffiregop2" type="other">
+      <obj_property name="ElementShortName">ffiregop2</obj_property>
+      <obj_property name="ObjectShortName">ffiregop2</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU_Interrupt/cpuCUT/alu_entity/ffimmop" type="array">
+      <obj_property name="ElementShortName">ffimmop[15:0]</obj_property>
+      <obj_property name="ObjectShortName">ffimmop[15:0]</obj_property>
    </wvobject>
 </wave_config>

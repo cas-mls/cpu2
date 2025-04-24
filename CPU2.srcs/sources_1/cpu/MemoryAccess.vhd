@@ -146,6 +146,24 @@ begin
     memoryAccess_proc : process (SYS_CLK)
     begin
         if rising_edge (SYS_CLK) then
+
+            -- Check for any additional processing after the execute state.
+            -- This will run concurrent with the next instruction fetch.
+            FOR reg IN cpuRegs'RANGE LOOP
+                IF cpuRegs(reg).OpCode = oRWIO
+                    and cpuRegs(reg).Flag = '0'
+                THEN
+                    if cpuRegs(reg).MemOp = ABSOLUTE 
+                        or cpuRegs(reg).MemOp = INDEX
+                    then
+                        MEM_ENB <= '1';
+                        MEM_WEB <= "1";
+                        MEM_DINB <= IOR_DATA;
+                    end if;
+                END IF;
+            END LOOP;
+
+
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
                     MEM_ENB <= '0';
@@ -157,86 +175,88 @@ begin
                     MEM_WEB <= "0";
                 when DECODE_S =>
 
-                    -- Maintain Flip-Flop (Memory) protions of the instruction.
-                    -- This removes the timing violations and make the processor faster.
-                    -- Might remove the combinatorial logic which should not be used after this cycle.
-                    ffopcode <= opcode;
-                    ffmemop <= memop;
-                    ffflag <= flag;
-                    ffiregop1 <= iregop1;
-                    ffiregop2 <= iregop2;
-                    ffimmop <= immop;
-                    -- Save the values of the Register Data.  Again this ifor timing operations.
-                    ireg1value <= cpuRegs(iregop1).Value;
-                    ireg2value <= cpuRegs(iregop2).Value;
+                    if AluDecodeDone = '1' then
+                        -- Maintain Flip-Flop (Memory) protions of the instruction.
+                        -- This removes the timing violations and make the processor faster.
+                        -- Might remove the combinatorial logic which should not be used after this cycle.
+                        ffopcode <= opcode;
+                        ffmemop <= memop;
+                        ffflag <= flag;
+                        ffiregop1 <= iregop1;
+                        ffiregop2 <= iregop2;
+                        ffimmop <= immop;
+                        -- Save the values of the Register Data.  Again this ifor timing operations.
+                        ireg1value <= cpuRegs(iregop1).Value;
+                        ireg2value <= cpuRegs(iregop2).Value;
 
-                    case memop is
-                        when REGREG =>
-                            case opcode is
-                                when oJSR =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "1";
-                                    MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
-                                    MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
-                                when oRTN =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "0";
-                                    MEM_ADDRB <= std_logic_vector(to_unsigned(
-                                                 to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
-                                when oPUSHPOP =>
-                                    if flag = '0' then -- Push
+                        case memop is
+                            when REGREG =>
+                                case opcode is
+                                    when oJSR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
-                                        MEM_DINB <= cpuRegs(iregop2).Value;
-                                    else -- Pop
+                                        MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
+                                    when oRTN =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(
-                                                     to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
-                                    end if;
-                                when oRTI =>
-                                    MEM_ENB <= '1';
-                                    MEM_ADDRB <= std_logic_vector(to_unsigned(
-                                                 to_integer(unsigned(cpuRegs(interruptSpNum).Value)) + 1, 12));
-                                when others =>
-                            end case;
-                        when IMMEDIATE =>
-                            case opcode is
-                                when oJSR =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "1";
-                                    MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
-                                    MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
-                                when oPUSHPOP =>
-                                    if flag = '0' then
+                                                    to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
+                                    when oPUSHPOP =>
+                                        if flag = '0' then -- Push
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "1";
+                                            MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
+                                            MEM_DINB <= cpuRegs(iregop2).Value;
+                                        else -- Pop
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "0";
+                                            MEM_ADDRB <= std_logic_vector(to_unsigned(
+                                                        to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
+                                        end if;
+                                    when oRTI =>
+                                        MEM_ENB <= '1';
+                                        MEM_ADDRB <= std_logic_vector(to_unsigned(
+                                                    to_integer(unsigned(cpuRegs(interruptSpNum).Value)) + 1, 12));
+                                    when others =>
+                                end case;
+                            when IMMEDIATE =>
+                                case opcode is
+                                    when oJSR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
-                                        MEM_DINB <= X"0000" & immop;
-                                    end if;
-                                when others =>
-                            end case;
-                        when ABSOLUTE =>
-                            case opcode is
-                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "0";
-                                    MEM_ADDRB <= immop(11 downto 0);
-                                when others =>
-                            end case;
+                                        MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
+                                    when oPUSHPOP =>
+                                        if flag = '0' then
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "1";
+                                            MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
+                                            MEM_DINB <= X"0000" & immop;
+                                        end if;
+                                    when others =>
+                                end case;
+                            when ABSOLUTE =>
+                                case opcode is
+                                    when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "0";
+                                        MEM_ADDRB <= immop(11 downto 0);
+                                    when others =>
+                                end case;
 
-                        when INDEX =>
-                            case opcode is
-                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
-                                    MEM_ENB <= '1';
-                                    MEM_WEB <= "0";
-                                    MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
-                                                 to_integer(unsigned(cpuRegs(iregop2).Value)), 12));
-                                when others =>
-                            end case;
-                        when others =>
-                    end case;
+                            when INDEX =>
+                                case opcode is
+                                    when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
+                                        MEM_ENB <= '1';
+                                        MEM_WEB <= "0";
+                                        MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
+                                                    to_integer(unsigned(cpuRegs(iregop2).Value)), 12));
+                                    when others =>
+                                end case;
+                            when others =>
+                        end case;
+                    end if;
 
                 when MEMFETCH1_S  =>
                     case ffmemop is
@@ -264,10 +284,7 @@ begin
                                         MEM_DINB <= ireg1value;
                                     when oRWIO =>
                                         if ffflag = '0' then
-                                            MEM_ENB <= '1';
-                                            MEM_WEB <= "1";
                                             MEM_ADDRB <= ffimmop(11 downto 0);
-                                            MEM_DINB <= IOR_DATA;
                                         end if;
                                     when others =>
                                         MEM_ENB <= '0';
@@ -283,11 +300,8 @@ begin
                                         MEM_DINB <= ireg1value;
                                     when oRWIO =>
                                         if ffflag = '0' then
-                                            MEM_ENB <= '1';
-                                            MEM_WEB <= "1";
                                             MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
                                                         to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
-                                            MEM_DINB <= IOR_DATA;
                                         end if;
                                     when others =>
                                         MEM_ENB <= '0';

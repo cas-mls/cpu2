@@ -338,7 +338,30 @@ begin
                                                 else '0';
                                 end if;
 
+                            when oRWIO =>
+                                if cpuRegs(reg).flag = '0'
+                                    and (cpuRegs(reg).memop = REGREG 
+                                    or cpuRegs(reg).memop = IMMEDIATE) 
+                                then
+                                    cpuRegs(reg).Value <= IOR_DATA;
+                                end if;
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
+
+                            when oIOST =>
+                                if cpuRegs(reg).memop = REGREG then
+                                    cpuRegs(reg).Value <= IO_STATUS;
+                                elsif ffmemop = IMMEDIATE then
+                                    cpuRegs(reg).Value <= IO_STATUS;
+                                end if;
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
+
+                            -- when oRTI =>
+
                             when others =>
+                                cpuRegs(reg).OpCode     <= oNOP;
+                                cpuRegs(reg).Countdown  <= 0;
 
                         end case;
                     end if;
@@ -369,6 +392,7 @@ begin
                         value       => (others => '0'),
                         opcode      => oNOP,
                         flag        => '0',
+                        memop       => REGREG,
                         countdown   => 0 ));
                     statusWord      <= (others => '0');
                     AluDecodeDone   <= '1';
@@ -468,6 +492,7 @@ begin
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
                             cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oSUB =>
@@ -488,6 +513,7 @@ begin
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
                             cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oMul =>
@@ -500,6 +526,7 @@ begin
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
                             cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 6;
 
                         when oDiv =>
@@ -520,6 +547,7 @@ begin
                             end if;
                             cpuRegs(ffiregop1).Flag <= ffflag;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
 
                         when oAND =>
                             if ffflag = '0' then
@@ -553,15 +581,6 @@ begin
                             cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
                                 to_integer(unsigned(ireg1value)) - 1, 32));
 
-                        when oRWIO =>
-                            if ffflag = '0' then -- Read from IO
-                                if ffmemop = REGREG or ffmemop = IMMEDIATE then
-                                    cpuRegs(ffiregop1).Value <= IOR_DATA;
-                                end if;
-                            else
-                                null;
-                            end if;
-
                         when oPUSHPOP =>
                             case ffmemop is
                                 when REGREG =>
@@ -586,13 +605,31 @@ begin
                                 cpuRegs(interruptSpNum).Value <= std_logic_vector(to_unsigned(
                                                             interruptSpAddrValue + 2, 32));
                             end if;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            cpuRegs(ffiregop1).Countdown <= 1;
+
+                        when oRWIO =>
+                            if ffflag = '0' 
+                             and (ffmemop = ABSOLUTE or ffmemop = INDEX)
+                            then
+                                cpuRegs(0).OpCode <= ffopcode;
+                                cpuRegs(0).Flag <= ffflag;
+                                cpuRegs(0).MemOp <= ffmemop;
+                                cpuRegs(0).Countdown <= 1;
+                            else
+                                cpuRegs(ffiregop1).OpCode <= ffopcode;
+                                cpuRegs(ffiregop1).Flag <= ffflag;
+                                cpuRegs(ffiregop1).MemOp <= ffmemop;
+                                cpuRegs(ffiregop1).Countdown <= 1;
+                            end if;
 
                         when  oIOST =>
-                            if ffmemop = REGREG then
-                                cpuRegs(ffiregop1).Value <= IO_STATUS;
-                            elsif ffmemop = IMMEDIATE then
-                                cpuRegs(ffiregop1).Value <= IO_STATUS;
-                            end if;
+                            cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oRTN =>
                             if ffmemop = REGREG then
