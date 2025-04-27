@@ -357,12 +357,12 @@ begin
                                 cpuRegs(reg).OpCode     <= oNOP;
                                 cpuRegs(reg).Countdown  <= 0;
 
-                            -- when oRTI =>
-
-                            when others =>
+                            when oRTI =>
                                 cpuRegs(reg).OpCode     <= oNOP;
                                 cpuRegs(reg).Countdown  <= 0;
 
+                            when others =>
+ 
                         end case;
                     end if;
             end loop;
