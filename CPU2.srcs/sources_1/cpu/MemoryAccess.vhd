@@ -206,13 +206,13 @@ begin
                                         if flag = '0' then -- Push
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "1";
-                                            MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
-                                            MEM_DINB <= cpuRegs(iregop2).Value;
+                                            MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
+                                            MEM_DINB <= cpuRegs(iregop1).Value;
                                         else -- Pop
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "0";
                                             MEM_ADDRB <= std_logic_vector(to_unsigned(
-                                                        to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
+                                                        to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12));
                                         end if;
                                     when oRTI =>
                                         MEM_ENB <= '1';
@@ -231,7 +231,7 @@ begin
                                         if flag = '0' then
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "1";
-                                            MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
+                                            MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                             MEM_DINB <= X"0000" & immop;
                                         end if;
                                     when others =>

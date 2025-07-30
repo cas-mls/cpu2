@@ -156,8 +156,8 @@
 
     ; Stack Operations
     push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
-    push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    push r{r1: u4}, #{imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    push r{r2: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
+    push r{r2: u4}, #{imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
     pop r{r1: u4}, r{r2: u4}                        => 18`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
 
     ; Interrupt

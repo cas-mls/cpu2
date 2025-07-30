@@ -657,14 +657,14 @@ stateDiagram
 | `NOOP`                                                       | `00000` | NA                | NA                                                           | NA                                                           | NA                                      | NA                                   |
 | `ld` (Load)                                                  | `00010` | High Bits (16-31) | $R2 → R1$                                                    | $imm → R1$                                                   | $mem[imm] → R1$                         | $mem[r2+imm] → R1$                   |
 | `st` (Store)                                                 | `00100` | NA                | NA                                                           | NA                                                           | $R1 → mem[imm]$                         | $R1 → mem[r2+imm]$                   |
-| `jmp` (Jump)                                                 | `00110` | NA                | $R1 → PC$                                                    | $imm → PC$                                                   | $mem[imm] → PC$                         | $mem[r2 + imm] → PC$                 |
+| `jmp` (Jump)                                                 | `00110` | NA                | $R1 → PC$                                                    | $imm → PC$                                                   | $mem[imm] → PC$                         | $mem[r2 + mem] → PC$                 |
 | `jsr` (Jump Subroutine)[^1]                                  | `01000` | NA                | $PC+1 → mem[R1]\\R1-1 → R1\\R2 → PC$                         | $PC+1 → mem[R1]\\R1-1 → R1\\imm → PC$                        | NA                                      | NA                                   |
 | `rtn` (Return)[^1]                                           | `01010` | NA                | $R1+1 → R1\\mem(R1) → PC$                                    | NA                                                           | NA                                      | NA                                   |
 | `be`<br />`bne` (not flag)[^2] <br />`bz` (R2=0)<br />`bnz` (R2=0, Flag=1)[^3] | `01100` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
 | `bl`<br />`bge` (not flag)[^4] <br />`bn` (R2=0)[^5]         | `01110` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
 | `bg`<br />`ble` (not flag)[^6]<br />`bp` (R2=0)[^7]          | `10000` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
-| `push`[^1]                                                   | `10010` | 0                 | $R1 → mem(R2)\\R1-1 → R1$                                    | $imm → mem(R2)\\R2-1 → R2$                                   | NA[^8]                                  | NA[^8]                               |
-| `pop`[^1]                                                    | `10010` | 1                 | $R2+1 → R2\\mem(R2) → R1$                                    | NA                                                           | NA[^8]                                  | NA[^8]                               |
+| `push`[^1]                                                   | `10010` | 0                 | $R2 → mem(R1)\\R1-1 → R1$                                    | $imm → mem(R1)\\R1-1 → R1$                                   | NA[^8]                                  | NA[^8]                               |
+| `pop`[^1]                                                    | `10010` | 1                 | $R1+1 → R1\\mem(R1) → R2$                                    | NA                                                           | NA[^8]                                  | NA[^8]                               |
 | `wait`[^13]                                                  | `10101` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                         |                                      |
 | `timer`[^14]                                                 | `10101` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                         |                                      |
 | cancel                                                       | 10101   | 1                 | $if (R1 is Wait Register) then\\'0' → waitFlag\\if (R1 is Timer Register) then\\'0' → timerFlag$ |                                                              |                                         |                                      |
@@ -725,7 +725,7 @@ stateDiagram
 |      | 8                                                 | 9              | a                                    | b                       | c              | d     | e                    | f                   |
 | ---- | :------------------------------------------------ | -------------- | ------------------------------------ | ----------------------- | -------------- | ----- | -------------------- | :------------------ |
 | 0    |                                                   | `push r1, r2`  |                                      | `rio r1, r2`            | `rsio r1, r2`  | `rti` | `swi r2`             | `swd r1`            |
-| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r2, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`            |                     |
+| 1    | `bgt r1, r2, imm<br />bp r1, imm`                 | `push r1, imm` | `wait r1, imm<br />time r1, r2, imm` | `roi r1, imm`           | `rsoi r1, imm` |       | `swi imm`            |                     |
 | 2    | `bgt r1, r2, mem[addr]<br />bp r1, mem[addr]`     |                |                                      | `roi r1, mem[addr]`     |                |       | `swi mem[addr]`      |                     |
 | 3    |                                                   |                |                                      | `roi r1, r2, mem[addr]` |                |       |                      |                     |
 | 4    |                                                   | `pop r1, r2`   | `CANC r1`                            | `wio r1, r2`            | `wsio r1, r2`  |       | `iena r1, r2`        | `swm r1, r2`        |
@@ -828,20 +828,20 @@ Branches compare the first register with the second register.  If the second reg
 
 ### Stack Operations
 
-Stack operations require a stack pointer register for R2.  This is a normal register that can be loaded, stored, pushed, etc.  Multiple stacks can exist using different registers.  By convention, I use register 15 for stack pointer.  Because the stack pointer is regular register, the register can be used to peek at the top of the stack, etc.   The following instructions use the stack: jsr, rtn, push, pop, swi, and hardware interrupts.
+Stack operations require a stack pointer register for R1.  This is a normal register that can be loaded, stored, pushed, etc.  Multiple stacks can exist using different registers.  By convention, I use register 15 for stack pointer.  Because the stack pointer is regular register, the register can be used to peek at the top of the stack, etc.   The following instructions use the stack: jsr, rtn, push, pop, swi, and hardware interrupts.
 
 #### Push
 
 | Assembly     | Addressing        | Code | Clock Cycles | Operation                      |
 | ------------ | ----------------- | ---- | ------------ | ------------------------------ |
-| push r1, r2  | Register/Register | 90   | 7            | R1 → mem(R2), <br />R2-1 → R2  |
-| push r2, Imm | Immediate         | 91   | 7            | Imm → mem(R2), <br />R2-1 → R2 |
+| push r1, r2  | Register/Register | 90   | 7            | R2 → mem(R1), <br />R1-1 → R1  |
+| push r1, Imm | Immediate         | 91   | 7            | Imm → mem(R1), <br />R1-1 → R1 |
 
 #### Pop
 
 | Assembly   | Addressing        | Code | Clock Cycles | Operation                     |
 | ---------- | ----------------- | ---- | ------------ | ----------------------------- |
-| pop r1, r2 | Register/Register | 94   | 7            | R2+1 → R2, <br />mem(R2) → R1 |
+| pop r1, r2 | Register/Register | 94   | 7            | R1+1 → R1, <br />mem(R1) → R2 |
 
 ### Input 
 
@@ -1200,6 +1200,54 @@ Read/Write Status word is formatted with the following fields:
 | RVALID  | Slave        | Read valid. This signal indicates that the channel is signaling the required read data. See Channel handshake signals on page  A3-40. | Yes  |
 | RREADY  | Master       | Read ready. This signal indicates that the master can accept the read data and response information.  See Channel handshake signals on page A3-40. | Yes  |
 
+
+
+<img src="https://svg.wavedrom.com/{signal: [
+  [ 'Read Master',	
+	{name: 'ACLK m->s', 	wave: '0P...........|...h'},
+	{name: 'ARESETN m->s', 	wave: '0..1.........|....'},
+	{name: 'ARADDR m->s',	wave: 'x......3....4|....',
+				node: '............a.....',
+				data: ['A0x1001','A0x0000']},
+	{name: 'ARVALID m->s', 	wave: '0......1....0|....'},
+	{name: 'RREADY m->s', 	wave: '0......1.....|.0..'},   
+	],
+   ['Read Slave',
+    	{name: 'ARREADY s->m', 	wave: '0..........10|....'},
+    	{name: 'RDATA s->m', 	wave: 'x............|3...', data: ['D0x1234'],
+     						node: '..............b...'},
+    	{name: 'RVALID s->m', 	wave: '0............|10..'},
+    	{name: 'RRESP s->m', 	wave: 'x............|5...', data: ['R0b01'],},
+    {}
+  ]],
+head: {text: 'AXI-4 Lite Read'},
+}"/>
+
+<img src="https://svg.wavedrom.com/{signal: [
+  [ 'Write Master',
+    {name: 'ACLK m->s', 	wave: '0P...........|...h'},
+    {name: 'ARESETN m->s', 	wave: '0..1.........|....'},
+    {name: 'AWADDR m->s',	wave: 'x......3....3|....', 
+     						data: ['A0x1001','A0x0000']},
+    {name: 'AWVALID m->s', 	wave: '0......1....0|....'},
+    {name: 'WDATA m->s', 	wave: 'x......4....4|....', 
+     						data: ['D0x1234','D0x0000'],},
+    {name: 'WSTRB m->s', 	wave: 'x......6....6|....', 
+     						data: ['S0b1111', 'S0b0000'],},
+    {name: 'WVALID m->s', 	wave: '0......1....0|....'},
+    {name: 'BREADY m->s', 	wave: '0......1.....|.0..'},
+   ],
+['Write Slave',
+    {name: 'AWREADY s->m', 	wave: '0..........10|....'},
+    {name: 'WREADY s->m', 	wave: '0..........10|....'},
+    {name: 'BVALID s->m', 	wave: '0............|10..'},
+    {name: 'BRESP s->m', 	wave: 'x............|5...', data: ['R0b11'],}, 
+]],
+head: {text: 'AXI-4 Lite Write'},
+}"/>
+
+ 
+
 ## Debug
 
 Links: 
@@ -1322,6 +1370,32 @@ packet-beta
 * Data In - Data Input Array (DAT_I).  This is the 32-bit data to be read from the Computer.
 * Data Out - Data Output Array (DAT_O).  This is the 32-bit data to be transmitted to the Computer. 
 * Response - Wishbone ACK_I / Echo the Command.  TODO: This should be extended to handle Error Ouput (ERR_I) and Retry (RTY_I).
+
+## Memory Legacy
+
+Cases
+
+1. Address set and memory legacy time get data.
+
+   <img src="https://svg.wavedrom.com/{signal: [
+     {name: 'clk', wave: 'P......'},
+     {name: 'MEM_ENA', wave: 'x1.....', data: ['rti']},
+     {name: 'MEM_ADDRA[11:0]', wave: 'x2...4.', data: ['002','003']},
+     {name: 'MEM_DOUTA[31:0]', wave: 'x..2...', data: ['14', '21']},
+     {name: 'MM_RADDR_AVAILA', wave: 'x1..0..'},
+     {name: 'MM_DOUT_RESPA', wave: 'x01.01.'},
+     {name: 'MEM_REGCEA', wave: 'x01.0..'},
+     {name: 'LAGENCY_COUNTER', wave: '2.32..3', data: ['1', '0', '1','0']},
+     {},
+   ]}"/>
+
+   
+
+2. Address set and wait after legacy time to get the data out.
+
+3. Stringing multiple addresses and receiving the data in sequence.
+
+4. Stringing 2 addresses and waiting for 1 cycle to get the data.
 
 ## GCC Backend Processing
 

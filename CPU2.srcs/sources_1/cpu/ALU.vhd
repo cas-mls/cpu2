@@ -311,7 +311,7 @@ begin
                                 else
                                     cpuRegs(reg).Value      <= UProduct(31 downto 0);
                                     statusWord(OverUnderflow) <= 
-                                            '0' when signed(SProduct(63 downto 34)) = 0 
+                                            '0' when signed(UProduct(63 downto 34)) = 0 
                                                 else '1';
                                 end if;
                             when oAdd =>
@@ -419,6 +419,12 @@ begin
                     ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
 
+                    if cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).OpCode = oNOP
+                    then
+                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).memop <= ffmemop;
+                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).flag <= ffflag;
+                    end if;
+
                     if cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).OpCode = oNOP 
                         and cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).OpCode = oNOP
                     then -- Execute Instruction
@@ -429,6 +435,13 @@ begin
 
 
                 when EXECUTE_S =>
+
+                    -- Default the current register to a NOP.
+                    -- Later this will be set to the instruction.
+                    -- cpuRegs(ffiregop1).flag <= ffflag;
+                    -- cpuRegs(ffiregop1).memop <= ffmemop;
+                    
+
                     case ffmemop is
                         when REGREG =>
                             a_reg_u := resize(unsigned(ireg1value),33);
@@ -491,8 +504,8 @@ begin
                                 RValU <= resize(results_reg_u,33);
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oSUB =>
@@ -512,8 +525,8 @@ begin
 
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oMul =>
@@ -525,8 +538,8 @@ begin
                                 UMultRegB <= std_logic_vector(b_reg_u(31 downto 0));
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 6;
 
                         when oDiv =>
@@ -545,9 +558,9 @@ begin
                                 UUsrRegNum <= std_logic_vector(to_unsigned(ffiregop1,4));
                                 -- XXX: If remainder is used then need to set the remainder register to oDiv.
                             end if;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
 
                         when oAND =>
                             if ffflag = '0' then
@@ -585,17 +598,17 @@ begin
                             case ffmemop is
                                 when REGREG =>
                                     if ffflag = '0' then -- Push
-                                        cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                            to_integer(unsigned(ireg1value)) - 1, 32));
+                                        cpuRegs(ffiregop2).Value <= std_logic_vector(to_unsigned(
+                                                            to_integer(unsigned(ireg2value)) - 1, 32));
                                     else -- Pop
-                                        cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                            to_integer(unsigned(ireg1value)) + 1, 32));
-                                        cpuRegs(ffiregop2).Value <= MEM_ARG;
+                                        cpuRegs(ffiregop2).Value <= std_logic_vector(to_unsigned(
+                                                            to_integer(unsigned(ireg2value)) + 1, 32));
+                                        cpuRegs(ffiregop1).Value <= MEM_ARG;
                                     end if;
                                 when IMMEDIATE =>
                                     if ffflag = '0' then
-                                        cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                            to_integer(unsigned(ireg1value)) - 1, 32));
+                                        cpuRegs(ffiregop2).Value <= std_logic_vector(to_unsigned(
+                                                            to_integer(unsigned(ireg2value)) - 1, 32));
                                     end if;
                                 when others =>
                             end case;
@@ -606,8 +619,8 @@ begin
                                                             interruptSpAddrValue + 2, 32));
                             end if;
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oRWIO =>
@@ -615,20 +628,20 @@ begin
                              and (ffmemop = ABSOLUTE or ffmemop = INDEX)
                             then
                                 cpuRegs(0).OpCode <= ffopcode;
-                                cpuRegs(0).Flag <= ffflag;
-                                cpuRegs(0).MemOp <= ffmemop;
+                                -- cpuRegs(0).Flag <= ffflag;
+                                -- cpuRegs(0).MemOp <= ffmemop;
                                 cpuRegs(0).Countdown <= 1;
                             else
                                 cpuRegs(ffiregop1).OpCode <= ffopcode;
-                                cpuRegs(ffiregop1).Flag <= ffflag;
-                                cpuRegs(ffiregop1).MemOp <= ffmemop;
+                                -- cpuRegs(ffiregop1).Flag <= ffflag;
+                                -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                                 cpuRegs(ffiregop1).Countdown <= 1;
                             end if;
 
                         when  oIOST =>
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
-                            cpuRegs(ffiregop1).Flag <= ffflag;
-                            cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            -- cpuRegs(ffiregop1).MemOp <= ffmemop;
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oRTN =>

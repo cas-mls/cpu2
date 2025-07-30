@@ -50,16 +50,16 @@ STACKTESTS:
     ld r2, #0x54321
     ld r3, #0x55555
     ld r4, #0x1234
-    push r SP1, r2
+    push r2, r SP1
     push r SP1, #0x1234
-    pop r SP1, r5
+    pop r5, r SP1
     bne r4, r5, STACKERR
     add r tr, #1
-    push r SP1, r3
-    pop r SP1, r5
+    push r3, r SP1
+    pop r5, r SP1
     bne r3, r5, STACKERR
     add r tr, #1
-    pop r SP1, r5
+    pop r5, r SP1
     bne r2, r5, STACKERR
     add r tr, #1
     jmp STACKCOMPLETE
