@@ -195,13 +195,13 @@ begin
                                     when oJSR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
-                                        MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
+                                        MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                         MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
                                     when oRTN =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(
-                                                    to_integer(unsigned(cpuRegs(iregop1).Value)) + 1, 12));
+                                                    to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12));
                                     when oPUSHPOP =>
                                         if flag = '0' then -- Push
                                             MEM_ENB <= '1';
@@ -225,7 +225,7 @@ begin
                                     when oJSR =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "1";
-                                        MEM_ADDRB <= cpuRegs(iregop1).Value(11 downto 0);
+                                        MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                         MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
                                     when oPUSHPOP =>
                                         if flag = '0' then

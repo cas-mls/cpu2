@@ -852,7 +852,7 @@ JMPCOMPLETE:
 
     ld r tr, #0x50
     ld r1, SUB1
-    jsr r15, r1
+    jsr r1, r15
     add r tr, #1
     jsr r15, SUB1
     add r tr, #1

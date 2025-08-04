@@ -284,6 +284,7 @@ begin
         variable results_ov     : integer;
         variable divideZero     : std_logic;
         variable divRegNum      : integer;
+        variable localStatusWord : STATUS_WORD_TYPE := (others => '0');
 
     begin
         if rising_edge (SYS_CLK) then
@@ -295,76 +296,78 @@ begin
             -- Check each cycle for changes in the long operations and update the registers.
             for reg in cpuRegs'range loop
                     -- Countdown to 1 instead of zero, the last cycle is the result.
-                    if cpuRegs(reg).Countdown > 0 then
-                        cpuRegs(reg).Countdown <= cpuRegs(reg).Countdown - 1;
-                    else
-                        case  cpuRegs(reg).OpCode is
-                            when oMul =>
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
-                                if cpuRegs(reg).Flag = '0' then
-                                    cpuRegs(reg).Value      <= SProduct(31 downto 0);
-                                    statusWord(OverUnderflow) <= 
-                                            '0' when signed(SProduct(63 downto 32)) = 0 
-                                                    or signed(SProduct(63 downto 32)) = -1 
-                                                else '1';
-                                else
-                                    cpuRegs(reg).Value      <= UProduct(31 downto 0);
-                                    statusWord(OverUnderflow) <= 
-                                            '0' when signed(UProduct(63 downto 34)) = 0 
-                                                else '1';
-                                end if;
-                            when oAdd =>
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
-                                if cpuRegs(reg).Flag = '0' then
-                                    statusWord(OverUnderflow) <=  
-                                                (AValS(31) xnor BValS(31)) 
-                                            and (AValS(31) xor RValS(31));
-                                else
-                                    statusWord(OverUnderflow) <= RValU(32);
-                                end if;
+                    -- if cpuRegs(reg).OpCode /= oNOP then
+                        if cpuRegs(reg).Countdown > 0 then
+                            cpuRegs(reg).Countdown <= cpuRegs(reg).Countdown - 1;
+                        else
+                            case  cpuRegs(reg).OpCode is
+                                when oMul =>
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
+                                    if cpuRegs(reg).Flag = '0' then
+                                        cpuRegs(reg).Value      <= SProduct(31 downto 0);
+                                        -- localStatusWord(OverUnderflow) := 
+                                        --         '0' when signed(SProduct(63 downto 32)) = 0 
+                                        --                 or signed(SProduct(63 downto 32)) = -1 
+                                        --             else '1';
+                                    else
+                                        cpuRegs(reg).Value      <= UProduct(31 downto 0);
+                                        -- localStatusWord(OverUnderflow) := 
+                                        --         '0' when signed(UProduct(63 downto 34)) = 0 
+                                        --             else '1';
+                                    end if;
+                                when oAdd =>
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
+                                    if cpuRegs(reg).Flag = '0' then
+                                        -- localStatusWord(OverUnderflow) :=  
+                                        --             (AValS(31) xnor BValS(31)) 
+                                        --         and (AValS(31) xor RValS(31));
+                                    else
+                                        -- localStatusWord(OverUnderflow) := RValU(32);
+                                    end if;
 
-                            when oSub =>
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
-                                if cpuRegs(reg).Flag = '0' then
-                                    statusWord(OverUnderflow) <= 
-                                            '1' when AValS < 0 and  BValS > 0 and RValS < AValS
-                                                else '0';
-                                else
-                                    statusWord(OverUnderflow) <=  
-                                            '1' when BValU > AValU
-                                                else '0';
-                                end if;
+                                when oSub =>
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
+                                    if cpuRegs(reg).Flag = '0' then
+                                        -- localStatusWord(OverUnderflow) := 
+                                        --         '1' when AValS < 0 and  BValS > 0 and RValS < AValS
+                                        --             else '0';
+                                    else
+                                        -- localStatusWord(OverUnderflow) :=  
+                                        --         '1' when BValU > AValU
+                                        --             else '0';
+                                    end if;
 
-                            when oRWIO =>
-                                if cpuRegs(reg).flag = '0'
-                                    and (cpuRegs(reg).memop = REGREG 
-                                    or cpuRegs(reg).memop = IMMEDIATE) 
-                                then
-                                    cpuRegs(reg).Value <= IOR_DATA;
-                                end if;
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
+                                when oRWIO =>
+                                    if cpuRegs(reg).flag = '0'
+                                        and (cpuRegs(reg).memop = REGREG 
+                                        or cpuRegs(reg).memop = IMMEDIATE) 
+                                    then
+                                        cpuRegs(reg).Value <= IOR_DATA;
+                                    end if;
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
 
-                            when oIOST =>
-                                if cpuRegs(reg).memop = REGREG then
-                                    cpuRegs(reg).Value <= IO_STATUS;
-                                elsif ffmemop = IMMEDIATE then
-                                    cpuRegs(reg).Value <= IO_STATUS;
-                                end if;
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
+                                when oIOST =>
+                                    if cpuRegs(reg).memop = REGREG then
+                                        cpuRegs(reg).Value <= IO_STATUS;
+                                    elsif cpuRegs(reg).memop = IMMEDIATE then
+                                        cpuRegs(reg).Value <= IO_STATUS;
+                                    end if;
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
 
-                            when oRTI =>
-                                cpuRegs(reg).OpCode     <= oNOP;
-                                cpuRegs(reg).Countdown  <= 0;
+                                when oRTI =>
+                                    cpuRegs(reg).OpCode     <= oNOP;
+                                    cpuRegs(reg).Countdown  <= 0;
 
-                            when others =>
- 
-                        end case;
-                    end if;
+                                when others =>
+    
+                            end case;
+                        end if;
+                    -- end if;
             end loop;
 
             if SQuotRemValid = '1' then
@@ -385,6 +388,8 @@ begin
                     cpuRegs(divRegNum).Value <= UQuotRem(63 downto 32); -- Quotent
                 end if;
             end if;
+
+            -- statusWord <= localStatusWord;
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
@@ -421,8 +426,8 @@ begin
 
                     if cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).OpCode = oNOP
                     then
-                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).memop <= ffmemop;
-                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).flag <= ffflag;
+                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).memop <= INSTRUCTION(25 downto 24);
+                        cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).flag <= INSTRUCTION(26);
                     end if;
 
                     if cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).OpCode = oNOP 
@@ -591,8 +596,8 @@ begin
                             end if;
 
                         when oJSR =>
-                            cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                to_integer(unsigned(ireg1value)) - 1, 32));
+                            cpuRegs(ffiregop2).Value <= std_logic_vector(to_unsigned(
+                                to_integer(unsigned(ireg2value)) - 1, 32));
 
                         when oPUSHPOP =>
                             case ffmemop is
@@ -624,19 +629,19 @@ begin
                             cpuRegs(ffiregop1).Countdown <= 1;
 
                         when oRWIO =>
-                            if ffflag = '0' 
-                             and (ffmemop = ABSOLUTE or ffmemop = INDEX)
-                            then
+                            -- if ffflag = '0' 
+                            --  and (ffmemop = ABSOLUTE or ffmemop = INDEX)
+                            -- then
                                 cpuRegs(0).OpCode <= ffopcode;
                                 -- cpuRegs(0).Flag <= ffflag;
                                 -- cpuRegs(0).MemOp <= ffmemop;
                                 cpuRegs(0).Countdown <= 1;
-                            else
-                                cpuRegs(ffiregop1).OpCode <= ffopcode;
-                                -- cpuRegs(ffiregop1).Flag <= ffflag;
-                                -- cpuRegs(ffiregop1).MemOp <= ffmemop;
-                                cpuRegs(ffiregop1).Countdown <= 1;
-                            end if;
+                            -- else
+                            --     cpuRegs(ffiregop1).OpCode <= ffopcode;
+                            --     -- cpuRegs(ffiregop1).Flag <= ffflag;
+                            --     -- cpuRegs(ffiregop1).MemOp <= ffmemop;
+                            --     cpuRegs(ffiregop1).Countdown <= 1;
+                            -- end if;
 
                         when  oIOST =>
                             cpuRegs(ffiregop1).OpCode <= ffopcode;
@@ -646,8 +651,8 @@ begin
 
                         when oRTN =>
                             if ffmemop = REGREG then
-                                cpuRegs(ffiregop1).Value <= std_logic_vector(to_unsigned(
-                                                    to_integer(unsigned(ireg1value)) + 1, 32));
+                                cpuRegs(ffiregop2).Value <= std_logic_vector(to_unsigned(
+                                                    to_integer(unsigned(ireg2value)) + 1, 32));
                             end if;
 
                         when  oSWDM =>

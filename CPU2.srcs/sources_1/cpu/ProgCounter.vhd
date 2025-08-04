@@ -214,16 +214,16 @@ begin
                             when oJMP | oJSR =>
                                 case ffmemop is
                                     when REGREG     =>
-                                        varLocalProgCounter := unsigned(ireg2value(ProgCounterLocal'Range)); 
+                                        varLocalProgCounter := unsigned(ireg1value(ProgCounterLocal'Range)); 
                                     when IMMEDIATE  =>
                                         varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
                                     when ABSOLUTE | INDEX =>
-                                    varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                        varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when others     =>
                                 end case;
 
                             when oRTN | oRTI =>
-                            varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
     
                             when oBE =>
                                 case ffmemop is
