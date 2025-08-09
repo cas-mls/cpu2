@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="110.001 ns"></ZoomEndTime>
-      <Cursor1Time time="0.000 ns"></Cursor1Time>
+      <ZoomStartTime time="10,173.333 ns"></ZoomStartTime>
+      <ZoomEndTime time="10,235.334 ns"></ZoomEndTime>
+      <Cursor1Time time="10,225.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="206"></NameColumnWidth>
+      <NameColumnWidth column_width="201"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="45" />
+   <WVObjectSize size="48" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -65,6 +65,10 @@
       <obj_property name="CustomSignalColor">#FF00FF</obj_property>
       <obj_property name="UseCustomSignalColor">true</obj_property>
    </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[15].Value" type="array">
+      <obj_property name="ElementShortName">.Value[31:0]</obj_property>
+      <obj_property name="ObjectShortName">.Value[31:0]</obj_property>
+   </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs" type="array">
       <obj_property name="ElementShortName">cpuRegs[15:0]</obj_property>
       <obj_property name="ObjectShortName">cpuRegs[15:0]</obj_property>
@@ -72,10 +76,12 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[15]" type="array">
          <obj_property name="ElementShortName">[15]</obj_property>
          <obj_property name="ObjectShortName">[15]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[14]" type="array">
          <obj_property name="ElementShortName">[14]</obj_property>
          <obj_property name="ObjectShortName">[14]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[13]" type="array">
          <obj_property name="ElementShortName">[13]</obj_property>
@@ -120,7 +126,6 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[3]" type="array">
          <obj_property name="ElementShortName">[3]</obj_property>
          <obj_property name="ObjectShortName">[3]</obj_property>
-         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[2]" type="array">
          <obj_property name="ElementShortName">[2]</obj_property>
@@ -968,5 +973,13 @@
    <wvobject fp_name="/SimCPU/cpuCUT/StepWait" type="logic">
       <obj_property name="ElementShortName">StepWait</obj_property>
       <obj_property name="ObjectShortName">StepWait</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/delayReg1" type="array">
+      <obj_property name="ElementShortName">delayReg1[31:0]</obj_property>
+      <obj_property name="ObjectShortName">delayReg1[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/delayReg2" type="array">
+      <obj_property name="ElementShortName">delayReg2[31:0]</obj_property>
+      <obj_property name="ObjectShortName">delayReg2[31:0]</obj_property>
    </wvobject>
 </wave_config>
