@@ -45,7 +45,7 @@ package Utilities is
         MEMFETCH1_S,    -- State 5
         MEMFETCH2_S,    -- State 6
         EXECUTE_S,      -- State 7
-        CLEANUP_S,      -- State 8
+        DUMMY2_S,       -- State 8
         WAITS_S,        -- State 9
         DEBUGSTABLEIZE_S,-- State 10
         DEBUGWAIT_S     -- State 11
