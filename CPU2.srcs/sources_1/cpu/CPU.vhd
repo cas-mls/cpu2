@@ -145,27 +145,12 @@ entity CPU is
         MEM_ADDRB : out std_logic_vector(11 downto 0) := X"000";
         MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
         MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
-        DEBUGIN     : in DEBUGINTYPE := (
-            DebugMode => '0',
-            BreakPoints => (others => (others => '0')),
-            Break => '0',
-            Step => '0',
-            Continue => '0',
-            BWhenReg => 0,
-            BWhenValue => (others => '0'),
-            BWhenOp => REG_NOTHING,
-            Reset => '0',
-            UpdateValue => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            ),
-            UpdateReg => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            )
-            );
+        -- AXI Memory Interface
+        AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
+        AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC := AXI4_MEMORY_READ_IN_DEFAULTS;
+        AXI_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+        AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC := AXI4_MEMORY_WRITE_IN_DEFAULTS;
+        DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
         DEBUGOUT    : out DEBUGOUTTYPE
     );
 
@@ -186,28 +171,8 @@ architecture Behavioral of CPU is
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
             statusWord : out STATUS_WORD_TYPE;
             cpuRegs : out REG_TYPE;
-            AluDecodeDone : out std_logic;
-            DEBUGIN     : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0',
-                Step => '0',
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING,
-                Reset => '0',
-                UpdateValue => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ),
-                UpdateReg => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                )
-                )
+            AluRegisterLocked : out std_logic;
+            DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
             );
 
     end component;
@@ -227,7 +192,7 @@ architecture Behavioral of CPU is
             interruptNum : in integer range 0 to interruptNums := 0;
             ProgramCounter : in PCTYPE;
             interruptMask : in std_logic_vector(interruptNums downto 0);
-            AluDecodeDone : in std_logic;
+            AluRegisterLocked : in std_logic;
 
             MEM_ENB : out std_logic := '1';
             MEM_WEB : out std_logic_vector(0 downto 0) := "0";
@@ -249,30 +214,15 @@ architecture Behavioral of CPU is
             MEM_ENA : out std_logic := '1';
             MEM_WEA : out std_logic_vector(0 downto 0) := "0";
             MEM_ADDRA : out std_logic_vector(11 downto 0);
+
+            -- AXI Memory Interface
+            PC_Memory_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
+            PC_Memory_IN         : IN AXI4_MEMORY_READ_IN_TYPE_REC;
+
             ProgramCounter : out PCTYPE;
             JumpDisablePipline : out std_logic := '0';
-            AluDecodeDone : in std_logic;
-            DEBUGIN     : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0',
-                Step => '0',
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING,
-                Reset => '0',
-                UpdateValue => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ),
-                UpdateReg => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                )
-                )
+            AluRegisterLocked : in std_logic;
+            DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
 
         );
     end component ProgCounter;
@@ -368,27 +318,7 @@ architecture Behavioral of CPU is
             statusMask : in STD_LOGIC_VECTOR(31 downto 0);
             debugDisablePipline : out STD_LOGIC;
             DebugStart : out STD_LOGIC;
-            DEBUGIN : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0',
-                Step => '0',
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING,
-                Reset => '0',
-                UpdateValue => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ),
-                UpdateReg => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                )
-                );
+            DEBUGIN : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT : out DEBUGOUTTYPE
         );
     end component;
@@ -397,8 +327,14 @@ architecture Behavioral of CPU is
     signal fsm_inst_cycle_p : CYCLETYPE_FSM := RESET_STATE_S;
     signal fsm_inst_cycle_n : CYCLETYPE_FSM := RESET_STATE_S;
     signal JumpDisablePipline : std_logic := '0';
-    signal AluDecodeDone : std_logic := '0';
+    signal AluRegisterLocked : std_logic := '0';
 
+    -- Memory Interface
+    signal MEM_INST : std_logic_vector(31 downto 0) := X"00000000";
+    signal axi4PcMemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4PcMemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
+    signal axi4DataMemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4DataMemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
 
     -- Decode information
     signal opcode : OPCODETYPE := "00000";
@@ -417,12 +353,7 @@ architecture Behavioral of CPU is
     signal ffimmop : IMMTYPE;
 
     -- Register information
-    signal cpuRegs : REG_TYPE := (others => (
-                value => (others => '0'),
-                opcode => oNOP,
-                flag => '0',
-                memop => REGREG,
-                countdown => 0));
+    signal cpuRegs : REG_TYPE := (others => REG_DEFAULTS);
 
     -- interrupts
     signal fsm_interrupt_cycle_p : INTERRUPT_FSM := INTRWAIT_S;
@@ -447,12 +378,7 @@ architecture Behavioral of CPU is
     -- DEBUG
     signal StepWait : STD_LOGIC := '0';
     signal ProgCounterLast : PCTYPE := X"000";
-    signal RegsLast : REG_TYPE := (others => (
-        value => (others => '0'),
-        opcode => oNOP,
-        flag => '0',
-        memop => REGREG,
-        countdown => 0));
+    signal RegsLast : REG_TYPE := (others => REG_DEFAULTS);
     signal DebugDisablePipline : STD_LOGIC := '0';
     signal DebugStart : STD_LOGIC := '0';
 
@@ -476,19 +402,48 @@ architecture Behavioral of CPU is
 
 begin
 
-    opcode <= MEM_DOUTA(31 downto 27);
-    flag <= MEM_DOUTA(26);
-    memop <= MEM_DOUTA(25 downto 24);
-    regop1 <= MEM_DOUTA(23 downto 20);
-    regop2 <= MEM_DOUTA(19 downto 16);
-    immop <= MEM_DOUTA(15 downto 0);
+    -- MEM_INST <= MEM_DOUTA;
+    MEM_INST <= axi4PcMemoryReadIn.s_axi_rdata 
+        when (axi4PcMemoryReadIn.s_axi_rvalid = '1') 
+            and (axi4PcMemoryReadIn.s_axi_rid = "01")
+            and (fsm_inst_cycle_p = DECODE_S)
+        else (others => '0');
+    opcode <= MEM_INST(31 downto 27);
+    flag <= MEM_INST(26);
+    memop <= MEM_INST(25 downto 24);
+    regop1 <= MEM_INST(23 downto 20);
+    regop2 <= MEM_INST(19 downto 16);
+    immop <= MEM_INST(15 downto 0);
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
+
+    axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN;
+    -- axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN 
+    --     when fsm_inst_cycle_p = INSTFETCH1_S 
+    --         or fsm_inst_cycle_p = INSTFETCH2_S 
+    --         or fsm_inst_cycle_p = DECODE_S 
+    --         or fsm_inst_cycle_p = WAITS_S
+    --         or fsm_inst_cycle_p = DEBUGWAIT_S 
+    --     else AXI4_MEMORY_READ_IN_DEFAULTS;
+    -- axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN
+    --     when fsm_inst_cycle_p = MEMFETCH1_S 
+    --         or fsm_inst_cycle_p = MEMFETCH2_S 
+    --     else AXI4_MEMORY_READ_IN_DEFAULTS;
+    AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut;
+    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
+    --         when fsm_inst_cycle_p = EXECUTE_S
+    --             or fsm_inst_cycle_p = INSTFETCH2_S
+    --             or fsm_inst_cycle_p = INSTFETCH1_S
+    --             or fsm_inst_cycle_p = WAITS_S
+    --             -- or fsm_inst_cycle_p = DEBUGWAIT_S
+        -- -- else axi4PcMemoryReadOut
+        -- --     when fsm_inst_cycle_p = DECODE_S
+        -- else AXI4_MEMORY_READ_OUT_DEFAULTS;
 
     alu_entity : alu
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         MEM_ARG => MEM_DOUTB,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
@@ -498,14 +453,14 @@ begin
         interruptSpAddrValue => interruptSpAddrValue,
         statusWord => statusWord,
         cpuRegs => cpuRegs,
-        AluDecodeDone => AluDecodeDone,
+        AluRegisterLocked => AluRegisterLocked,
         DebugIn => DEBUGIN
     );
 
     memoryAccess_enity : MemoryAccess
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
 
         fsm_inst_cycle_p => fsm_inst_cycle_p,
@@ -517,7 +472,7 @@ begin
         interruptNum => interruptNum,
         ProgramCounter => ProgramCounter,
         interruptMask => interruptMask,
-        AluDecodeDone => AluDecodeDone,
+        AluRegisterLocked => AluRegisterLocked,
 
         MEM_ENB => MEM_ENB,
         MEM_WEB => MEM_WEB,
@@ -528,7 +483,7 @@ begin
     progCounter_enty : ProgCounter
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
 
         fsm_inst_cycle_p => fsm_inst_cycle_p,
@@ -538,16 +493,20 @@ begin
         MEM_ENA => MEM_ENA,
         MEM_WEA => MEM_WEA,
         MEM_ADDRA => MEM_ADDRA,
+
+        PC_Memory_OUT => axi4PcMemoryReadOut,
+        PC_Memory_IN => axi4PcMemoryReadIn,
+
         ProgramCounter => ProgramCounter,
         JumpDisablePipline => JumpDisablePipline,
-        AluDecodeDone => AluDecodeDone,
+        AluRegisterLocked => AluRegisterLocked,
         DebugIn => DEBUGIN
     );
 
     IoProcess_enty : IoProcess
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
         MEM_ARG => MEM_DOUTB,
 
@@ -563,7 +522,7 @@ begin
     WaitTimer_enty : WaitTimer
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
 
         fsm_inst_cycle_p => fsm_inst_cycle_p,
@@ -578,7 +537,7 @@ begin
     Interrupt_enty : Interrupt_Entity
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         MEM_ARG => MEM_DOUTB,
@@ -601,7 +560,7 @@ begin
     cpu_debug_enty : cpu_debug
     port map(
         SYS_CLK => SYS_CLK,
-        INSTRUCTION => MEM_DOUTA,
+        INSTRUCTION => MEM_INST,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         programCounter => ProgramCounter,
         cpuRegs => cpuRegs,
@@ -644,7 +603,9 @@ begin
         DEBUGOUT.Stopped,
         DebugStart,
         fsm_interrupt_cycle_p,
-        AluDecodeDone
+        AluRegisterLocked,
+        axi4PcMemoryReadIn.s_axi_rvalid,
+        axi4PcMemoryReadIn.s_axi_rid
         )
     begin
 
@@ -656,12 +617,22 @@ begin
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
             when INSTFETCH1_S =>
-                fsm_inst_cycle_n <= INSTFETCH2_S;
+                if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
+                    and axi4PcMemoryReadIn.s_axi_rid = "01" then
+                    fsm_inst_cycle_n <= DECODE_S;
+                else
+                    fsm_inst_cycle_n <= INSTFETCH2_S;
+                end if;
 
                 ----------------------------------------------------------------
                 -- This is the second Cycle for the Fetch Instruction Memory
             when INSTFETCH2_S =>
-                fsm_inst_cycle_n <= DECODE_S;
+                if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
+                    and axi4PcMemoryReadIn.s_axi_rid = "01" then
+                    fsm_inst_cycle_n <= DECODE_S;
+                else
+                    fsm_inst_cycle_n <= INSTFETCH2_S;
+                end if;
 
                 ----------------------------------------------------------------
                 -- Decoding is completed in the combinatorial logic and should only be used in this cycle.
@@ -669,9 +640,9 @@ begin
                 -- Set up memory address for ABSOLUTE and INDEX
             when DECODE_S =>
                 -- Continued until the ALU is done.
-                if AluDecodeDone = '0' then
-                    fsm_inst_cycle_n <= DECODE_S;
-                else
+                -- if AluRegisterLocked = '1' then
+                --     fsm_inst_cycle_n <= DECODE_S;
+                -- else
                     case memop is
                         when REGREG =>
                             case opcode is
@@ -720,7 +691,7 @@ begin
                                             fsm_inst_cycle_n <= EXECUTE_S;
                                         end if;
                                     else
-                                        fsm_inst_cycle_n <= INSTFETCH1_S; -- Should not happen
+                                        fsm_inst_cycle_n <= INSTFETCH2_S; -- Should not happen
                                     end if;
                                 when others =>
                                     if DebugStart = '1' then
@@ -758,7 +729,7 @@ begin
                                 fsm_inst_cycle_n <= EXECUTE_S;
                             end if;
                     end case;
-                end if;
+                -- end if;
                 ----------------------------------------------------------------
                 -- Cycle to wait for memory to be read.
                 -- ABSOLUTE and INDEX operations.
@@ -779,8 +750,8 @@ begin
                 -- Execute intruction
             when EXECUTE_S =>
 
-                if AluDecodeDone = '0' then
-                    fsm_inst_cycle_n <= DECODE_S;
+                if AluRegisterLocked = '1' then
+                    fsm_inst_cycle_n <= EXECUTE_S;
                 else
 
                     if ffopcode = oWAIT then
@@ -790,27 +761,33 @@ begin
                             then -- Specific requirement for only WAIT
                                 fsm_inst_cycle_n <= WAITS_S;
                             else
-                                fsm_inst_cycle_n <= DECODE_S;
+                                fsm_inst_cycle_n <= INSTFETCH2_S;
                             end if;
                         else
-                            fsm_inst_cycle_n <= DECODE_S;
+                            fsm_inst_cycle_n <= INSTFETCH2_S;
                         end if;
 
                     elsif JumpDisablePipline = '1'
                         or DebugDisablePipline = '1'
                         or interruptRun = '1'
                     then -- Jump / Branch go back to the Address state.
-                        fsm_inst_cycle_n <= INSTFETCH1_S;
+                        fsm_inst_cycle_n <= INSTFETCH2_S;
 
                     elsif opcode = oRTI and waitRun = '1' then
                         fsm_inst_cycle_n <= WAITS_S;
 
                     else -- All other operations.
-                        if ffmemop = ABSOLUTE or ffmemop = INDEX then
+                        if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
+                            and axi4PcMemoryReadIn.s_axi_rid = "01" then
                             fsm_inst_cycle_n <= DECODE_S;
                         else
                             fsm_inst_cycle_n <= INSTFETCH2_S;
                         end if;
+                        -- if ffmemop = ABSOLUTE or ffmemop = INDEX then
+                        --     fsm_inst_cycle_n <= DECODE_S;
+                        -- else
+                        --     fsm_inst_cycle_n <= INSTFETCH2_S;
+                        -- end if;
                     end if;
                 end if;
 
@@ -819,7 +796,12 @@ begin
                     or waitCancel = '1'
                     or fsm_interrupt_cycle_p = DONE_S
                 then
-                    fsm_inst_cycle_n <= DECODE_S;
+                    if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
+                        and axi4PcMemoryReadIn.s_axi_rid = "01" then
+                        fsm_inst_cycle_n <= DECODE_S;
+                    else
+                        fsm_inst_cycle_n <= INSTFETCH2_S;
+                    end if;
                 else
                     fsm_inst_cycle_n <= WAITS_S;
                 end if;
@@ -852,7 +834,7 @@ begin
             end if;
 
             when others =>
-                fsm_inst_cycle_n <= INSTFETCH1_S;
+                fsm_inst_cycle_n <= INSTFETCH2_S;
         end case;
     end process;
 

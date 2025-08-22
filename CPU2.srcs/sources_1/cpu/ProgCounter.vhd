@@ -97,9 +97,13 @@ entity ProgCounter is
         MEM_ENA               : OUT STD_LOGIC := '1';
         MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
         MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
+        -- AXI Memory Interface
+        PC_MEMORY_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
+        PC_MEMORY_IN         : IN  AXI4_MEMORY_READ_IN_TYPE_REC;
+
         ProgramCounter        : OUT PCTYPE;
         JumpDisablePipline    : OUT STD_LOGIC;
-        AluDecodeDone         : in std_logic;
+        AluRegisterLocked         : in std_logic;
         DEBUGIN     : in DEBUGINTYPE := (
             DebugMode => '0',
             BreakPoints => (others => (others => '0')),
@@ -152,9 +156,15 @@ begin
 
     opcode <= INSTRUCTION(31 downto 27);
     flag <= INSTRUCTION(26);
+    -- PC_MEMORY_OUT.s_axi_rready <= '1'
+    --     when (fsm_inst_cycle_p = DECODE_S or fsm_inst_cycle_p = EXECUTE_S)
+    --     else '0';
 
     -- Output Values
     ProgramCounter <= ProgCounterLocal;
+    -- PC_MEMORY_OUT.s_axi_rready <= '1'
+    --     when (fsm_inst_cycle_p = EXECUTE_S)
+    --     else '0';
   
     procCounter_proc : process (SYS_CLK)
     variable varLocalProgCounter : PCTYPE := X"000";
@@ -167,9 +177,13 @@ begin
                     MEM_WEA <= "0";
                     MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
-                    JumpDisablePipline <= '0';
+                    JumpDisablePipline <= '1';
+                    PC_MEMORY_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
 
-                    when DECODE_S     =>
+                when INSTFETCH2_S =>
+                        PC_MEMORY_OUT.s_axi_rready <= '0';
+
+                when DECODE_S     =>
 
                     -- Maintain Flip-Flop (Memory) protions of the instruction.
                     -- This removes the timing violations and make the processor faster.
@@ -185,29 +199,30 @@ begin
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
 
                     -- Continued until the ALU is done.
-                    if AluDecodeDone = '1' then
-                        if     opcode = oJMP 
-                            or opcode = oBE 
-                            or opcode = oBLT 
-                            or opcode = oBGT 
-                            or opcode = oJSR 
-                            or opcode = oRTN 
-                            or opcode = oRTI 
-                            or (opcode = oSWIENA and flag = SWIFLAG)
-                        then -- Branch / Jump operations.
-                            MEM_ENA <= '0';
-                            JumpDisablePipline <= '1';
-                        else -- ignore all Jump operations.
-                            MEM_ENA <= '1';
-                            varLocalProgCounter := ProgCounterLocal + 1;
-                            JumpDisablePipline <= '0';
-                        end if;
-                    else
-                        null;
-                    end if;
+                    -- if AluRegisterLocked = '0' then
+                    --     if     opcode = oJMP 
+                    --         or opcode = oBE 
+                    --         or opcode = oBLT 
+                    --         or opcode = oBGT 
+                    --         or opcode = oJSR 
+                    --         or opcode = oRTN 
+                    --         or opcode = oRTI 
+                    --         or (opcode = oSWIENA and flag = SWIFLAG)
+                    --     then -- Branch / Jump operations.
+                    --         MEM_ENA <= '0';
+                    --         JumpDisablePipline <= '1';
+                    --     else -- ignore all Jump operations.
+                    --         MEM_ENA <= '1';
+                    --         varLocalProgCounter := ProgCounterLocal + 1;
+                    --         JumpDisablePipline <= '0';
+                    --     end if;
+                    -- else
+                    --     null;
+                    -- end if;
+                    PC_MEMORY_OUT.s_axi_rready <= '1';
 
                 when EXECUTE_S    =>
-                    if AluDecodeDone = '1' 
+                    if AluRegisterLocked = '0' 
                     then -- Execute Instruction
 
                         case ffopcode is
@@ -317,12 +332,15 @@ begin
                                 end case;
 
                             when others =>
-                                if JumpDisablePipline = '1' 
-                                then
+                                -- if JumpDisablePipline = '1' 
+                                -- then
                                     varLocalProgCounter := ProgCounterLocal + 1;
-                                end if;
+                                -- end if;
                         end case;
+                    else
+                        ireg1value <= cpuRegs(ffiregop1).Value;
                     end if;
+                    PC_MEMORY_OUT.s_axi_rready <= '0';
                 when DEBUGSTABLEIZE_S =>
                 when DEBUGWAIT_S =>
                     if  DEBUGIN.UpdateValue.Valid = '1' then
@@ -331,6 +349,7 @@ begin
                             varLocalProgCounter := unsigned(DEBUGIN.UpdateValue.Value(ProgCounterLocal'Range));
                         end if;
                     end if;
+                    PC_MEMORY_OUT.s_axi_rready <= '0';
                 when others =>
             end case;
 
@@ -339,9 +358,33 @@ begin
                     varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
                 when others =>
             end case;
+
+            if fsm_interrupt_cycle_p = JUMP_S
+                or fsm_inst_cycle_p = EXECUTE_S
+            then
                 ProgCounterLocal <= varLocalProgCounter;
                 MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
+                PC_MEMORY_OUT.s_axi_araddr <= STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 30)) & "00";
+                PC_MEMORY_OUT.s_axi_arvalid <= '1';
+                PC_MEMORY_OUT.s_axi_arid <= "01";
+                PC_MEMORY_OUT.s_axi_rready <= '1';
+                -- if fsm_inst_cycle_p = EXECUTE_S then
+                --     PC_MEMORY_OUT.s_axi_rready <= '1';
+                -- else
+                --     PC_MEMORY_OUT.s_axi_rready <= '0';
+                -- end if;
                 MEM_ENA <= '1';
+            else
+                PC_MEMORY_OUT.s_axi_arvalid <= '0';
+                PC_MEMORY_OUT.s_axi_arid <= "00";
+            end if;
+        --     if PC_MEMORY_OUT.s_axi_rready = '1'
+        --     then
+        --         -- Fetched the instruction.
+        --         PC_MEMORY_OUT.s_axi_rready <= '0';
+        --         PC_MEMORY_OUT.s_axi_arvalid <= '0';
+        --         PC_MEMORY_OUT.s_axi_arid <= "00";
+        -- end if;
 
         end if;
     end process procCounter_proc;

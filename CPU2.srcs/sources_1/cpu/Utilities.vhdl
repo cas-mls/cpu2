@@ -84,6 +84,17 @@ package Utilities is
         Countdown   : integer range 0 to 7;      -- Countdown Timer.
     end record;
 
+    constant REG_DEFAULTS : REG_TYPE_REC := (
+        Value => (others => '0'),
+        OpCode => (others => '0'),
+        MemOp => (others => '0'),
+        Flag => '0',
+        Countdown => 0
+    );
+
+
+    
+
     type REG_TYPE is array (regOpMax downto 0) of REG_TYPE_REC;
 
     -- type REG_TYPE1 is array (regOpMax downto 0) of std_logic_vector(31 downto 0);
@@ -182,6 +193,20 @@ package Utilities is
         Reset       : STD_LOGIC;
     end record;
 
+    constant DEBUGOUT_DEFAULTS : DEBUGOUTTYPE := (
+        Stopped => '1',
+        CycleCount => (others => '0'),
+        ProgCounter => (others => '0'),
+        Regs => (others => (others => '0')),
+        Instruction => (others => '0'),
+        Interrupt => (others => '0'),
+        interruptMask => (others => '0'),
+        Status => (others => '0'),
+        StatusMask => (others => '0'),
+        MEMORY_ARG => (others => '0'),
+        Reset => '0'
+    );
+
     type DEBUGINTYPE is record
         DebugMode   : STD_LOGIC;
         BreakPoints : BREAKPOINTS_TYPE;
@@ -195,6 +220,28 @@ package Utilities is
         UpdateValue : INPUT_VALUE_TYPE;
         UpdateReg   : INPUT_VALUE_TYPE;
     end record;
+
+    signal DEBUGIN_DEFAULTS : DEBUGINTYPE := (
+        DebugMode => '0',
+        BreakPoints => (others => (others => '0')),
+        Break => '0',
+        Step => '0',
+        Continue => '0',
+        BWhenReg => 0,
+        BWhenValue => (others => '0'),
+        BWhenOp => REG_NOTHING,
+        Reset => '0',
+        UpdateValue => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        ),
+        UpdateReg => (
+            Number => 0,
+            Value => (others => '0'),
+            Valid => '0'
+        )        
+    );
 
     subtype TGA_TYPE is STD_LOGIC_VECTOR(6 downto 0);
 
@@ -242,5 +289,71 @@ package Utilities is
     constant IONotBusy      : integer := 16;
     constant IOError        : integer := 17;
 
+    -- Memory Records
+    type AXI4_MEMORY_WRITE_OUT_TYPE_REC is record
+        s_axi_awid      : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_awaddr    : STD_LOGIC_VECTOR(31 DOWNTO 0) ;
+        s_axi_awvalid   : STD_LOGIC;
+        s_axi_wdata     : STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_wstrb     : STD_LOGIC_VECTOR(3 DOWNTO 0);
+        s_axi_wvalid    : STD_LOGIC;
+        s_axi_bready    : STD_LOGIC;
+    end record;
+
+    constant AXI4_MEMORY_WRITE_OUT_DEFAULTS : AXI4_MEMORY_WRITE_OUT_TYPE_REC := (
+        s_axi_awid => (others => '0'),
+        s_axi_awaddr => (others => '0'),
+        s_axi_awvalid => '0',
+        s_axi_wdata => (others => '0'),
+        s_axi_wstrb => (others => '0'),
+        s_axi_wvalid => '0',
+        s_axi_bready => '0'
+    );
+    
+    type AXI4_MEMORY_READ_OUT_TYPE_REC is record
+        s_axi_arid      : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_araddr    : STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_arvalid   : STD_LOGIC;
+        s_axi_rready    : STD_LOGIC;
+    end record;
+
+    constant AXI4_MEMORY_READ_OUT_DEFAULTS : AXI4_MEMORY_READ_OUT_TYPE_REC := (
+        s_axi_arid => (others => '0'),
+        s_axi_araddr => (others => '0'),
+        s_axi_arvalid => '0',
+        s_axi_rready => '0'
+    );
+
+    type AXI4_MEMORY_WRITE_IN_TYPE_REC is record
+        s_axi_awready   : STD_LOGIC;
+        s_axi_wready    : STD_LOGIC;
+        s_axi_bid       : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bresp     : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bvalid    : STD_LOGIC;
+    end record;
+
+    constant AXI4_MEMORY_WRITE_IN_DEFAULTS : AXI4_MEMORY_WRITE_IN_TYPE_REC := (
+        s_axi_awready => '0',
+        s_axi_wready => '0',
+        s_axi_bid => (others => '0'),
+        s_axi_bresp => (others => '0'),
+        s_axi_bvalid => '0'
+    );
+
+    type AXI4_MEMORY_READ_IN_TYPE_REC is record
+        s_axi_arready   : STD_LOGIC;
+        s_axi_rid       : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rdata     : STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_rresp     : STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rvalid    : STD_LOGIC;
+    end record;
+
+    constant AXI4_MEMORY_READ_IN_DEFAULTS : AXI4_MEMORY_READ_IN_TYPE_REC := (
+        s_axi_arready => '0',
+        s_axi_rid => (others => '0'),
+        s_axi_rdata => (others => '0'),
+        s_axi_rresp => (others => '0'),
+        s_axi_rvalid => '0'
+    );
 
 end Package;

@@ -133,27 +133,7 @@ entity Interrupt_Entity is
         interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
         interruptReset : out STD_LOGIC := '0';
         statusMask : out std_logic_vector(31 downto 0) := X"00000000";
-        DEBUGIN     : in DEBUGINTYPE := (
-            DebugMode => '0',
-            BreakPoints => (others => (others => '0')),
-            Break => '0',
-            Step => '0',
-            Continue => '0',
-            BWhenReg => 0,
-            BWhenValue => (others => '0'),
-            BWhenOp => REG_NOTHING,
-            Reset => '0',
-            UpdateValue => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            ),
-            UpdateReg => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            )
-            )
+        DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
 
     );
 

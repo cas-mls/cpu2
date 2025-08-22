@@ -14,12 +14,12 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="10,173.333 ns"></ZoomStartTime>
-      <ZoomEndTime time="10,235.334 ns"></ZoomEndTime>
-      <Cursor1Time time="10,225.000 ns"></Cursor1Time>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="2,480.001 ns"></ZoomEndTime>
+      <Cursor1Time time="1,775.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="201"></NameColumnWidth>
+      <NameColumnWidth column_width="196"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
    <WVObjectSize size="48" />
@@ -76,12 +76,10 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[15]" type="array">
          <obj_property name="ElementShortName">[15]</obj_property>
          <obj_property name="ObjectShortName">[15]</obj_property>
-         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[14]" type="array">
          <obj_property name="ElementShortName">[14]</obj_property>
          <obj_property name="ObjectShortName">[14]</obj_property>
-         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[13]" type="array">
          <obj_property name="ElementShortName">[13]</obj_property>
@@ -126,6 +124,7 @@
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[3]" type="array">
          <obj_property name="ElementShortName">[3]</obj_property>
          <obj_property name="ObjectShortName">[3]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
       </wvobject>
       <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[2]" type="array">
          <obj_property name="ElementShortName">[2]</obj_property>
@@ -141,9 +140,9 @@
          <obj_property name="ObjectShortName">[0]</obj_property>
       </wvobject>
    </wvobject>
-   <wvobject fp_name="/SimCPU/cpuCUT/AluDecodeDone" type="logic">
-      <obj_property name="ElementShortName">AluDecodeDone</obj_property>
-      <obj_property name="ObjectShortName">AluDecodeDone</obj_property>
+   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/AluRegisterLocked" type="logic">
+      <obj_property name="ElementShortName">AluRegisterLocked</obj_property>
+      <obj_property name="ObjectShortName">AluRegisterLocked</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/ProgCounterLocal" type="array">
       <obj_property name="ElementShortName">ProgCounterLocal[11:0]</obj_property>

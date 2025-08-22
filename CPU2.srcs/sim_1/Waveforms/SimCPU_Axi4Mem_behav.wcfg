@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="SimCPU_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="SimCPU" />
+            <top_module name="glbl" />
+            <top_module name="ipif_pkg" />
+            <top_module name="lib_pkg" />
+            <top_module name="utilities" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
+      <ZoomEndTime time="807.501 ns"></ZoomEndTime>
+      <Cursor1Time time="0.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="181"></NameColumnWidth>
+      <ValueColumnWidth column_width="72"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="23" />
+   <wvobject fp_name="group1093" type="group">
+      <obj_property name="label">BasicMemory</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/SimCPU/MEM_CLK" type="logic">
+         <obj_property name="ElementShortName">MEM_CLK</obj_property>
+         <obj_property name="ObjectShortName">MEM_CLK</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_ENA" type="logic">
+         <obj_property name="ElementShortName">MEM_ENA</obj_property>
+         <obj_property name="ObjectShortName">MEM_ENA</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_WEA" type="array">
+         <obj_property name="ElementShortName">MEM_WEA[0:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_WEA[0:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_ADDRA" type="array">
+         <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_DINA" type="array">
+         <obj_property name="ElementShortName">MEM_DINA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DINA[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_DOUTA" type="array">
+         <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_ENB" type="logic">
+         <obj_property name="ElementShortName">MEM_ENB</obj_property>
+         <obj_property name="ObjectShortName">MEM_ENB</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_WEB" type="array">
+         <obj_property name="ElementShortName">MEM_WEB[0:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_WEB[0:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_ADDRB" type="array">
+         <obj_property name="ElementShortName">MEM_ADDRB[11:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_ADDRB[11:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_DINB" type="array">
+         <obj_property name="ElementShortName">MEM_DINB[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DINB[31:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/SimCPU/MEM_DOUTB" type="array">
+         <obj_property name="ElementShortName">MEM_DOUTB[31:0]</obj_property>
+         <obj_property name="ObjectShortName">MEM_DOUTB[31:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/rsta_busy" type="logic">
+      <obj_property name="ElementShortName">rsta_busy</obj_property>
+      <obj_property name="ObjectShortName">rsta_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/rstb_busy" type="logic">
+      <obj_property name="ElementShortName">rstb_busy</obj_property>
+      <obj_property name="ObjectShortName">rstb_busy</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/s_aclk" type="logic">
+      <obj_property name="ElementShortName">s_aclk</obj_property>
+      <obj_property name="ObjectShortName">s_aclk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/s_aresetn" type="logic">
+      <obj_property name="ElementShortName">s_aresetn</obj_property>
+      <obj_property name="ObjectShortName">s_aresetn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/axi4MemoryWriteIn" type="array">
+      <obj_property name="ElementShortName">axi4MemoryWriteIn</obj_property>
+      <obj_property name="ObjectShortName">axi4MemoryWriteIn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/axi4MemoryWriteOut" type="array">
+      <obj_property name="ElementShortName">axi4MemoryWriteOut</obj_property>
+      <obj_property name="ObjectShortName">axi4MemoryWriteOut</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/axi4MemoryReadIn" type="array">
+      <obj_property name="ElementShortName">axi4MemoryReadIn</obj_property>
+      <obj_property name="ObjectShortName">axi4MemoryReadIn</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/axi4MemoryReadOut" type="array">
+      <obj_property name="ElementShortName">axi4MemoryReadOut</obj_property>
+      <obj_property name="ObjectShortName">axi4MemoryReadOut</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/DebugIn" type="array">
+      <obj_property name="ElementShortName">DebugIn</obj_property>
+      <obj_property name="ObjectShortName">DebugIn</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/DebugOut" type="array">
+      <obj_property name="ElementShortName">DebugOut</obj_property>
+      <obj_property name="ObjectShortName">DebugOut</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/PC_MEMORY_IN" type="array">
+      <obj_property name="ElementShortName">PC_MEMORY_IN</obj_property>
+      <obj_property name="ObjectShortName">PC_MEMORY_IN</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/PC_MEMORY_OUT" type="array">
+      <obj_property name="ElementShortName">PC_MEMORY_OUT</obj_property>
+      <obj_property name="ObjectShortName">PC_MEMORY_OUT</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/fsm_inst_cycle_p" type="other">
+      <obj_property name="ElementShortName">fsm_inst_cycle_p</obj_property>
+      <obj_property name="ObjectShortName">fsm_inst_cycle_p</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/MEM_ADDRA" type="array">
+      <obj_property name="ElementShortName">MEM_ADDRA[11:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_ADDRA[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/axi4MemoryReadOut.s_axi_araddr" type="array">
+      <obj_property name="ElementShortName">.s_axi_araddr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">.s_axi_araddr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/MEM_INST" type="array">
+      <obj_property name="ElementShortName">MEM_INST[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_INST[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/MEM_DOUTA" type="array">
+      <obj_property name="ElementShortName">MEM_DOUTA[31:0]</obj_property>
+      <obj_property name="ObjectShortName">MEM_DOUTA[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/cpuRegs[13].Value" type="array">
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="ElementShortName">.Value[31:0]</obj_property>
+      <obj_property name="ObjectShortName">.Value[31:0]</obj_property>
+      <obj_property name="label">ERROR_Register</obj_property>
+      <obj_property name="CustomSignalColor">#800000</obj_property>
+      <obj_property name="UseCustomSignalColor">true</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/PC_MEMORY_IN.s_axi_rdata" type="array">
+      <obj_property name="ElementShortName">.s_axi_rdata[31:0]</obj_property>
+      <obj_property name="ObjectShortName">.s_axi_rdata[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/ProgCounterLocal" type="array">
+      <obj_property name="ElementShortName">ProgCounterLocal[11:0]</obj_property>
+      <obj_property name="ObjectShortName">ProgCounterLocal[11:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/JumpDisablePipline" type="logic">
+      <obj_property name="ElementShortName">JumpDisablePipline</obj_property>
+      <obj_property name="ObjectShortName">JumpDisablePipline</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/AluRegisterLocked" type="logic">
+      <obj_property name="ElementShortName">AluRegisterLocked</obj_property>
+      <obj_property name="ObjectShortName">AluRegisterLocked</obj_property>
+   </wvobject>
+</wave_config>

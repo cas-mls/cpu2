@@ -103,7 +103,7 @@ entity MemoryAccess is
         interruptNum : in integer range 0 to interruptNums := 0;
         ProgramCounter : in PCTYPE;
         interruptMask : in std_logic_vector(interruptNums downto 0);
-        AluDecodeDone         : in std_logic;
+        AluRegisterLocked         : in std_logic;
 
         MEM_ENB : out std_logic := '1';
         MEM_WEB : out std_logic_vector(0 downto 0) := "0";
@@ -175,7 +175,7 @@ begin
                     MEM_WEB <= "0";
                 when DECODE_S =>
 
-                    if AluDecodeDone = '1' then
+                    if AluRegisterLocked = '0' then
                         -- Maintain Flip-Flop (Memory) protions of the instruction.
                         -- This removes the timing violations and make the processor faster.
                         -- Might remove the combinatorial logic which should not be used after this cycle.
@@ -272,7 +272,7 @@ begin
                     end case;
 
                 when EXECUTE_S =>
-                    if AluDecodeDone = '1' 
+                    if AluRegisterLocked = '0' 
                     then
                         case ffmemop is
                             when ABSOLUTE =>
@@ -284,6 +284,8 @@ begin
                                         MEM_DINB <= ireg1value;
                                     when oRWIO =>
                                         if ffflag = '0' then
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "0";
                                             MEM_ADDRB <= ffimmop(11 downto 0);
                                         end if;
                                     when others =>
@@ -300,6 +302,8 @@ begin
                                         MEM_DINB <= ireg1value;
                                     when oRWIO =>
                                         if ffflag = '0' then
+                                            MEM_ENB <= '1';
+                                            MEM_WEB <= "0";
                                             MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
                                                         to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
                                         end if;

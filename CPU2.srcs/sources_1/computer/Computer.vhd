@@ -73,26 +73,25 @@ architecture Behavioral of Computer is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0', 
-                Step => '0', 
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING,
-                Reset => '0',
-                UpdateValue => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ),
-                UpdateReg => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ));
+            -- AXI Memory Interface
+            AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
+            AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC := (
+                s_axi_arready => '0',
+                s_axi_rid => (others => '0'),
+                s_axi_rdata => (others => '0'),
+                s_axi_rresp => (others => '0'),
+                s_axi_rvalid => '0'
+            );
+            AXI_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+            AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC := (
+                s_axi_awready => '0',
+                s_axi_wready => '0',
+                s_axi_bid => (others => '0'),
+                s_axi_bresp => (others => '0'),
+                s_axi_bvalid => '0'
+            );
+
+            DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT    : out DEBUGOUTTYPE
 
             );
@@ -114,6 +113,36 @@ architecture Behavioral of Computer is
             doutb : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component;
+
+    COMPONENT cpuAxiMemory
+    PORT (
+        rsta_busy : OUT STD_LOGIC;
+        rstb_busy : OUT STD_LOGIC;
+        s_aclk : IN STD_LOGIC;
+        s_aresetn : IN STD_LOGIC;
+        s_axi_awid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_awaddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_awvalid : IN STD_LOGIC;
+        s_axi_awready : OUT STD_LOGIC;
+        s_axi_wdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_wstrb : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+        s_axi_wvalid : IN STD_LOGIC;
+        s_axi_wready : OUT STD_LOGIC;
+        s_axi_bid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bvalid : OUT STD_LOGIC;
+        s_axi_bready : IN STD_LOGIC;
+        s_axi_arid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_araddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_arvalid : IN STD_LOGIC;
+        s_axi_arready : OUT STD_LOGIC;
+        s_axi_rid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_rresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rvalid : OUT STD_LOGIC;
+        s_axi_rready : IN STD_LOGIC 
+    );
+    END COMPONENT;
 
     component UartDevice is
         port (
@@ -267,6 +296,39 @@ architecture Behavioral of Computer is
 
     signal dmemReadCount: integer range 0 to 3;
 
+    signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal axi4MemoryWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+    signal axi4MemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4MemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
+
+
+    signal rsta_busy       : STD_LOGIC;
+    signal rstb_busy       : STD_LOGIC;
+    signal s_aclk          : STD_LOGIC;
+    signal s_aresetn       : STD_LOGIC;
+    -- signal s_axi_awid      : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_awaddr    : STD_LOGIC_VECTOR(31 DOWNTO 0) ;
+    -- signal s_axi_awvalid   : STD_LOGIC;
+    -- signal s_axi_awready   : STD_LOGIC;
+    -- signal s_axi_wdata     : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    -- signal s_axi_wstrb     : STD_LOGIC_VECTOR(3 DOWNTO 0);
+    -- signal s_axi_wvalid    : STD_LOGIC;
+    -- signal s_axi_wready    : STD_LOGIC;
+    -- signal s_axi_bid       : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_bresp     : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_bvalid    : STD_LOGIC;
+    -- signal s_axi_bready    : STD_LOGIC;
+    -- signal s_axi_arid      : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_araddr    : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    -- signal s_axi_arvalid   : STD_LOGIC;
+    -- signal s_axi_arready   : STD_LOGIC;
+    -- signal s_axi_rid       : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_rdata     : STD_LOGIC_VECTOR(31 DOWNTO 0);
+    -- signal s_axi_rresp     : STD_LOGIC_VECTOR(1 DOWNTO 0);
+    -- signal s_axi_rvalid    : STD_LOGIC;
+    -- signal s_axi_rready    : STD_LOGIC;
+
+
     -- attribute keep                          : STRING;
     -- attribute MARK_DEBUG                    : string;
     -- attribute keep          of rst          : signal is "TRUE";
@@ -336,6 +398,63 @@ begin
         doutb => MEM_DOUTB
     );
 
+
+--     cpuMemoryAxi1 : cpuAxiMemory
+--   PORT MAP (
+--     rsta_busy       => rsta_busy,
+--     rstb_busy       => rstb_busy,
+--     s_aclk          => s_aclk,
+--     s_aresetn       => s_aresetn,
+--     s_axi_awid      => s_axi_awid,
+--     s_axi_awaddr    => s_axi_awaddr,
+--     s_axi_awvalid   => s_axi_awvalid,
+--     s_axi_awready   => s_axi_awready,
+--     s_axi_wdata     => s_axi_wdata,
+--     s_axi_wstrb     => s_axi_wstrb,
+--     s_axi_wvalid    => s_axi_wvalid,
+--     s_axi_wready    => s_axi_wready,
+--     s_axi_bid       => s_axi_bid,
+--     s_axi_bresp     => s_axi_bresp,
+--     s_axi_bvalid    => s_axi_bvalid,
+--     s_axi_bready    => s_axi_bready,
+--     s_axi_arid      => s_axi_arid,
+--     s_axi_araddr    => s_axi_araddr,
+--     s_axi_arvalid   => s_axi_arvalid,
+--     s_axi_arready   => s_axi_arready,
+--     s_axi_rid       => s_axi_rid,
+--     s_axi_rdata     => s_axi_rdata,
+--     s_axi_rresp     => s_axi_rresp,
+--     s_axi_rvalid    => s_axi_rvalid,
+--     s_axi_rready    => s_axi_rready
+--   );
+    cpuMemoryAxi : cpuAxiMemory
+  PORT MAP (
+    rsta_busy       => rsta_busy,
+    rstb_busy       => rstb_busy,
+    s_aclk          => s_aclk,
+    s_aresetn       => s_aresetn,
+    s_axi_awid      => axi4MemoryWriteOut.s_axi_awid,
+    s_axi_awaddr    => axi4MemoryWriteOut.s_axi_awaddr,
+    s_axi_awvalid   => axi4MemoryWriteOut.s_axi_awvalid,
+    s_axi_awready   => axi4MemoryWriteIn.s_axi_awready,
+    s_axi_wdata     => axi4MemoryWriteOut.s_axi_wdata,
+    s_axi_wstrb     => axi4MemoryWriteOut.s_axi_wstrb,
+    s_axi_wvalid    => axi4MemoryWriteOut.s_axi_wvalid,
+    s_axi_wready    => axi4MemoryWriteIn.s_axi_wready,
+    s_axi_bid       => axi4MemoryWriteIn.s_axi_bid,
+    s_axi_bresp     => axi4MemoryWriteIn.s_axi_bresp,
+    s_axi_bvalid    => axi4MemoryWriteIn.s_axi_bvalid,
+    s_axi_bready    => axi4MemoryWriteOut.s_axi_bready,
+    s_axi_arid      => axi4MemoryReadOut.s_axi_arid,
+    s_axi_araddr    => axi4MemoryReadOut.s_axi_araddr,
+    s_axi_arvalid   => axi4MemoryReadOut.s_axi_arvalid,
+    s_axi_arready   => axi4MemoryReadIn.s_axi_arready,
+    s_axi_rid       => axi4MemoryReadIn.s_axi_rid,
+    s_axi_rdata     => axi4MemoryReadIn.s_axi_rdata,
+    s_axi_rresp     => axi4MemoryReadIn.s_axi_rresp,
+    s_axi_rvalid    => axi4MemoryReadIn.s_axi_rvalid,
+    s_axi_rready    => axi4MemoryReadOut.s_axi_rready
+  );
     cpu1 : CPU
     port map(
         SYS_CLK         => SYS_CLK,
@@ -357,7 +476,10 @@ begin
         MEM_ADDRB       => MEM_ADDRB,
         MEM_DINB        => MEM_DINB,
         MEM_DOUTB       => MEM_DOUTB,
-
+        AXI4_MEMORY_READ_OUT  => axi4MemoryReadOut,
+        AXI4_MEMORY_READ_IN => axi4MemoryReadIn,
+        AXI_MEMORY_WRITE_OUT => axi4MemoryWriteOut,
+        AXI_MEMORY_WRITE_IN => axi4MemoryWriteIn,
         DEBUGIN         => DebugIn,
         DEBUGOUT        => DebugOut
     );

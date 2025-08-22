@@ -66,15 +66,7 @@ architecture Behavioral of SimDebugger is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0', 
-                Step => '0', 
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING);
+            DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
@@ -141,15 +133,7 @@ architecture Behavioral of SimDebugger is
 
     -- Debug Items
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := 
-        (DebugMode => '0',
-        BreakPoints => (others => (others => '0')), 
-        Break => '0', 
-        Step => '0', 
-        Continue => '0',
-        BWhenReg => 0,
-        BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING);
+    signal DebugIn      : DEBUGINTYPE := DEBUGIN_DEFAULTS;
     signal DebugOut     : DEBUGOUTTYPE;
 
 begin

@@ -1206,6 +1206,22 @@ Read/Write Status word is formatted with the following fields:
 
 <img src="https://svg.wavedrom.com/{signal: [['Write Master',{name: 'ACLK m->s',wave: '0P...........|...h'},{name: 'ARESETN m->s',wave: '0..1.........|....'},{name: 'AWADDR m->s',wave: 'x......3....3|....',data: ['A0x1001','A0x0000']},{name: 'AWVALID m->s',wave: '0......1....0|....'},{name: 'WDATA m->s',wave: 'x......4....4|....',data: ['D0x1234','D0x0000'],},{name: 'WSTRB m->s',wave: 'x......6....6|....',data: ['S0b1111', 'S0b0000'],},{name: 'WVALID m->s',wave: '0......1....0|....'},{name: 'BREADY m->s',wave: '0......1.....|.0..'},],['Write Slave',{name: 'AWREADY s->m',wave: '0..........10|....'},{name: 'WREADY s->m',wave: '0..........10|....'},{name: 'BVALID s->m',wave: '0............|10..'},{name: 'BRESP s->m',wave: 'x............|5...',data: ['R0b11'],}, ]],head: {text: 'AXI-4 Lite Write'},}"/>
 
+
+
+## Memory
+
+```mermaid
+---
+title: Wishbone State Model
+---
+
+sequenceDiagram
+    CPU(Fetch)->>Memory: ARVALID, ARADDR, RREADY (Program Counter)
+    Memory->>CPU(Decode) : [RVALID='1'] RDATA (Instruction)
+    CPU(Decode)->> Memory : ARVALID, ARADDR, RREADY (Instruction Argument)
+    Memory->>CPU(Mem) : [RVALID='1'] , RDATA (Memory Argument Data)
+
+```
 ## Debug
 
 Links: 
