@@ -20,6 +20,8 @@
 
 
 library IEEE;
+library xil_defaultlib;
+
 use ieee.numeric_std.all;
 
 use IEEE.STD_LOGIC_1164.ALL;
@@ -38,9 +40,9 @@ package Utilities is
 
     type CYCLETYPE_FSM is (
         RESET_STATE_S,  -- State 0
-        DUMMY1_S,      -- State 1
-        INSTFETCH1_S,   -- State 2
-        INSTFETCH2_S,   -- State 3
+        DUMMY1_S,       -- State 1
+        DUMMY3_S,       -- State 2
+        INSTFETCH_S,    -- State 3
         DECODE_S,       -- State 4
         MEMFETCH1_S,    -- State 5
         MEMFETCH2_S,    -- State 6
@@ -290,6 +292,11 @@ package Utilities is
     constant IOError        : integer := 17;
 
     -- Memory Records
+    constant MEM_ID_NONE : STD_LOGIC_VECTOR(1 downto 0) := "00";
+    constant MEM_ID_PC : STD_LOGIC_VECTOR(1 downto 0) := "01";
+    constant MEM_ID_ARG : STD_LOGIC_VECTOR(1 downto 0) := "10";
+    constant MEM_ID_STACK : STD_LOGIC_VECTOR(1 downto 0) := "11";
+
     type AXI4_MEMORY_WRITE_OUT_TYPE_REC is record
         s_axi_awid      : STD_LOGIC_VECTOR(1 DOWNTO 0);
         s_axi_awaddr    : STD_LOGIC_VECTOR(31 DOWNTO 0) ;
@@ -305,7 +312,7 @@ package Utilities is
         s_axi_awaddr => (others => '0'),
         s_axi_awvalid => '0',
         s_axi_wdata => (others => '0'),
-        s_axi_wstrb => (others => '0'),
+        s_axi_wstrb => (others => '1'),
         s_axi_wvalid => '0',
         s_axi_bready => '0'
     );
@@ -356,4 +363,29 @@ package Utilities is
         s_axi_rvalid => '0'
     );
 
+    Function SetReadAddress (
+            addr : std_logic_vector(11 downto 0); 
+            id : std_logic_vector(1 downto 0)) 
+        return AXI4_MEMORY_READ_OUT_TYPE_REC;
+
+    Function SetWrite (
+            addr : std_logic_vector(11 downto 0); 
+            id : std_logic_vector(1 downto 0); 
+            data : std_logic_vector(31 downto 0)) 
+        return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+
+        Function ClearReadAddressData (
+            readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+            readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+        return AXI4_MEMORY_READ_OUT_TYPE_REC;
+        
+    Function ClearWriteFlags (
+            writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC; 
+            writeIn : AXI4_MEMORY_WRITE_IN_TYPE_REC ) 
+        return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+
 end Package;
+
+
+    
+-- end Package Body Utilities;

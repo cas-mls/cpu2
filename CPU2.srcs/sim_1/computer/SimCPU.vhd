@@ -175,7 +175,7 @@ architecture Behavioral of SimCPU is
     signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
     -- AXI Memory Interface
-    signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
     signal axi4MemoryWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
     signal axi4MemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
     signal axi4MemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
@@ -183,7 +183,7 @@ architecture Behavioral of SimCPU is
     signal rsta_busy       : STD_LOGIC;
     signal rstb_busy       : STD_LOGIC;
     signal s_aclk          : STD_LOGIC;
-    signal s_aresetn       : STD_LOGIC;
+    signal s_aresetn       : STD_LOGIC := '1';
 
     -- Program Loading
     signal LD_CLK   : STD_LOGIC                     := '1';
@@ -407,7 +407,6 @@ LD_DOUTA <= MEM_DOUTA when not RUN else
             "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
 
 s_aclk <= clk;
-s_aresetn <= not interrupt(0);
 
 -- Clock Generation
 clk <= '0' after HALF_PERIOD when clk = '1' and RUN else
@@ -452,7 +451,9 @@ begin
         interrupt(0) <= '1';
         for j in 1 to 10 loop
             wait until rising_edge (clk);
+            s_aresetn <= '1';
         end loop;
+        wait until rsta_busy = '0' and rstb_busy = '0' and rising_edge (clk);
         interrupt(0) <= '0';
 
         while true loop

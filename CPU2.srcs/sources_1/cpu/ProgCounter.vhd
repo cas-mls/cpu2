@@ -104,27 +104,7 @@ entity ProgCounter is
         ProgramCounter        : OUT PCTYPE;
         JumpDisablePipline    : OUT STD_LOGIC;
         AluRegisterLocked         : in std_logic;
-        DEBUGIN     : in DEBUGINTYPE := (
-            DebugMode => '0',
-            BreakPoints => (others => (others => '0')),
-            Break => '0',
-            Step => '0',
-            Continue => '0',
-            BWhenReg => 0,
-            BWhenValue => (others => '0'),
-            BWhenOp => REG_NOTHING,
-            Reset => '0',
-            UpdateValue => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            ),
-            UpdateReg => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            )
-            )
+        DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
     );
 end ProgCounter;
 
@@ -156,15 +136,9 @@ begin
 
     opcode <= INSTRUCTION(31 downto 27);
     flag <= INSTRUCTION(26);
-    -- PC_MEMORY_OUT.s_axi_rready <= '1'
-    --     when (fsm_inst_cycle_p = DECODE_S or fsm_inst_cycle_p = EXECUTE_S)
-    --     else '0';
 
     -- Output Values
     ProgramCounter <= ProgCounterLocal;
-    -- PC_MEMORY_OUT.s_axi_rready <= '1'
-    --     when (fsm_inst_cycle_p = EXECUTE_S)
-    --     else '0';
   
     procCounter_proc : process (SYS_CLK)
     variable varLocalProgCounter : PCTYPE := X"000";
@@ -180,8 +154,7 @@ begin
                     JumpDisablePipline <= '1';
                     PC_MEMORY_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
 
-                when INSTFETCH2_S =>
-                        PC_MEMORY_OUT.s_axi_rready <= '0';
+                when INSTFETCH_S =>
 
                 when DECODE_S     =>
 
@@ -219,7 +192,6 @@ begin
                     -- else
                     --     null;
                     -- end if;
-                    PC_MEMORY_OUT.s_axi_rready <= '1';
 
                 when EXECUTE_S    =>
                     if AluRegisterLocked = '0' 
@@ -340,7 +312,6 @@ begin
                     else
                         ireg1value <= cpuRegs(ffiregop1).Value;
                     end if;
-                    PC_MEMORY_OUT.s_axi_rready <= '0';
                 when DEBUGSTABLEIZE_S =>
                 when DEBUGWAIT_S =>
                     if  DEBUGIN.UpdateValue.Valid = '1' then
@@ -349,7 +320,6 @@ begin
                             varLocalProgCounter := unsigned(DEBUGIN.UpdateValue.Value(ProgCounterLocal'Range));
                         end if;
                     end if;
-                    PC_MEMORY_OUT.s_axi_rready <= '0';
                 when others =>
             end case;
 
@@ -361,31 +331,30 @@ begin
 
             if fsm_interrupt_cycle_p = JUMP_S
                 or fsm_inst_cycle_p = EXECUTE_S
+                or fsm_inst_cycle_p = DECODE_S
             then
                 ProgCounterLocal <= varLocalProgCounter;
                 MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
-                PC_MEMORY_OUT.s_axi_araddr <= STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 30)) & "00";
-                PC_MEMORY_OUT.s_axi_arvalid <= '1';
-                PC_MEMORY_OUT.s_axi_arid <= "01";
-                PC_MEMORY_OUT.s_axi_rready <= '1';
-                -- if fsm_inst_cycle_p = EXECUTE_S then
-                --     PC_MEMORY_OUT.s_axi_rready <= '1';
-                -- else
-                --     PC_MEMORY_OUT.s_axi_rready <= '0';
-                -- end if;
+                PC_MEMORY_OUT <= SetReadAddress(STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), MEM_ID_PC);
                 MEM_ENA <= '1';
             else
                 PC_MEMORY_OUT.s_axi_arvalid <= '0';
                 PC_MEMORY_OUT.s_axi_arid <= "00";
             end if;
-        --     if PC_MEMORY_OUT.s_axi_rready = '1'
-        --     then
-        --         -- Fetched the instruction.
-        --         PC_MEMORY_OUT.s_axi_rready <= '0';
-        --         PC_MEMORY_OUT.s_axi_arvalid <= '0';
-        --         PC_MEMORY_OUT.s_axi_arid <= "00";
-        -- end if;
 
+            -- PC_MEMORY_OUT <= ClearReadAddressData(
+            --     PC_MEMORY_OUT, 
+            --     PC_MEMORY_IN);
+
+            if fsm_inst_cycle_p = DECODE_S 
+                or fsm_inst_cycle_p = EXECUTE_S
+                or fsm_inst_cycle_p = MEMFETCH2_S
+            then
+                PC_MEMORY_OUT.s_axi_rready <= '1';
+            else
+                PC_MEMORY_OUT.s_axi_rready <= '0';
+            end if;
+            
         end if;
     end process procCounter_proc;
 end Behavioral;

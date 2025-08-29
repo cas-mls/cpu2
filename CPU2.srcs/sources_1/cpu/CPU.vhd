@@ -147,9 +147,9 @@ entity CPU is
         MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
         -- AXI Memory Interface
         AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
-        AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC := AXI4_MEMORY_READ_IN_DEFAULTS;
+        AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
         AXI_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
-        AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC := AXI4_MEMORY_WRITE_IN_DEFAULTS;
+        AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
         DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
         DEBUGOUT    : out DEBUGOUTTYPE
     );
@@ -197,7 +197,12 @@ architecture Behavioral of CPU is
             MEM_ENB : out std_logic := '1';
             MEM_WEB : out std_logic_vector(0 downto 0) := "0";
             MEM_ADDRB : out std_logic_vector(11 downto 0);
-            MEM_DINB : out std_logic_vector(31 downto 0)
+            MEM_DINB : out std_logic_vector(31 downto 0);
+                -- AXI Memory Interface
+            ARG_MEMORY_READ_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
+            ARG_MEMORY_READ_IN :       in AXI4_MEMORY_READ_IN_TYPE_REC;
+            ARG_MEMORY_WRITE_OUT          : OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+            ARG_MEMORY_WRITE_IN :       in AXI4_MEMORY_WRITE_IN_TYPE_REC
         );
     end component;
 
@@ -335,6 +340,9 @@ architecture Behavioral of CPU is
     signal axi4PcMemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
     signal axi4DataMemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
     signal axi4DataMemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
+    signal axi4DataMemoryWriteOut  : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal MEM_ARG_1 : std_logic_vector(31 downto 0) := X"00000000";
+    signal STACK_ARG_1 : std_logic_vector(31 downto 0) := X"00000000";
 
     -- Decode information
     signal opcode : OPCODETYPE := "00000";
@@ -408,6 +416,18 @@ begin
             and (axi4PcMemoryReadIn.s_axi_rid = "01")
             and (fsm_inst_cycle_p = DECODE_S)
         else (others => '0');
+    -- 
+    MEM_ARG_1 <= AXI4_MEMORY_READ_IN.s_axi_rdata 
+        when (AXI4_MEMORY_READ_IN.s_axi_rvalid = '1') 
+            and (AXI4_MEMORY_READ_IN.s_axi_rid = "10")
+            and (fsm_inst_cycle_p = EXECUTE_S)
+        else (others => '0');
+
+    STACK_ARG_1 <= AXI4_MEMORY_READ_IN.s_axi_rdata 
+        when (AXI4_MEMORY_READ_IN.s_axi_rvalid = '1') 
+            and (axi4PcMemoryReadIn.s_axi_rid = "11")
+            and (fsm_inst_cycle_p = EXECUTE_S)
+        else (others => '0');
     opcode <= MEM_INST(31 downto 27);
     flag <= MEM_INST(26);
     memop <= MEM_INST(25 downto 24);
@@ -429,16 +449,19 @@ begin
     --     when fsm_inst_cycle_p = MEMFETCH1_S 
     --         or fsm_inst_cycle_p = MEMFETCH2_S 
     --     else AXI4_MEMORY_READ_IN_DEFAULTS;
-    AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut;
-    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
-    --         when fsm_inst_cycle_p = EXECUTE_S
-    --             or fsm_inst_cycle_p = INSTFETCH2_S
-    --             or fsm_inst_cycle_p = INSTFETCH1_S
-    --             or fsm_inst_cycle_p = WAITS_S
+
+    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut;
+    AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
+            when fsm_inst_cycle_p = EXECUTE_S
+                or fsm_inst_cycle_p = INSTFETCH_S
+                or fsm_inst_cycle_p = WAITS_S
     --             -- or fsm_inst_cycle_p = DEBUGWAIT_S
-        -- -- else axi4PcMemoryReadOut
-        -- --     when fsm_inst_cycle_p = DECODE_S
-        -- else AXI4_MEMORY_READ_OUT_DEFAULTS;
+            else axi4DataMemoryReadOut
+                when fsm_inst_cycle_p = DECODE_S
+                    or fsm_inst_cycle_p = MEMFETCH1_S
+                    or fsm_inst_cycle_p = MEMFETCH2_S
+            else AXI4_MEMORY_READ_OUT_DEFAULTS;
+    AXI_MEMORY_WRITE_OUT <= axi4DataMemoryWriteOut;
 
     alu_entity : alu
     port map(
@@ -477,7 +500,11 @@ begin
         MEM_ENB => MEM_ENB,
         MEM_WEB => MEM_WEB,
         MEM_ADDRB => MEM_ADDRB,
-        MEM_DINB => MEM_DINB
+        MEM_DINB => MEM_DINB,
+        ARG_MEMORY_READ_OUT => axi4DataMemoryReadOut,
+        ARG_MEMORY_READ_IN => AXI4_MEMORY_READ_IN,
+        ARG_MEMORY_WRITE_OUT => axi4DataMemoryWriteOut,
+        ARG_MEMORY_WRITE_IN => AXI_MEMORY_WRITE_IN
     );
 
     progCounter_enty : ProgCounter
@@ -578,7 +605,10 @@ begin
     instruction_fsm_Proc : process (SYS_CLK)
     begin
         if rising_edge (SYS_CLK) then
-            if (INTERRUPT = RESET or interruptReset = '1' or DEBUGOUT.Reset = '1') then
+            if INTERRUPT = RESET 
+                or interruptReset = '1' 
+                or DEBUGOUT.Reset = '1' 
+            then
                 fsm_inst_cycle_p <= RESET_STATE_S;
             else
                 if interruptRun = '1' then
@@ -616,22 +646,12 @@ begin
 
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
-            when INSTFETCH1_S =>
+            when INSTFETCH_S =>
                 if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
                     and axi4PcMemoryReadIn.s_axi_rid = "01" then
                     fsm_inst_cycle_n <= DECODE_S;
                 else
-                    fsm_inst_cycle_n <= INSTFETCH2_S;
-                end if;
-
-                ----------------------------------------------------------------
-                -- This is the second Cycle for the Fetch Instruction Memory
-            when INSTFETCH2_S =>
-                if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
-                    and axi4PcMemoryReadIn.s_axi_rid = "01" then
-                    fsm_inst_cycle_n <= DECODE_S;
-                else
-                    fsm_inst_cycle_n <= INSTFETCH2_S;
+                    fsm_inst_cycle_n <= INSTFETCH_S;
                 end if;
 
                 ----------------------------------------------------------------
@@ -691,7 +711,7 @@ begin
                                             fsm_inst_cycle_n <= EXECUTE_S;
                                         end if;
                                     else
-                                        fsm_inst_cycle_n <= INSTFETCH2_S; -- Should not happen
+                                        fsm_inst_cycle_n <= INSTFETCH_S; -- Should not happen
                                     end if;
                                 when others =>
                                     if DebugStart = '1' then
@@ -740,11 +760,18 @@ begin
                 -- Second Cycle to wait for memory to be read.
                 -- ABSOLUTE and INDEX operations.
             when MEMFETCH2_S =>
-                if DebugStart = '1' then
-                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                else
-                    fsm_inst_cycle_n <= EXECUTE_S;
-                end if;
+                -- if axi4DataMemoryReadIn.s_axi_rvalid = '1' 
+                --     and axi4PcMemoryReadIn.s_axi_rid = "10" then
+                    if DebugStart = '1' then
+                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                    else
+                        fsm_inst_cycle_n <= EXECUTE_S;
+                    end if;
+                -- else
+                --     fsm_inst_cycle_n <= MEMFETCH2_S;
+                -- end if;
+
+
 
                 ----------------------------------------------------------------
                 -- Execute intruction
@@ -761,17 +788,17 @@ begin
                             then -- Specific requirement for only WAIT
                                 fsm_inst_cycle_n <= WAITS_S;
                             else
-                                fsm_inst_cycle_n <= INSTFETCH2_S;
+                                fsm_inst_cycle_n <= INSTFETCH_S;
                             end if;
                         else
-                            fsm_inst_cycle_n <= INSTFETCH2_S;
+                            fsm_inst_cycle_n <= INSTFETCH_S;
                         end if;
 
                     elsif JumpDisablePipline = '1'
                         or DebugDisablePipline = '1'
                         or interruptRun = '1'
                     then -- Jump / Branch go back to the Address state.
-                        fsm_inst_cycle_n <= INSTFETCH2_S;
+                        fsm_inst_cycle_n <= INSTFETCH_S;
 
                     elsif opcode = oRTI and waitRun = '1' then
                         fsm_inst_cycle_n <= WAITS_S;
@@ -781,7 +808,7 @@ begin
                             and axi4PcMemoryReadIn.s_axi_rid = "01" then
                             fsm_inst_cycle_n <= DECODE_S;
                         else
-                            fsm_inst_cycle_n <= INSTFETCH2_S;
+                            fsm_inst_cycle_n <= INSTFETCH_S;
                         end if;
                         -- if ffmemop = ABSOLUTE or ffmemop = INDEX then
                         --     fsm_inst_cycle_n <= DECODE_S;
@@ -800,7 +827,7 @@ begin
                         and axi4PcMemoryReadIn.s_axi_rid = "01" then
                         fsm_inst_cycle_n <= DECODE_S;
                     else
-                        fsm_inst_cycle_n <= INSTFETCH2_S;
+                        fsm_inst_cycle_n <= INSTFETCH_S;
                     end if;
                 else
                     fsm_inst_cycle_n <= WAITS_S;
@@ -834,7 +861,7 @@ begin
             end if;
 
             when others =>
-                fsm_inst_cycle_n <= INSTFETCH2_S;
+                fsm_inst_cycle_n <= INSTFETCH_S;
         end case;
     end process;
 

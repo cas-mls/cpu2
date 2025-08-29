@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0.000 ns"></ZoomStartTime>
-      <ZoomEndTime time="2,480.001 ns"></ZoomEndTime>
-      <Cursor1Time time="1,775.000 ns"></Cursor1Time>
+      <ZoomStartTime time="19,333.333 ns"></ZoomStartTime>
+      <ZoomEndTime time="20,133.334 ns"></ZoomEndTime>
+      <Cursor1Time time="20,000.000 ns"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="196"></NameColumnWidth>
       <ValueColumnWidth column_width="72"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="48" />
+   <WVObjectSize size="50" />
    <wvobject fp_name="/SimCPU/clk" type="logic">
       <obj_property name="ElementShortName">clk</obj_property>
       <obj_property name="ObjectShortName">clk</obj_property>
@@ -143,6 +143,14 @@
    <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/AluRegisterLocked" type="logic">
       <obj_property name="ElementShortName">AluRegisterLocked</obj_property>
       <obj_property name="ObjectShortName">AluRegisterLocked</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/ireg1value" type="array">
+      <obj_property name="ElementShortName">ireg1value[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ireg1value[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/SimCPU/cpuCUT/alu_entity/ireg2value" type="array">
+      <obj_property name="ElementShortName">ireg2value[31:0]</obj_property>
+      <obj_property name="ObjectShortName">ireg2value[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="/SimCPU/cpuCUT/progCounter_enty/ProgCounterLocal" type="array">
       <obj_property name="ElementShortName">ProgCounterLocal[11:0]</obj_property>

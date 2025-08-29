@@ -108,7 +108,13 @@ entity MemoryAccess is
         MEM_ENB : out std_logic := '1';
         MEM_WEB : out std_logic_vector(0 downto 0) := "0";
         MEM_ADDRB : out std_logic_vector(11 downto 0);
-        MEM_DINB : out std_logic_vector(31 downto 0)
+        MEM_DINB : out std_logic_vector(31 downto 0);
+                -- AXI Memory Interface
+        ARG_MEMORY_READ_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+        ARG_MEMORY_READ_IN :       in AXI4_MEMORY_READ_IN_TYPE_REC;
+        ARG_MEMORY_WRITE_OUT          : OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+        ARG_MEMORY_WRITE_IN :       in AXI4_MEMORY_WRITE_IN_TYPE_REC 
+
     );
 end MemoryAccess;
 
@@ -163,6 +169,18 @@ begin
                 END IF;
             END LOOP;
 
+            
+            -- Clear Read Address and Data after the slave acknowledges them.
+            ARG_MEMORY_READ_OUT <= 
+                ClearReadAddressData(
+                    ARG_MEMORY_READ_OUT, 
+                    ARG_MEMORY_READ_IN);
+
+            -- The Write Address and Write Data are cleared after the slave acknowledges them.
+            ARG_MEMORY_WRITE_OUT <= 
+                ClearWriteFlags(
+                    ARG_MEMORY_WRITE_OUT, 
+                    ARG_MEMORY_WRITE_IN);
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
@@ -170,12 +188,16 @@ begin
                     MEM_WEB <= "0";
                     MEM_ADDRB <= X"000";
                     MEM_DINB <= X"00000000";
-                when INSTFETCH1_S =>
+                    ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
+                    ARG_MEMORY_WRITE_OUT <= AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+                    ARG_MEMORY_WRITE_OUT.s_axi_bready <= '0';
+                when INSTFETCH_S =>
                     MEM_ENB <= '0';
                     MEM_WEB <= "0";
                 when DECODE_S =>
 
                     if AluRegisterLocked = '0' then
+
                         -- Maintain Flip-Flop (Memory) protions of the instruction.
                         -- This removes the timing violations and make the processor faster.
                         -- Might remove the combinatorial logic which should not be used after this cycle.
@@ -197,22 +219,41 @@ begin
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                         MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
+
+                                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                            cpuRegs(iregop2).Value(11 downto 0),
+                                            MEM_ID_STACK,
+                                            X"00000" & std_logic_vector(unsigned(ProgramCounter + 1))
+                                        );
                                     when oRTN =>
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(
                                                     to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12));
+
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(
+                                                    to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), MEM_ID_STACK);
+
                                     when oPUSHPOP =>
                                         if flag = '0' then -- Push
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "1";
                                             MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                             MEM_DINB <= cpuRegs(iregop1).Value;
+
+                                            ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                                cpuRegs(iregop2).Value(11 downto 0),
+                                                MEM_ID_STACK,
+                                                cpuRegs(iregop1).Value
+                                            );
                                         else -- Pop
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "0";
                                             MEM_ADDRB <= std_logic_vector(to_unsigned(
                                                         to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12));
+                                            
+                                            ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(
+                                                        to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), MEM_ID_STACK);
                                         end if;
                                     when oRTI =>
                                         MEM_ENB <= '1';
@@ -227,12 +268,24 @@ begin
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                         MEM_DINB <= X"00000" & std_logic_vector(unsigned(ProgramCounter + 1));
+
+                                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                            cpuRegs(iregop2).Value(11 downto 0),
+                                            MEM_ID_STACK,
+                                            X"00000" & std_logic_vector(unsigned(ProgramCounter + 1))
+                                        ); 
                                     when oPUSHPOP =>
                                         if flag = '0' then
                                             MEM_ENB <= '1';
                                             MEM_WEB <= "1";
                                             MEM_ADDRB <= cpuRegs(iregop2).Value(11 downto 0);
                                             MEM_DINB <= X"0000" & immop;
+
+                                            ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                                cpuRegs(iregop2).Value(11 downto 0),
+                                                MEM_ID_STACK,
+                                                X"0000" & immop
+                                            );  
                                         end if;
                                     when others =>
                                 end case;
@@ -242,6 +295,9 @@ begin
                                         MEM_ENB <= '1';
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= immop(11 downto 0);
+
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(immop(11 downto 0), MEM_ID_ARG);
+
                                     when others =>
                                 end case;
 
@@ -252,6 +308,9 @@ begin
                                         MEM_WEB <= "0";
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
                                                     to_integer(unsigned(cpuRegs(iregop2).Value)), 12));
+
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
+                                                    to_integer(unsigned(cpuRegs(iregop2).Value)), 12)), MEM_ID_ARG);
                                     when others =>
                                 end case;
                             when others =>
@@ -282,6 +341,12 @@ begin
                                         MEM_WEB <= "1";
                                         MEM_ADDRB <= ffimmop(11 downto 0);
                                         MEM_DINB <= ireg1value;
+
+                                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                            ffimmop(11 downto 0),
+                                            MEM_ID_ARG,
+                                            ireg1value
+                                        );
                                     when oRWIO =>
                                         if ffflag = '0' then
                                             MEM_ENB <= '1';
@@ -300,6 +365,13 @@ begin
                                         MEM_ADDRB <= std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
                                                     to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12));
                                         MEM_DINB <= ireg1value;
+
+                                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                                            std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
+                                                        to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12)),
+                                            MEM_ID_ARG,
+                                            ireg1value
+                                        );
                                     when oRWIO =>
                                         if ffflag = '0' then
                                             MEM_ENB <= '1';
@@ -316,8 +388,11 @@ begin
                                 MEM_WEB <= "0";
                         end case;
                     end if;
+                    ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
                 when others =>
             end case;
+
+
 
             case fsm_interrupt_cycle_p is
                 when SAVEENA_S =>
