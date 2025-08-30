@@ -374,15 +374,15 @@ package Utilities is
             data : std_logic_vector(31 downto 0)) 
         return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
 
-        Function ClearReadAddressData (
-            readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
-            readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
-        return AXI4_MEMORY_READ_OUT_TYPE_REC;
+    Function ClearReadAddressData (
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+    return AXI4_MEMORY_READ_OUT_TYPE_REC;
         
     Function ClearWriteFlags (
-            writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC; 
-            writeIn : AXI4_MEMORY_WRITE_IN_TYPE_REC ) 
-        return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+        writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC; 
+        writeIn : AXI4_MEMORY_WRITE_IN_TYPE_REC ) 
+    return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
 
 end Package;
 

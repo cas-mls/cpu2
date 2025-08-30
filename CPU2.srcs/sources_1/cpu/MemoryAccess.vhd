@@ -171,16 +171,47 @@ begin
 
             
             -- Clear Read Address and Data after the slave acknowledges them.
-            ARG_MEMORY_READ_OUT <= 
-                ClearReadAddressData(
-                    ARG_MEMORY_READ_OUT, 
-                    ARG_MEMORY_READ_IN);
+            -- XXX: I don't know why this function do not work as expected.  I in-line the code.
+            -- ARG_MEMORY_READ_OUT <= 
+            --     ClearReadAddressData(
+            --         ARG_MEMORY_READ_OUT, 
+            --         ARG_MEMORY_READ_IN);
+            if ARG_MEMORY_READ_IN.s_axi_arready = '1' and
+                ARG_MEMORY_READ_OUT.s_axi_arvalid = '1' then
+                ARG_MEMORY_READ_OUT.s_axi_arvalid <= '0';
+                ARG_MEMORY_READ_OUT.s_axi_araddr <= (others => '0');
+            end if;
+
+            if ARG_MEMORY_READ_IN.s_axi_rvalid = '1' and
+                ARG_MEMORY_READ_OUT.s_axi_rready = '1' then
+                ARG_MEMORY_READ_OUT.s_axi_rready <= '0';
+                -- TODO: Could Save off read data in a Flip-Flop here if needed.
+                -- Could use the Memory Id as a index in a Latch List.
+            end if;
 
             -- The Write Address and Write Data are cleared after the slave acknowledges them.
-            ARG_MEMORY_WRITE_OUT <= 
-                ClearWriteFlags(
-                    ARG_MEMORY_WRITE_OUT, 
-                    ARG_MEMORY_WRITE_IN);
+            -- XXX: I don't know why this function do not work as expected.  I in-line the code.
+            -- ARG_MEMORY_WRITE_OUT <= 
+            --     ClearWriteFlags(
+            --         ARG_MEMORY_WRITE_OUT, 
+            --         ARG_MEMORY_WRITE_IN);
+            if ARG_MEMORY_WRITE_IN.s_axi_awready = '1' and
+                ARG_MEMORY_WRITE_OUT.s_axi_awvalid = '1' then
+                ARG_MEMORY_WRITE_OUT.s_axi_awvalid <= '0';
+                ARG_MEMORY_WRITE_OUT.s_axi_awaddr <= (others => '0');
+            end if;
+
+            if ARG_MEMORY_WRITE_IN.s_axi_wready = '1' and
+                ARG_MEMORY_WRITE_OUT.s_axi_wvalid = '1' then
+                ARG_MEMORY_WRITE_OUT.s_axi_wvalid <= '0';
+                ARG_MEMORY_WRITE_OUT.s_axi_wdata <= (others => '0');
+            end if;
+
+            if ARG_MEMORY_WRITE_IN.s_axi_bvalid = '1' and
+                ARG_MEMORY_WRITE_OUT.s_axi_bready = '1' then
+                ARG_MEMORY_WRITE_OUT.s_axi_bready <= '0';
+            end if;
+
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>

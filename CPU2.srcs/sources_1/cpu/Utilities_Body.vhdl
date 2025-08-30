@@ -87,6 +87,7 @@ package body Utilities is
                 -- Could use the Memory Id as a index in a Latch List.
             end if;
         return ret;
+        
     end function ClearReadAddressData;
 
     Function ClearWriteFlags (

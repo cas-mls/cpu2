@@ -345,10 +345,27 @@ begin
             -- PC_MEMORY_OUT <= ClearReadAddressData(
             --     PC_MEMORY_OUT, 
             --     PC_MEMORY_IN);
+            -- if PC_MEMORY_IN.s_axi_arready = '1' and
+            --     PC_MEMORY_OUT.s_axi_arvalid = '1' then
+            --     PC_MEMORY_OUT.s_axi_arvalid <= '0';
+            --     PC_MEMORY_OUT.s_axi_araddr <= (others => '0');
+            -- end if;
 
-            if fsm_inst_cycle_p = DECODE_S 
-                or fsm_inst_cycle_p = EXECUTE_S
+            -- if PC_MEMORY_IN.s_axi_rvalid = '1' 
+            --     and PC_MEMORY_OUT.s_axi_rready = '1'
+            --     and fsm_inst_cycle_p = DECODE_S
+            -- then
+            --     PC_MEMORY_OUT.s_axi_rready <= '0';
+            --     -- TODO: Could Save off read data in a Flip-Flop here if needed.
+            --     -- Could use the Memory Id as a index in a Latch List.
+            -- end if;
+
+
+
+            if fsm_inst_cycle_p = EXECUTE_S 
+                or fsm_inst_cycle_p = DECODE_S
                 or fsm_inst_cycle_p = MEMFETCH2_S
+                -- or fsm_inst_cycle_p = INSTFETCH_S
             then
                 PC_MEMORY_OUT.s_axi_rready <= '1';
             else

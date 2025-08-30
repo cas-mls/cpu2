@@ -428,6 +428,8 @@ begin
             and (axi4PcMemoryReadIn.s_axi_rid = "11")
             and (fsm_inst_cycle_p = EXECUTE_S)
         else (others => '0');
+
+    
     opcode <= MEM_INST(31 downto 27);
     flag <= MEM_INST(26);
     memop <= MEM_INST(25 downto 24);
@@ -437,7 +439,6 @@ begin
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
 
-    axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN;
     -- axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN 
     --     when fsm_inst_cycle_p = INSTFETCH1_S 
     --         or fsm_inst_cycle_p = INSTFETCH2_S 
@@ -451,16 +452,35 @@ begin
     --     else AXI4_MEMORY_READ_IN_DEFAULTS;
 
     -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut;
+    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
+    --         when fsm_inst_cycle_p = EXECUTE_S
+    --             or fsm_inst_cycle_p = INSTFETCH_S
+    --             or fsm_inst_cycle_p = WAITS_S
+    -- --             -- or fsm_inst_cycle_p = DEBUGWAIT_S
+    --         else axi4DataMemoryReadOut
+    --             when fsm_inst_cycle_p = DECODE_S
+    --                 or fsm_inst_cycle_p = MEMFETCH1_S
+    --                 or fsm_inst_cycle_p = MEMFETCH2_S
+    --         else AXI4_MEMORY_READ_OUT_DEFAULTS;
+
     AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
-            when fsm_inst_cycle_p = EXECUTE_S
-                or fsm_inst_cycle_p = INSTFETCH_S
-                or fsm_inst_cycle_p = WAITS_S
-    --             -- or fsm_inst_cycle_p = DEBUGWAIT_S
+            when axi4PcMemoryReadOut.s_axi_arid = "01"
             else axi4DataMemoryReadOut
-                when fsm_inst_cycle_p = DECODE_S
-                    or fsm_inst_cycle_p = MEMFETCH1_S
-                    or fsm_inst_cycle_p = MEMFETCH2_S
+                when axi4DataMemoryReadOut.s_axi_arid = "10"
+                    or axi4DataMemoryReadOut.s_axi_arid = "11"
             else AXI4_MEMORY_READ_OUT_DEFAULTS;
+
+    -- axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN;
+    axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN 
+        when AXI4_MEMORY_READ_IN.s_axi_rid = "10"
+            or AXI4_MEMORY_READ_IN.s_axi_rid = "11"
+        else AXI4_MEMORY_READ_IN_DEFAULTS;
+
+    -- axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN;
+     axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN 
+        when AXI4_MEMORY_READ_IN.s_axi_rid = "01"
+        else AXI4_MEMORY_READ_IN_DEFAULTS;
+
     AXI_MEMORY_WRITE_OUT <= axi4DataMemoryWriteOut;
 
     alu_entity : alu
@@ -468,6 +488,7 @@ begin
         SYS_CLK => SYS_CLK,
         INSTRUCTION => MEM_INST,
         MEM_ARG => MEM_DOUTB,
+        -- MEM_ARG => MEM_ARG_1,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
         interruptSpNum => interruptSpNum,
@@ -502,7 +523,7 @@ begin
         MEM_ADDRB => MEM_ADDRB,
         MEM_DINB => MEM_DINB,
         ARG_MEMORY_READ_OUT => axi4DataMemoryReadOut,
-        ARG_MEMORY_READ_IN => AXI4_MEMORY_READ_IN,
+        ARG_MEMORY_READ_IN => axi4DataMemoryReadIn,
         ARG_MEMORY_WRITE_OUT => axi4DataMemoryWriteOut,
         ARG_MEMORY_WRITE_IN => AXI_MEMORY_WRITE_IN
     );
@@ -516,6 +537,7 @@ begin
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
         MEM_ARG => MEM_DOUTB,
+        -- MEM_ARG => MEM_ARG_1,
 
         MEM_ENA => MEM_ENA,
         MEM_WEA => MEM_WEA,
@@ -536,6 +558,7 @@ begin
         INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
         MEM_ARG => MEM_DOUTB,
+        -- MEM_ARG => MEM_ARG_1,
 
         fsm_inst_cycle_p => fsm_inst_cycle_p,
 
@@ -568,6 +591,7 @@ begin
         cpuRegs => cpuRegs,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         MEM_ARG => MEM_DOUTB,
+        -- MEM_ARG => MEM_ARG_1,
         INTERRUPT => INTERRUPT,
         timerAlarm => timerAlarm,
         timerInt => timerInt,
@@ -592,6 +616,7 @@ begin
         programCounter => ProgramCounter,
         cpuRegs => cpuRegs,
         MEM_ARG => MEM_DOUTB,
+        -- MEM_ARG => MEM_ARG_1,
         interruptNum => interruptNum,
         interruptMask => interruptMask,
         statusWord => statusWord,
@@ -634,6 +659,7 @@ begin
         DebugStart,
         fsm_interrupt_cycle_p,
         AluRegisterLocked,
+        axi4PcMemoryReadIn.s_axi_arready,
         axi4PcMemoryReadIn.s_axi_rvalid,
         axi4PcMemoryReadIn.s_axi_rid
         )
@@ -647,7 +673,7 @@ begin
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
             when INSTFETCH_S =>
-                if axi4PcMemoryReadIn.s_axi_rvalid = '1' 
+                if axi4PcMemoryReadIn.s_axi_arready = '1' 
                     and axi4PcMemoryReadIn.s_axi_rid = "01" then
                     fsm_inst_cycle_n <= DECODE_S;
                 else
