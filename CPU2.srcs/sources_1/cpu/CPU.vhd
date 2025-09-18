@@ -669,13 +669,7 @@ begin
                 ----------------------------------------------------------------
                 -- This is the Cycle to wait for the Fetch Instruction Memory
             when INSTFETCH_S =>
-                -- if axi4PcMemoryReadIn.s_axi_arready = '1' 
-                --     and axi4PcMemoryReadIn.s_axi_rid = "01" then
-                --     fsm_inst_cycle_n <= DECODE_S;
-                -- else
-                --     fsm_inst_cycle_n <= INSTFETCH_S;
-                -- end if;
-                if IsReadDataValid(axi4PcMemoryReadOut, axi4PcMemoryReadIn, MEM_ID_PC) then
+                if IsReadDataValid(axi4PcMemoryReadIn, MEM_ID_PC) then
                     fsm_inst_cycle_n <= DECODE_S;
                 else
                     fsm_inst_cycle_n <= INSTFETCH_S;
@@ -686,107 +680,94 @@ begin
                 --       (opcode, memop, flag, iregop1, iregop2, and immop)
                 -- Set up memory address for ABSOLUTE and INDEX
             when DECODE_S =>
-                -- Continued until the ALU is done.
-                -- if AluRegisterLocked = '1' then
-                --     fsm_inst_cycle_n <= DECODE_S;
-                -- else
-                    case memop is
-                        when REGREG =>
-                            case opcode is
-                                when oJSR =>
+                case memop is
+                    when REGREG =>
+                        case opcode is
+                            when oJSR =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                            when oRTN | oRTI | oRWIO | oIOST =>
+                                fsm_inst_cycle_n <= MEMFETCH_S;
+                            when oPUSHPOP =>
+                                if flag = '0' then
                                     if DebugStart = '1' then
                                         fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
                                     else
                                         fsm_inst_cycle_n <= EXECUTE_S;
                                     end if;
-                                when oRTN | oRTI =>
-                                    fsm_inst_cycle_n <= MEMFETCH1_S;
-                                when oRWIO | oIOST =>
-                                    fsm_inst_cycle_n <= MEMFETCH2_S;
-                                when oPUSHPOP =>
-                                    if flag = '0' then
-                                        if DebugStart = '1' then
-                                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                        else
-                                            fsm_inst_cycle_n <= EXECUTE_S;
-                                        end if;
-                                    else
-                                        fsm_inst_cycle_n <= MEMFETCH1_S;
-                                    end if;
-                                when others =>
+                                else
+                                    fsm_inst_cycle_n <= MEMFETCH_S;
+                                end if;
+                            when others =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                        end case;
+                    when IMMEDIATE =>
+                        case opcode is
+                            when oJSR =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                            when oRWIO | oIOST=>
+                                fsm_inst_cycle_n <= MEMFETCH_S;
+                            when oPUSHPOP =>
+                                if flag = '0' then
                                     if DebugStart = '1' then
                                         fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
                                     else
                                         fsm_inst_cycle_n <= EXECUTE_S;
                                     end if;
-                            end case;
-                        when IMMEDIATE =>
-                            case opcode is
-                                when oJSR =>
-                                    if DebugStart = '1' then
-                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                    else
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    end if;
-                                when oRWIO | oIOST=>
-                                    fsm_inst_cycle_n <= MEMFETCH2_S;
-                                when oPUSHPOP =>
-                                    if flag = '0' then
-                                        if DebugStart = '1' then
-                                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                        else
-                                            fsm_inst_cycle_n <= EXECUTE_S;
-                                        end if;
-                                    else
-                                        fsm_inst_cycle_n <= INSTFETCH_S; -- Should not happen
-                                    end if;
-                                when others =>
-                                    if DebugStart = '1' then
-                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                    else
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    end if;
-                            end case;
-                        when ABSOLUTE =>
-                            case opcode is
-                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
-                                    fsm_inst_cycle_n <= MEMFETCH1_S;
-                                when others =>
-                                    if DebugStart = '1' then
-                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                    else
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    end if;
-                            end case;
-                        when INDEX =>
-                            case opcode is
-                                when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
-                                    fsm_inst_cycle_n <= MEMFETCH1_S;
-                                when others =>
-                                    if DebugStart = '1' then
-                                        fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                                    else
-                                        fsm_inst_cycle_n <= EXECUTE_S;
-                                    end if;
-                            end case;
-                        when others =>
-                            if DebugStart = '1' then
-                                fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
-                            else
-                                fsm_inst_cycle_n <= EXECUTE_S;
-                            end if;
-                    end case;
-                -- end if;
-                ----------------------------------------------------------------
-                -- Cycle to wait for memory to be read.
-                -- ABSOLUTE and INDEX operations.
-            when MEMFETCH1_S =>
-                fsm_inst_cycle_n <= MEMFETCH2_S;
-
-                ----------------------------------------------------------------
-                -- Second Cycle to wait for memory to be read.
-                -- ABSOLUTE and INDEX operations.
-            when MEMFETCH2_S =>
+                                else
+                                    fsm_inst_cycle_n <= INSTFETCH_S; -- Should not happen
+                                end if;
+                            when others =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                        end case;
+                    when ABSOLUTE =>
+                        case opcode is
+                            when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH_S;
+                            when others =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                        end case;
+                    when INDEX =>
+                        case opcode is
+                            when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
+                                fsm_inst_cycle_n <= MEMFETCH_S;
+                            when others =>
+                                if DebugStart = '1' then
+                                    fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                                else
+                                    fsm_inst_cycle_n <= EXECUTE_S;
+                                end if;
+                        end case;
+                    when others =>
+                        if DebugStart = '1' then
+                            fsm_inst_cycle_n <= DEBUGSTABLEIZE_S;
+                        else
+                            fsm_inst_cycle_n <= EXECUTE_S;
+                        end if;
+                end case;
+            ----------------------------------------------------------------
+            -- Cycle to wait for memory to be read.
+            -- ABSOLUTE and INDEX operations.
+            when MEMFETCH_S =>
                 if axi4DataMemoryReadIn.s_axi_rvalid = '1' 
                     and (axi4DataMemoryReadIn.s_axi_rid = "10"
                         or axi4DataMemoryReadIn.s_axi_rid = "11") then
@@ -796,7 +777,7 @@ begin
                         fsm_inst_cycle_n <= EXECUTE_S;
                     end if;
                 else
-                    fsm_inst_cycle_n <= MEMFETCH2_S;
+                    fsm_inst_cycle_n <= MEMFETCH_S;
                 end if;
 
 
@@ -839,16 +820,6 @@ begin
                 else
                     fsm_inst_cycle_n <= WAITS_S;
                 end if;
-                ----------------------------------------------------------------
-                -- Update the program counter.
-                -- All of these could be included in the Execute cycle and
-                -- this state could be eliminated.
-            -- when CLEANUP_S =>
-            --     if opcode = oRTI and waitRun = '1' then
-            --         fsm_inst_cycle_n <= WAITS_S;
-            --     else
-            --         fsm_inst_cycle_n <= INSTFETCH1_S;
-            --     end if;
 
             ----------------------------------------------------------------
             -- This is set when the DEBUG.Stopped is set and the next cycle

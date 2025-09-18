@@ -246,10 +246,13 @@ begin
             when DISABLEINT_S =>
                 fsm_interrupt_cycle_n <= JMPADDR_S;
             when JMPADDR_S =>
-                fsm_interrupt_cycle_n <= JMPFETCH1_S;
-            when JMPFETCH1_S =>
-                fsm_interrupt_cycle_n <= JMPFETCH2_S;
-            when JMPFETCH2_S =>
+                fsm_interrupt_cycle_n <= JMPFETCH_S;
+            when JMPFETCH_S =>
+                if IsReadDataValid(AXI4_MEMORY_READ_IN, MEM_ID_PC) then
+                    fsm_interrupt_cycle_n <= JUMP_S;
+                else
+                    fsm_interrupt_cycle_n <= JMPFETCH_S;
+                end if;
                 fsm_interrupt_cycle_n <= JUMP_S;
             when JUMP_S =>
                     fsm_interrupt_cycle_n <= JUMP2_S;
@@ -408,8 +411,7 @@ begin
             when INTRWAIT_S =>
             when SAVEENA_S =>   -- MemoryAccess uses this state
             when JMPADDR_S =>   -- MemoryAccess uses this state
-            when JMPFETCH1_S =>
-            when JMPFETCH2_S => -- MemoryAccess uses this state
+            when JMPFETCH_S => -- MemoryAccess uses this state
             when JUMP_S =>      -- ProgramCounter and ALU uses this state
             when JUMP2_S =>      -- ProgramCounter and ALU uses this state
             when DISABLEINT_S =>    -- MemoryAccess uses this state

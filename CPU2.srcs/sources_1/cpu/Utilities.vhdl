@@ -44,8 +44,8 @@ package Utilities is
         DUMMY3_S,       -- State 2
         INSTFETCH_S,    -- State 3
         DECODE_S,       -- State 4
-        MEMFETCH1_S,    -- State 5
-        MEMFETCH2_S,    -- State 6
+        DUMMY4_S,       -- State 5
+        MEMFETCH_S,     -- State 6
         EXECUTE_S,      -- State 7
         DUMMY2_S,       -- State 8
         WAITS_S,        -- State 9
@@ -60,8 +60,8 @@ package Utilities is
         SAVEENA_S,      -- State 2
         DISABLEINT_S,   -- State 3
         JMPADDR_S,      -- State 4
-        JMPFETCH1_S,    -- State 5
-        JMPFETCH2_S,    -- State 6
+        DUMMYINT1_S,    -- State 5
+        JMPFETCH_S,    -- State 6
         JUMP_S,         -- State 7
         JUMP2_S,        -- State 8
         DONE_S          -- State 9
@@ -384,7 +384,6 @@ package Utilities is
     return std_logic_vector;
 
     Function IsReadDataValid (
-        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
         readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
         id : std_logic_vector(1 downto 0) )
     return boolean;

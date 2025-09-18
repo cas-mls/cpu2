@@ -97,7 +97,6 @@ package body Utilities is
     end function GetReadData;
 
     function IsReadDataValid(
-        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
         readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
         id : std_logic_vector(1 downto 0) )
     return boolean
