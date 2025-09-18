@@ -90,19 +90,20 @@ use UNISIM.VComponents.all;
 
 entity ALU is
     port (
-        SYS_CLK               : in  STD_LOGIC;
-        INSTRUCTION           : in  STD_LOGIC_VECTOR(31 downto 0);
-        MEM_ARG               : in  STD_LOGIC_VECTOR(31 downto 0);
-        fsm_inst_cycle_p      : in  CYCLETYPE_FSM;
-        fsm_interrupt_cycle_p : in  INTERRUPT_FSM;
-        interruptSPNum        : in  INTEGER range 0 to 31;
-        IOR_DATA              : in  STD_LOGIC_VECTOR(31 downto 0);
-        IO_STATUS             : in  STD_LOGIC_VECTOR(31 downto 0);
-        interruptSpAddrValue  : in  INTEGER range 0 to 2 ** 12 - 1;
-        statusWord            : out STATUS_WORD_TYPE := (others => '0');
-        cpuRegs               : out REG_TYPE;
-        AluRegisterLocked     : out STD_LOGIC;
-        DEBUGIN               : in  DEBUGINTYPE := DEBUGIN_DEFAULTS
+        SYS_CLK              : in  STD_LOGIC;
+        INSTRUCTION          : in  STD_LOGIC_VECTOR(31 downto 0);
+        MEM_ARG              : in  STD_LOGIC_VECTOR(31 downto 0);
+        STACK_ARG            : in  STD_LOGIC_VECTOR(31 downto 0);
+        fsm_inst_cycle_p     : in  CYCLETYPE_FSM;
+        fsm_interrupt_cycle_p: in  INTERRUPT_FSM;
+        interruptSPNum       : in  INTEGER range 0 to 31;
+        IOR_DATA             : in  STD_LOGIC_VECTOR(31 downto 0);
+        IO_STATUS            : in  STD_LOGIC_VECTOR(31 downto 0);
+        interruptSpAddrValue : in  INTEGER range 0 to 2 ** 12 - 1;
+        statusWord           : out STATUS_WORD_TYPE := (others => '0');
+        cpuRegs              : out REG_TYPE;
+        AluRegisterLocked    : out STD_LOGIC;
+        DEBUGIN              : in  DEBUGINTYPE := DEBUGIN_DEFAULTS
     );
 
 end ALU;
@@ -632,7 +633,7 @@ begin
                                         else -- Pop
                                             delayReg2 <= to_unsigned(
                                                          to_integer(unsigned(ireg2value)) + 1, 32);
-                                            delayReg1                    <= unsigned(MEM_ARG);
+                                            delayReg1                    <= unsigned(STACK_ARG);
                                             delayirsp                    <= ffiregop2;
                                             cpuRegs(ffiregop1).OpCode    <= ffopcode;
                                             cpuRegs(ffiregop1).Countdown <= 0;

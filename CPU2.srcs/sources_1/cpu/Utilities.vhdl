@@ -148,7 +148,7 @@ package Utilities is
 
     -- Interrupt Constants
     constant interruptNums : integer := 31;
-    constant RESET : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000001";
+    constant ResetIntPos : integer := 0;
     constant NOINTERRUPT : STD_LOGIC_VECTOR (interruptNums downto 0) := X"00000000";
     
     ---------------------------------------------------------------------------
@@ -368,16 +368,33 @@ package Utilities is
             id : std_logic_vector(1 downto 0)) 
         return AXI4_MEMORY_READ_OUT_TYPE_REC;
 
+    Function ClearReadAddress (
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+    return AXI4_MEMORY_READ_OUT_TYPE_REC;
+
+    Function ClearReadData (
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+    return AXI4_MEMORY_READ_OUT_TYPE_REC;
+
+    Function GetReadData (
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
+            id : std_logic_vector(1 downto 0))
+    return std_logic_vector;
+
+    Function IsReadDataValid (
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
+        id : std_logic_vector(1 downto 0) )
+    return boolean;
+
     Function SetWrite (
             addr : std_logic_vector(11 downto 0); 
             id : std_logic_vector(1 downto 0); 
             data : std_logic_vector(31 downto 0)) 
         return AXI4_MEMORY_WRITE_OUT_TYPE_REC;
 
-    Function ClearReadAddressData (
-        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
-        readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
-    return AXI4_MEMORY_READ_OUT_TYPE_REC;
         
     Function ClearWriteFlags (
         writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC; 

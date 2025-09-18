@@ -27,6 +27,7 @@ use IEEE.numeric_std_unsigned.all;
 use std.textio.all;
 library xil_defaultlib;
 use xil_defaultlib.Utilities.all;
+use std.env.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -180,18 +181,15 @@ architecture Behavioral of SimCPU is
     signal axi4MemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
     signal axi4MemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
 
+    signal axi4MemoryWriteOutInit : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+    signal axi4MemoryWriteOutRun : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+    signal Init : BOOLEAN := TRUE;
+
     signal rsta_busy       : STD_LOGIC;
     signal rstb_busy       : STD_LOGIC;
     signal s_aclk          : STD_LOGIC;
-    signal s_aresetn       : STD_LOGIC := '1';
+    signal s_aresetn       : STD_LOGIC := '0';
 
-    -- Program Loading
-    signal LD_CLK   : STD_LOGIC                     := '1';
-    signal LD_ENA   : STD_LOGIC                     := '1';
-    signal LD_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal LD_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal LD_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal LD_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
     -- Program Running
     -- signal RUN_CLK      : STD_LOGIC                     := '1';
@@ -209,76 +207,16 @@ architecture Behavioral of SimCPU is
     signal TxByte        : STD_LOGIC_VECTOR (7 downto 0);
     signal TxAvail       : STD_LOGIC;
     signal TxStatus      : STD_LOGIC_VECTOR (31 downto 0);
-    signal UartInterrupt : STD_LOGIC;
+    signal UartInterrupt : STD_LOGIC := '0';
     signal RdByte        : STD_LOGIC_VECTOR (7 downto 0);
     signal RdStatus      : STD_LOGIC_VECTOR (31 downto 0);
     signal r_xtr         : STD_LOGIC_VECTOR(7 downto 0);
 
     -- Debug Items
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := 
-        (DebugMode => '0',
-        BreakPoints => (others => (others => '0')), 
-        Break => '0', 
-        Step => '0', 
-        Continue => '0',
-        BWhenReg => 0,
-        BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING,
-        Reset => '0',
-        UpdateValue => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        ),
-        UpdateReg => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        ));
+    signal DebugIn      : DEBUGINTYPE := DEBUGIN_DEFAULTS;
     signal DebugOut     : DEBUGOUTTYPE;
 
---     procedure InitRamFromFile
---     (RamFileName    : in  STRING;
---     signal LD_CLK   : out STD_LOGIC;
---     signal ENABLE   : out STD_LOGIC;
---     signal W_ENABLE : out STD_LOGIC;
---     signal ADDR     : out STD_LOGIC_VECTOR(11 downto 0);
---     signal DOUT     : out STD_LOGIC_VECTOR(31 downto 0)
---     )
---     is
---     file RamFile         : text is in RamFileName;
---     variable RamFileLine : line;
---     variable outLine     : line;
---     variable good        : BOOLEAN;
---     variable data1       : bit_vector(31 downto 0)                   := X"00000000";
---     variable l_addr      : NATURAL range 0 to (2 ** ADDR'length - 1) := 0;
--- begin
-
---     if not RUN then
---         LD_CLK <= '0';
---         wait for HALF_PERIOD;
---         ENABLE   <= '1';
---         W_ENABLE <= '1';
-
---         -- for I in ADDR'range loop
---         -- for I in 0 to 4095 loop
---         while not endfile(RamFile)loop
---             report "l_addr: " & INTEGER'image(l_addr);
---             write(outLine, "l_addr: " & INTEGER'image(l_addr));
---             writeline(output, outLine);
---             ADDR <= STD_LOGIC_VECTOR(to_signed(l_addr, ADDR'length));
---             readline(RamFile, RamFileLine);
---             read(RamFileLine, data1, good);
---             DOUT   <= to_stdlogicvector(data1);
---             LD_CLK <= '1';
---             wait for HALF_PERIOD;
---             LD_CLK <= '0';
---             wait for HALF_PERIOD;
---             l_addr := l_addr + 1;
---         end loop;
---     end if;
--- end procedure;
 
 procedure UART_DRIVER (
     constant UART_PER : TIME;
@@ -325,7 +263,7 @@ port map(
     MEM_DOUTB     => MEM_DOUTB,
     AXI4_MEMORY_READ_OUT => axi4MemoryReadOut,
     AXI4_MEMORY_READ_IN  => axi4MemoryReadIn,
-    AXI_MEMORY_WRITE_OUT => axi4MemoryWriteOut,
+    AXI_MEMORY_WRITE_OUT => axi4MemoryWriteOutRun,
     AXI_MEMORY_WRITE_IN  => axi4MemoryWriteIn,
     DEBUGIN       => DebugIn,
     DEBUGOUT      => DebugOut
@@ -391,20 +329,14 @@ port map(
   );
 
 -- Link the LOAD Program and RUN program memory signals.
-MEM_CLK <= clk when RUN else
-           LD_CLK;
-MEM_ENA <= RUN_ENA when RUN else
-           LD_ENA;
-MEM_WEA <= RUN_WEA when RUN else
-           LD_WEA;
-MEM_ADDRA <= RUN_ADDRA when RUN else
-             LD_ADDRA;
-MEM_DINA <= RUN_DINA when RUN else
-            LD_DINA;
-RUN_DOUTA <= MEM_DOUTA when RUN else
-             "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
-LD_DOUTA <= MEM_DOUTA when not RUN else
-            "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ";
+MEM_CLK <= clk;
+MEM_ENA <=   RUN_ENA    ;
+MEM_WEA <=   RUN_WEA    ;
+MEM_ADDRA <= RUN_ADDRA  ;
+MEM_DINA <=  RUN_DINA   ;
+RUN_DOUTA <= MEM_DOUTA  ;
+
+axi4MemoryWriteOut <= axi4MemoryWriteOutRun when not Init else axi4MemoryWriteOutInit;
 
 s_aclk <= clk;
 
@@ -451,9 +383,43 @@ begin
         interrupt(0) <= '1';
         for j in 1 to 10 loop
             wait until rising_edge (clk);
-            s_aresetn <= '1';
+            s_aresetn <= '0';
         end loop;
+        s_aresetn <= '1';
         wait until rsta_busy = '0' and rstb_busy = '0' and rising_edge (clk);
+        
+        wait until rising_edge (clk);
+        wait until rising_edge (clk);
+        Init <= TRUE;
+        -- #1 Write
+        axi4MemoryWriteOutInit.s_axi_awvalid <= '1';
+        axi4MemoryWriteOutInit.s_axi_awaddr <= X"00000000";
+        axi4MemoryWriteOutInit.s_axi_awid   <= "01";
+        axi4MemoryWriteOutInit.s_axi_wvalid  <= '1';
+        axi4MemoryWriteOutInit.s_axi_wdata   <= X"00000020";
+        axi4MemoryWriteOutInit.s_axi_wstrb   <= "1111";
+        axi4MemoryWriteOutInit.s_axi_bready  <= '1';
+        wait until rising_edge (clk);
+        
+        wait until axi4MemoryWriteIn.s_axi_awready = '1'
+            and axi4MemoryWriteOutInit.s_axi_awvalid = '1' 
+            and rising_edge (clk);
+        axi4MemoryWriteOutInit.s_axi_awvalid <= '0';
+        axi4MemoryWriteOutInit.s_axi_awaddr <= (others => '0');
+
+--        wait until axi4MemoryWriteIn.s_axi_wready = '1' 
+--            and axi4MemoryWriteOutInit.s_axi_wvalid = '1' 
+--            and rising_edge (clk);
+--        axi4MemoryWriteOutInit.s_axi_wvalid <= '0';
+--        axi4MemoryWriteOutInit.s_axi_wdata <= (others => '0');
+
+--        wait until axi4MemoryWriteIn.s_axi_bvalid = '1' 
+--            and axi4MemoryWriteOutInit.s_axi_bready = '1'
+--            and rising_edge (clk);
+--        axi4MemoryWriteOutInit.s_axi_bready <= '0';
+        Init <= FALSE;
+
+
         interrupt(0) <= '0';
 
         while true loop
@@ -490,5 +456,6 @@ begin
     end if;
 
 end process;
+
 
 end Behavioral;

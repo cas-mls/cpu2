@@ -21,6 +21,7 @@ xil_defaultlib.files = [
 "CPU2.srcs\\sim_1\\computer\\SimCPU.vhd",
 "CPU2.srcs\\sim_ioInterrupts\\new\\simIoInterrupts.vhd",
 "CPU2.srcs\\sim_computer\\computer\\simComputer.vhd",
+"CPU2.srcs\\sim_Memory\\sim_AxiMemory.vhd",
 "CPU2.gen\\sources_1\\ip\\cpumemoryTEST\\cpumemoryTEST_sim_netlist.vhdl",
 "CPU2.gen\\sources_1\\ip\\UIntMult\\hdl\\xbip_bram18k_v3_0_vh_rfs.vhd",
 "CPU2.gen\\sources_1\\ip\\UIntMult\\hdl\\mult_gen_v12_0_vh_rfs.vhd",

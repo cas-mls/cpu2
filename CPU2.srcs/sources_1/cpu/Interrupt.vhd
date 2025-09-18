@@ -133,6 +133,9 @@ entity Interrupt_Entity is
         interruptSpAddrValue : out integer range 0 to 2 ** 12 - 1;
         interruptReset : out STD_LOGIC := '0';
         statusMask : out std_logic_vector(31 downto 0) := X"00000000";
+
+        AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
+        -- Debug Interface
         DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
 
     );
@@ -226,7 +229,8 @@ begin
     intrrupt_Proc : process (
         fsm_interrupt_cycle_p_local,
         fsm_inst_cycle_p,
-        interruptRun
+        interruptRun,
+        AXI4_MEMORY_READ_IN
         )
     begin
         case fsm_interrupt_cycle_p_local is
@@ -248,7 +252,7 @@ begin
             when JMPFETCH2_S =>
                 fsm_interrupt_cycle_n <= JUMP_S;
             when JUMP_S =>
-                fsm_interrupt_cycle_n <= JUMP2_S;
+                    fsm_interrupt_cycle_n <= JUMP2_S;
             when JUMP2_S =>
                 fsm_interrupt_cycle_n <= DONE_S;
             when DONE_S =>

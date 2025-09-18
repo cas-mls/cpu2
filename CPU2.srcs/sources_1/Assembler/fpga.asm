@@ -5,7 +5,23 @@
 
 INT0:
     ; jmp START
-    #d32    START
+;    #d32    START ; 0
+    #d32    0x5A5A_5020 ; 0
+    #d32    0x5A5A_5A5A ; 1
+    #d32    0x5A5A_5A5A ; 2
+    #d32    0x5A5A_5A5A ; 3
+    #d32    0x5A5A_5A5A ; 4
+    #d32    0x5A5A_5A5A ; 5
+    #d32    0x5A5A_5A5A ; 6
+    #d32    0x5A5A_5A5A ; 7
+    #d32    0x5A5A_5A5A ; 8
+    #d32    0x5A5A_5A5A ; 9
+    #d32    0x5A5A_5A5A ; 10
+    #d32    0x5A5A_5A5A ; 11
+    #d32    0x5A5A_5A5A ; 12
+    #d32    0x5A5A_5A5A ; 13
+    #d32    0x5A5A_5A5A ; 14
+    #d32    0x5A5A_5A5A ; 15
 
 SP1 = 15 ; Stack Pointer Register
 Stack1 = 0xAFF ; Stack Location

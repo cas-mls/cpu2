@@ -48,6 +48,69 @@ package body Utilities is
         return ret;
     end function SetReadAddress;
 
+        Function ClearReadAddress (
+            readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+            readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+        return AXI4_MEMORY_READ_OUT_TYPE_REC 
+    is
+        variable ret : AXI4_MEMORY_READ_OUT_TYPE_REC := readOut;
+    begin
+            if readIn.s_axi_arready = '1' and
+                readOut.s_axi_arvalid = '1' then
+                ret.s_axi_arvalid := '0';
+                ret.s_axi_arid := (others => '0');
+                ret.s_axi_araddr := (others => '0');
+            end if;
+
+        return ret;
+        
+    end function ClearReadAddress;
+
+    Function ClearReadData (
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
+        return AXI4_MEMORY_READ_OUT_TYPE_REC 
+    is
+        variable ret : AXI4_MEMORY_READ_OUT_TYPE_REC := readOut;
+    begin
+            if readIn.s_axi_arready = '1' and
+                readOut.s_axi_arvalid = '1' then
+                ret.s_axi_rready := '0';
+            end if;
+
+        return ret;
+        
+    end function ClearReadData;
+
+    function GetReadData (
+            readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
+            id : std_logic_vector(1 downto 0)) 
+        return std_logic_vector
+    is
+        variable ret : std_logic_vector(31 downto 0) := (others => '0');
+    begin
+        if readIn.s_axi_rvalid = '1' and
+            readIn.s_axi_rid = id then
+            ret := readIn.s_axi_rdata;
+        end if;
+        return ret;
+    end function GetReadData;
+
+    function IsReadDataValid(
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
+        id : std_logic_vector(1 downto 0) )
+    return boolean
+    is
+    begin
+        if -- readOut.s_axi_rready = '1' and
+            readIn.s_axi_rvalid = '1' and
+            readIn.s_axi_rid = id then
+            return true;
+        else
+            return false;
+        end if;
+    end function IsReadDataValid;
 
     Function SetWrite (
             addr : std_logic_vector(11 downto 0); 
@@ -67,35 +130,13 @@ package body Utilities is
         return ret;
     end function SetWrite;
 
-        Function ClearReadAddressData (
-            readOut : AXI4_MEMORY_READ_OUT_TYPE_REC; 
-            readIn : AXI4_MEMORY_READ_IN_TYPE_REC ) 
-        return AXI4_MEMORY_READ_OUT_TYPE_REC 
-    is
-        variable ret : AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
-    begin
-            if readIn.s_axi_arready = '1' and
-                readOut.s_axi_arvalid = '1' then
-                ret.s_axi_arvalid := '0';
-                ret.s_axi_araddr := (others => '0');
-            end if;
-
-            if readIn.s_axi_rvalid = '1' and
-                readOut.s_axi_rready = '1' then
-                ret.s_axi_rready := '0';
-                -- TODO: Could Save off read data in a Flip-Flop here if needed.
-                -- Could use the Memory Id as a index in a Latch List.
-            end if;
-        return ret;
-        
-    end function ClearReadAddressData;
 
     Function ClearWriteFlags (
             writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC; 
             writeIn : AXI4_MEMORY_WRITE_IN_TYPE_REC ) 
         return AXI4_MEMORY_WRITE_OUT_TYPE_REC 
     is
-        variable ret : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+        variable ret : AXI4_MEMORY_WRITE_OUT_TYPE_REC := writeOut;
     begin
 
             if writeIn.s_axi_awready = '1' and
