@@ -83,6 +83,7 @@ package Utilities is
         OpCode      : OPCODETYPE;   -- Instruction OpCode
         MemOp       : MEMTYPE;     -- Memory OpCode
         Flag        : STD_LOGIC;    -- Instruction Flag
+        RegOpNum    : integer range 0 to 3; -- Register Number
         Countdown   : integer range 0 to 7;      -- Countdown Timer.
     end record;
 
@@ -91,6 +92,7 @@ package Utilities is
         OpCode => (others => '0'),
         MemOp => (others => '0'),
         Flag => '0',
+        RegOpNum => 0,
         Countdown => 0
     );
 
@@ -364,6 +366,7 @@ package Utilities is
     );
 
     Function SetReadAddress (
+            readOut : AXI4_MEMORY_READ_OUT_TYPE_REC;
             addr : std_logic_vector(11 downto 0); 
             id : std_logic_vector(1 downto 0)) 
         return AXI4_MEMORY_READ_OUT_TYPE_REC;
@@ -384,9 +387,15 @@ package Utilities is
     return std_logic_vector;
 
     Function IsReadDataValid (
-        readIn : AXI4_MEMORY_READ_IN_TYPE_REC; 
+        readIn : AXI4_MEMORY_READ_IN_TYPE_REC;
+        readOut : AXI4_MEMORY_READ_OUT_TYPE_REC;
         id : std_logic_vector(1 downto 0) )
     return boolean;
+
+    function OkTowrite(
+        writeIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+        writeOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC )
+     return boolean;
 
     Function SetWrite (
             addr : std_logic_vector(11 downto 0); 

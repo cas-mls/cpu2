@@ -66,6 +66,12 @@ architecture Behavioral of SimCPU_Interrupt is
             MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
+            -- AXI Memory Interface
+            AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
+            AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
+            AXI4_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+            AXI4_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+            -- DEBUG Interface
             DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT    : out DEBUGOUTTYPE
         );
@@ -87,6 +93,36 @@ architecture Behavioral of SimCPU_Interrupt is
             doutb : out STD_LOGIC_VECTOR(31 downto 0)
         );
     end component; -- vhdl-linter-disable-line component
+
+        COMPONENT cpuAxiMemory
+    PORT (
+        rsta_busy : OUT STD_LOGIC;
+        rstb_busy : OUT STD_LOGIC;
+        s_aclk : IN STD_LOGIC;
+        s_aresetn : IN STD_LOGIC;
+        s_axi_awid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_awaddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_awvalid : IN STD_LOGIC;
+        s_axi_awready : OUT STD_LOGIC;
+        s_axi_wdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_wstrb : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+        s_axi_wvalid : IN STD_LOGIC;
+        s_axi_wready : OUT STD_LOGIC;
+        s_axi_bid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bvalid : OUT STD_LOGIC;
+        s_axi_bready : IN STD_LOGIC;
+        s_axi_arid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_araddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_arvalid : IN STD_LOGIC;
+        s_axi_arready : OUT STD_LOGIC;
+        s_axi_rid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_rresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rvalid : OUT STD_LOGIC;
+        s_axi_rready : IN STD_LOGIC 
+    );
+    END COMPONENT;
 
     constant HALF_PERIOD : TIME := 5 ns;
 
@@ -115,28 +151,24 @@ architecture Behavioral of SimCPU_Interrupt is
     signal MEM_DINB  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
     signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
+        -- AXI Memory Interface
+    signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+    signal axi4MemoryWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+    signal axi4MemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4MemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
+
+    signal axi4MemoryWriteOutInit : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+    signal axi4MemoryWriteOutRun : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+    signal Init : BOOLEAN := TRUE;
+
+    signal rsta_busy       : STD_LOGIC;
+    signal rstb_busy       : STD_LOGIC;
+    signal s_aclk          : STD_LOGIC;
+    signal s_aresetn       : STD_LOGIC := '0';
+
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := 
-        (DebugMode => '0',
-        BreakPoints => (others => (others => '0')), 
-        Break => '0', 
-        Step => '0', 
-        Continue => '0',
-        BWhenReg => 0,
-        BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING,
-        Reset => '0',
-        UpdateValue => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        ),
-        UpdateReg => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        ));
-    signal DebugOut     : DEBUGOUTTYPE;
+    signal DebugIn      : DEBUGINTYPE := DEBUGIN_DEFAULTS;
+    signal DebugOut     : DEBUGOUTTYPE := DEBUGOUT_DEFAULTS;
 
 begin
 
@@ -161,6 +193,10 @@ port map(
     MEM_ADDRB     => MEM_ADDRB,
     MEM_DINB      => MEM_DINB,
     MEM_DOUTB     => MEM_DOUTB,
+    AXI4_MEMORY_READ_OUT => axi4MemoryReadOut,
+    AXI4_MEMORY_READ_IN  => axi4MemoryReadIn,
+    AXI4_MEMORY_WRITE_OUT => axi4MemoryWriteOutRun,
+    AXI4_MEMORY_WRITE_IN  => axi4MemoryWriteIn,
     DEBUGIN       => DebugIn,
     DEBUGOUT      => DebugOut
 );
@@ -182,20 +218,102 @@ port map(
     doutb => MEM_DOUTB
 );
 
+    cpuMemoryAxi : cpuAxiMemory
+  PORT MAP (
+    rsta_busy       => rsta_busy,
+    rstb_busy       => rstb_busy,
+    s_aclk          => s_aclk,
+    s_aresetn       => s_aresetn,
+    s_axi_awid      => axi4MemoryWriteOut.s_axi_awid,
+    s_axi_awaddr    => axi4MemoryWriteOut.s_axi_awaddr,
+    s_axi_awvalid   => axi4MemoryWriteOut.s_axi_awvalid,
+    s_axi_awready   => axi4MemoryWriteIn.s_axi_awready,
+    s_axi_wdata     => axi4MemoryWriteOut.s_axi_wdata,
+    s_axi_wstrb     => axi4MemoryWriteOut.s_axi_wstrb,
+    s_axi_wvalid    => axi4MemoryWriteOut.s_axi_wvalid,
+    s_axi_wready    => axi4MemoryWriteIn.s_axi_wready,
+    s_axi_bid       => axi4MemoryWriteIn.s_axi_bid,
+    s_axi_bresp     => axi4MemoryWriteIn.s_axi_bresp,
+    s_axi_bvalid    => axi4MemoryWriteIn.s_axi_bvalid,
+    s_axi_bready    => axi4MemoryWriteOut.s_axi_bready,
+    s_axi_arid      => axi4MemoryReadOut.s_axi_arid,
+    s_axi_araddr    => axi4MemoryReadOut.s_axi_araddr,
+    s_axi_arvalid   => axi4MemoryReadOut.s_axi_arvalid,
+    s_axi_arready   => axi4MemoryReadIn.s_axi_arready,
+    s_axi_rid       => axi4MemoryReadIn.s_axi_rid,
+    s_axi_rdata     => axi4MemoryReadIn.s_axi_rdata,
+    s_axi_rresp     => axi4MemoryReadIn.s_axi_rresp,
+    s_axi_rvalid    => axi4MemoryReadIn.s_axi_rvalid,
+    s_axi_rready    => axi4MemoryReadOut.s_axi_rready
+  );
+
+
+axi4MemoryWriteOut <= axi4MemoryWriteOutRun when not Init else axi4MemoryWriteOutInit;
+s_aclk <= clk;
+
 clk <= '0' after HALF_PERIOD when clk = '1' else
        '1' after HALF_PERIOD;
 
 test : process
+    variable writeTempOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
 begin
 
     DebugIn.DebugMode <= '1'; -- Allow information in the DebugOut.
 
-    interrupt(0) <= '1';
-    for j in 1 to 10 loop
+        interrupt(0) <= '1';
+        for j in 1 to 10 loop
+            wait until rising_edge (clk);
+            s_aresetn <= '0';
+        end loop;
+        s_aresetn <= '1';
+        wait until rsta_busy = '0' and rstb_busy = '0' and rising_edge (clk);
+        
         wait until rising_edge (clk);
-    end loop;
-    interrupt(0) <= '0';
+        wait until rising_edge (clk);
+        Init <= TRUE;
+        -- #1 Write
+        axi4MemoryWriteOutInit.s_axi_awvalid <= '1';
+        axi4MemoryWriteOutInit.s_axi_awaddr <= X"00000000";
+        axi4MemoryWriteOutInit.s_axi_awid   <= "01";
+        axi4MemoryWriteOutInit.s_axi_wvalid  <= '1';
+        axi4MemoryWriteOutInit.s_axi_wdata   <= X"00000020";
+        axi4MemoryWriteOutInit.s_axi_wstrb   <= "1111";
+        axi4MemoryWriteOutInit.s_axi_bready  <= '1';
+        wait until rising_edge (clk);
+        
+        clear : loop
+            writeTempOut := ClearWriteFlags(axi4MemoryWriteOutInit, axi4MemoryWriteIn);
+            axi4MemoryWriteOutInit <= writeTempOut;
+            exit clear when
+                  writeTempOut.s_axi_awvalid = '0'
+                and writeTempOut.s_axi_wvalid = '0'
+                and writeTempOut.s_axi_bready = '0';
+            wait until rising_edge (clk);
+        end loop; -- clear
 
+
+    --     wait until axi4MemoryWriteIn.s_axi_awready = '1'
+    --         and axi4MemoryWriteOutInit.s_axi_awvalid = '1' 
+    --         and rising_edge (clk);
+    --     axi4MemoryWriteOutInit.s_axi_awvalid <= '0';
+    --     axi4MemoryWriteOutInit.s_axi_awaddr <= (others => '0');
+    --    axi4MemoryWriteOutInit.s_axi_wvalid <= '0';
+    --    axi4MemoryWriteOutInit.s_axi_wdata <= (others => '0');
+
+    --    wait until axi4MemoryWriteIn.s_axi_wready = '1' 
+    --        and axi4MemoryWriteOutInit.s_axi_wvalid = '1' 
+    --        and rising_edge (clk);
+    --    axi4MemoryWriteOutInit.s_axi_wvalid <= '0';
+    --    axi4MemoryWriteOutInit.s_axi_wdata <= (others => '0');
+
+    --    wait until axi4MemoryWriteIn.s_axi_bvalid = '1' 
+    --        and axi4MemoryWriteOutInit.s_axi_bready = '1'
+    --        and rising_edge (clk);
+    --    axi4MemoryWriteOutInit.s_axi_bready <= '0';
+        Init <= FALSE;
+
+
+        interrupt(0) <= '0';
     while true loop
         wait until rising_edge (clk);
         if ioaddr = X"01" and IORena = '1' then

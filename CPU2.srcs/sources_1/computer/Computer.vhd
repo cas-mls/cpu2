@@ -74,22 +74,10 @@ architecture Behavioral of Computer is
             MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
             -- AXI Memory Interface
-            AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
-            AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC := (
-                s_axi_arready => '0',
-                s_axi_rid => (others => '0'),
-                s_axi_rdata => (others => '0'),
-                s_axi_rresp => (others => '0'),
-                s_axi_rvalid => '0'
-            );
-            AXI_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
-            AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC := (
-                s_axi_awready => '0',
-                s_axi_wready => '0',
-                s_axi_bid => (others => '0'),
-                s_axi_bresp => (others => '0'),
-                s_axi_bvalid => '0'
-            );
+            AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+            AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
+            AXI4_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+            AXI4_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
 
             DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT    : out DEBUGOUTTYPE
@@ -478,8 +466,8 @@ begin
         MEM_DOUTB       => MEM_DOUTB,
         AXI4_MEMORY_READ_OUT  => axi4MemoryReadOut,
         AXI4_MEMORY_READ_IN => axi4MemoryReadIn,
-        AXI_MEMORY_WRITE_OUT => axi4MemoryWriteOut,
-        AXI_MEMORY_WRITE_IN => axi4MemoryWriteIn,
+        AXI4_MEMORY_WRITE_OUT => axi4MemoryWriteOut,
+        AXI4_MEMORY_WRITE_IN => axi4MemoryWriteIn,
         DEBUGIN         => DebugIn,
         DEBUGOUT        => DebugOut
     );

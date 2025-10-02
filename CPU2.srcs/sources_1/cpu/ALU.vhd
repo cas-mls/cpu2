@@ -103,6 +103,11 @@ entity ALU is
         statusWord           : out STATUS_WORD_TYPE := (others => '0');
         cpuRegs              : out REG_TYPE;
         AluRegisterLocked    : out STD_LOGIC;
+
+        -- AXI4 Memory Read Interface
+        AXI4_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+        AXI4_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+
         DEBUGIN              : in  DEBUGINTYPE := DEBUGIN_DEFAULTS
     );
 
@@ -336,13 +341,14 @@ begin
                         when oRWIO =>
                             if cpuRegs(reg).flag = '0'
                                 and (cpuRegs(reg).memop = REGREG
-                                or cpuRegs(reg).memop = IMMEDIATE)
-                                then
+                                    or cpuRegs(reg).memop = IMMEDIATE) 
+                            then 
                                 cpuRegs(reg).Value <= IOR_DATA;
                             end if;
                             cpuRegs(reg).OpCode      <= oNOP;
                             cpuRegs(reg).Countdown   <= 0;
                             cpuRegs(reg).Flag  <= '0';
+                            cpuRegs(reg).RegOpNum  <= 0;
                             cpuRegs(reg).MemOp <= REGREG;
 
                         when oIOST =>
@@ -658,12 +664,26 @@ begin
                                 cpuRegs(ffiregop1).Countdown <= 0;
 
                             when oRWIO =>
-                                cpuRegs(0).OpCode    <= ffopcode;
-                                cpuRegs(0).Countdown <= 0;
+                                if ffflag = '0' then -- IO Read
+                                    if ffmemop = INDEX then
+                                        cpuRegs(ffiregop2).OpCode    <= ffopcode;
+                                        cpuRegs(ffiregop2).Flag      <= ffflag;
+                                        cpuRegs(ffiregop2).MemOp    <= ffmemop;
+                                        cpuRegs(ffiregop2).Countdown <= 0;
+                                        cpuRegs(ffiregop2).RegOpNum  <= 2;
+                                    end if;
+                                    cpuRegs(ffiregop1).OpCode    <= ffopcode;
+                                    cpuRegs(ffiregop1).Flag      <= ffflag;
+                                    cpuRegs(ffiregop2).MemOp    <= ffmemop;
+                                    cpuRegs(ffiregop1).Countdown <= 0;
+                                    cpuRegs(ffiregop1).RegOpNum  <= 1;
+                                end if;
 
                             when oIOST =>
                                 cpuRegs(ffiregop1).OpCode    <= ffopcode;
+                                cpuRegs(ffiregop1).Flag      <= ffflag;
                                 cpuRegs(ffiregop1).Countdown <= 0;
+                                cpuRegs(ffiregop1).RegOpNum <= 1;
 
                             when oRTN =>
                                 if ffmemop = REGREG then

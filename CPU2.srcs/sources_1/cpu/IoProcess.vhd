@@ -166,14 +166,14 @@ BEGIN
                     IF opcode = oRWIO
                         OR opcode = oIOST
                     THEN
-                    --     IF flag = '0' THEN
-                    --         IOR_ENA <= '1';
-                    --     ELSE
-                    --         IOW_ENA <= '1';
-                    --     END IF;
-                    --     IF opcode = oIOST THEN
-                    --         IO_STATUS_REQ <= '1';
-                    --     END IF;
+                        IF flag = '0' THEN
+                            IOR_ENA <= '1';
+                        -- ELSE
+                        --     IOW_ENA <= '1';
+                        END IF;
+                        IF opcode = oIOST THEN
+                            IO_STATUS_REQ <= '1';
+                        END IF;
                         CASE memop IS
                             WHEN REGREG =>
                                 IO_ADDR <= cpuRegs(iregop2).Value(7 DOWNTO 0);

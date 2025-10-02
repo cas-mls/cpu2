@@ -110,10 +110,12 @@ entity MemoryAccess is
         MEM_ADDRB : out std_logic_vector(11 downto 0);
         MEM_DINB : out std_logic_vector(31 downto 0);
                 -- AXI Memory Interface
-        ARG_MEMORY_READ_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
-        ARG_MEMORY_READ_IN :       in AXI4_MEMORY_READ_IN_TYPE_REC;
-        ARG_MEMORY_WRITE_OUT          : OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
-        ARG_MEMORY_WRITE_IN :       in AXI4_MEMORY_WRITE_IN_TYPE_REC 
+        ARG_MEMORY_READ_OUT : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+        ARG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+        ARG_MEMORY_WRITE_OUT: OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+        ARG_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+
+        NEXT_CYCLE : out CYCLETYPE_FSM := RESET_STATE_S
 
     );
 end MemoryAccess;
@@ -138,6 +140,8 @@ architecture Behavioral of MemoryAccess is
     signal immop : IMMTYPE;
     signal ffimmop : IMMTYPE;
 
+    signal tempWait : integer := 0;
+
 begin
 
     opcode <= INSTRUCTION(31 downto 27);
@@ -152,22 +156,6 @@ begin
     memoryAccess_proc : process (SYS_CLK)
     begin
         if rising_edge (SYS_CLK) then
-
-            -- Check for any additional processing after the execute state.
-            -- This will run concurrent with the next instruction fetch.
-            FOR reg IN cpuRegs'RANGE LOOP
-                IF cpuRegs(reg).OpCode = oRWIO
-                    and cpuRegs(reg).Flag = '0'
-                THEN
-                    if cpuRegs(reg).MemOp = ABSOLUTE 
-                        or cpuRegs(reg).MemOp = INDEX
-                    then
-                        MEM_ENB <= '1';
-                        MEM_WEB <= "1";
-                        MEM_DINB <= IOR_DATA;
-                    end if;
-                END IF;
-            END LOOP;
 
             ARG_MEMORY_READ_OUT <= 
                 ClearReadAddress(
@@ -184,18 +172,47 @@ begin
                     ARG_MEMORY_WRITE_OUT, 
                     ARG_MEMORY_WRITE_IN);
 
+
+            -- Check for any additional processing after the execute state.
+            -- This will run concurrent with the next instruction fetch.
+            FOR reg IN cpuRegs'RANGE LOOP
+                IF cpuRegs(reg).OpCode = oRWIO
+                    and cpuRegs(reg).Flag = '0' -- IO Read
+                THEN
+                    if cpuRegs(reg).MemOp = ABSOLUTE then
+                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                            ffimmop(11 downto 0),
+                            MEM_ID_ARG,
+                            IOR_DATA
+                        );
+                    elsif cpuRegs(reg).MemOp = INDEX 
+                        and cpuRegs(reg).RegOpNum = 2 then
+                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                            std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
+                                to_integer(unsigned(cpuRegs(reg).Value)), 12)),
+                            MEM_ID_ARG,
+                            IOR_DATA
+                        );
+                    end if;
+                END IF;
+            END LOOP;
+
+
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
-                    MEM_ENB <= '0';
-                    MEM_WEB <= "0";
-                    MEM_ADDRB <= X"000";
-                    MEM_DINB <= X"00000000";
+                    -- MEM_ENB <= '0';
+                    -- MEM_WEB <= "0";
+                    -- MEM_ADDRB <= X"000";
+                    -- MEM_DINB <= X"00000000";
                     ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
                     ARG_MEMORY_WRITE_OUT <= AXI4_MEMORY_WRITE_OUT_DEFAULTS;
                     ARG_MEMORY_WRITE_OUT.s_axi_bready <= '0';
+                    NEXT_CYCLE <= EXECUTE_S;
+
                 when INSTFETCH_S =>
-                    MEM_ENB <= '0';
-                    MEM_WEB <= "0";
+                    -- MEM_ENB <= '0';
+                    -- MEM_WEB <= "0";
+
                 when DECODE_S =>
 
                     if AluRegisterLocked = '0' then
@@ -224,8 +241,10 @@ begin
                                         );
 
                                     when oRTN =>
-                                        ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(
-                                                    to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), MEM_ID_STACK);
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(
+                                            ARG_MEMORY_READ_OUT,
+                                            std_logic_vector(to_unsigned(to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), 
+                                            MEM_ID_STACK);
 
                                     when oPUSHPOP =>
                                         if flag = '0' then -- Push
@@ -236,13 +255,17 @@ begin
                                             );
 
                                         else -- Pop
-                                            ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(
-                                                        to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), MEM_ID_STACK);
+                                            ARG_MEMORY_READ_OUT <= SetReadAddress(
+                                                ARG_MEMORY_READ_OUT,
+                                                std_logic_vector(to_unsigned(to_integer(unsigned(cpuRegs(iregop2).Value)) + 1, 12)), 
+                                                MEM_ID_STACK);
 
                                         end if;
                                     when oRTI =>
-                                        ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(
-                                                    to_integer(unsigned(cpuRegs(interruptSpNum).Value)) + 1, 12)), MEM_ID_STACK);
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(
+                                            ARG_MEMORY_READ_OUT,
+                                            std_logic_vector(to_unsigned(to_integer(unsigned(cpuRegs(interruptSpNum).Value)) + 1, 12)), 
+                                            MEM_ID_STACK);
 
                                     when others =>
                                 end case;
@@ -269,7 +292,10 @@ begin
                             when ABSOLUTE =>
                                 case opcode is
                                     when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oBE | oBLT | oBGT | oSWIENA | oRWIO =>
-                                        ARG_MEMORY_READ_OUT <= SetReadAddress(immop(11 downto 0), MEM_ID_ARG);
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(
+                                            ARG_MEMORY_READ_OUT,
+                                            immop(11 downto 0), 
+                                            MEM_ID_ARG);
 
                                     when others =>
                                 end case;
@@ -277,32 +303,50 @@ begin
                             when INDEX =>
                                 case opcode is
                                     when oLD | oADD | oSUB | oMul | oDiv | oAND | oOr | oXor | oShlr | oJMP | oRWIO =>
-                                        ARG_MEMORY_READ_OUT <= SetReadAddress(std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
-                                                    to_integer(unsigned(cpuRegs(iregop2).Value)), 12)), MEM_ID_ARG);
+                                        ARG_MEMORY_READ_OUT <= SetReadAddress(
+                                            ARG_MEMORY_READ_OUT,
+                                            std_logic_vector(to_unsigned(to_integer(unsigned(immop(11 downto 0))) +
+                                                    to_integer(unsigned(cpuRegs(iregop2).Value)), 12)), 
+                                            MEM_ID_ARG);
 
                                     when others =>
                                 end case;
                             when others =>
                         end case;
                     end if;
+                    NEXT_CYCLE <= MEMFETCH_S;
+                    tempWait <= 0;
 
-                -- TODO: Need to work on the RTI contains 2 stack elements.
+                -- TODO (RTI): Need to work on the RTI contains 2 stack elements.
                 -- Needs to read both of them.  Might need perform the MEMFETCH twice?
-                -- when MEMFETCH1_S  =>
-                --     case ffmemop is
-                --         when REGREG =>
-                --             case ffopcode is
-                --                 when oRTI =>
-                --                     -- MEM_ENB <= '1';
-                --                     -- MEM_WEB <= "0";
-                --                     -- MEM_ADDRB <= std_logic_vector(to_unsigned(interruptSpAddrValue + 2, 12));
+                when MEMFETCH_S  =>
+                    if ARG_MEMORY_READ_IN.s_axi_rvalid = '1' 
+                        and (ARG_MEMORY_READ_IN.s_axi_rid = "10"
+                            or ARG_MEMORY_READ_IN.s_axi_rid = "11") then
+                            NEXT_CYCLE <= EXECUTE_S;
+                    else
+                        NEXT_CYCLE <= MEMFETCH_S;
+                    end if;
 
-                --                     ARG_MEMORY_READ_OUT <= 
-                --                         SetReadAddress(std_logic_vector(to_unsigned(interruptSpAddrValue + 2, 12)), MEM_ID_STACK);
-                --                 when others =>
-                --             end case;
-                --         when others =>
-                --     end case;
+                    case ffmemop is
+                        when REGREG =>
+                            case ffopcode is
+                                when oRTI =>
+                                    if tempWait = 1 then
+                                        tempWait <= 2;
+                                        ARG_MEMORY_READ_OUT <= 
+                                            SetReadAddress(
+                                                ARG_MEMORY_READ_OUT, 
+                                                std_logic_vector(to_unsigned(interruptSpAddrValue + 2, 12)), 
+                                                MEM_ID_STACK);
+                                    elsif tempWait = 0 then
+                                        tempWait <= 1;
+                                    end if;
+                                when others =>
+                            end case;
+                        when others =>
+                    end case;
+
 
                 when EXECUTE_S =>
                     if AluRegisterLocked = '0' 
@@ -320,12 +364,15 @@ begin
                                     when oRWIO =>
                                         if ffflag = '0' then
                                             ARG_MEMORY_READ_OUT <= 
-                                                SetReadAddress(ffimmop(11 downto 0), MEM_ID_STACK);
+                                                SetReadAddress(
+                                                    ARG_MEMORY_READ_OUT,
+                                                    ffimmop(11 downto 0), 
+                                                    MEM_ID_STACK);
 
                                         end if;
                                     when others =>
-                                        MEM_ENB <= '0';
-                                        MEM_WEB <= "0";
+                                        -- MEM_ENB <= '0';
+                                        -- MEM_WEB <= "0";
                                 end case;
                             when INDEX =>
                                 case ffopcode is
@@ -340,17 +387,20 @@ begin
                                     when oRWIO =>
                                         if ffflag = '0' then
                                             ARG_MEMORY_READ_OUT <= 
-                                                SetReadAddress(std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
-                                                        to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12)), MEM_ID_STACK);
+                                                SetReadAddress(
+                                                    ARG_MEMORY_READ_OUT,
+                                                    std_logic_vector(to_unsigned(to_integer(unsigned(ffimmop(11 downto 0))) +
+                                                        to_integer(unsigned(cpuRegs(ffiregop2).Value)), 12)), 
+                                                    MEM_ID_STACK);
 
                                         end if;
                                     when others =>
-                                        MEM_ENB <= '0';
-                                        MEM_WEB <= "0";
+                                        -- MEM_ENB <= '0';
+                                        -- MEM_WEB <= "0";
                                 end case;
                             when others =>
-                                MEM_ENB <= '0';
-                                MEM_WEB <= "0";
+                                -- MEM_ENB <= '0';
+                                -- MEM_WEB <= "0";
                         end case;
                     end if;
                     ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
@@ -361,24 +411,34 @@ begin
 
             case fsm_interrupt_cycle_p is
                 when SAVEENA_S =>
-                    ARG_MEMORY_WRITE_OUT <= SetWrite (
-                        std_logic_vector(to_unsigned(interruptSpAddrValue, 12)),
-                        MEM_ID_ARG,
-                        interruptMask
-                    );
+                    if OkTowrite(ARG_MEMORY_WRITE_IN, ARG_MEMORY_WRITE_OUT) then
+                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                            std_logic_vector(to_unsigned(interruptSpAddrValue, 12)),
+                            MEM_ID_ARG,
+                            interruptMask
+                        );
+                    end if;
 
                 when DISABLEINT_S =>
-                    ARG_MEMORY_WRITE_OUT <= SetWrite (
-                        std_logic_vector(to_unsigned(interruptSpAddrValue - 1, 12)),
-                        MEM_ID_ARG,
-                        X"00000" & std_logic_vector(unsigned(ProgramCounter))
-                    );
+                    if OkTowrite(ARG_MEMORY_WRITE_IN, ARG_MEMORY_WRITE_OUT) then
+                        ARG_MEMORY_WRITE_OUT <= SetWrite (
+                            std_logic_vector(to_unsigned(interruptSpAddrValue - 1, 12)),
+                            MEM_ID_ARG,
+                            X"00000" & std_logic_vector(unsigned(ProgramCounter))
+                        );
+                    end if;
 
                 when JMPADDR_S =>
                     ARG_MEMORY_READ_OUT <= 
-                        SetReadAddress("0000000" & std_logic_vector(to_unsigned(interruptNum, 5)), MEM_ID_ARG);
+                        SetReadAddress(
+                            ARG_MEMORY_READ_OUT, 
+                            "0000000" & std_logic_vector(to_unsigned(interruptNum, 5)), 
+                            MEM_ID_ARG);
 
+                when JMPFETCH_S =>
+                    null;
                 when others =>
+                    null;
             end case;
         end if;
     end process memoryAccess_proc;

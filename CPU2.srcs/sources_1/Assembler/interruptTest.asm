@@ -31,9 +31,9 @@ START:
 LOOP:
     ldl r ER, 0
     jsr r SP1, WAITTEST
-    jsr r SP1, IOTESTS
     jsr r SP1, INTERRUPTTEST
-    jsr r SP1, OVERFLOWTEST
+    jsr r SP1, IOTESTS
+    ; jsr r SP1, OVERFLOWTEST
     wio r tr, #0x03    
     ;swi 0
     jmp LOOP

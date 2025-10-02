@@ -103,6 +103,10 @@ entity ProgCounter is
         PC_MEMORY_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
         PC_MEMORY_IN         : IN  AXI4_MEMORY_READ_IN_TYPE_REC;
 
+        ARG_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC;
+        ARG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+
+
         ProgramCounter        : OUT PCTYPE;
         JumpDisablePipline    : OUT STD_LOGIC;
         AluRegisterLocked         : in std_logic;
@@ -125,6 +129,8 @@ architecture Behavioral of ProgCounter is
     signal ffimmop: IMMTYPE;
 
     signal ProgCounterLocal : PCTYPE;
+
+    signal FirstRTIData : boolean := true;
 
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;
@@ -167,9 +173,9 @@ begin
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S=>
-                    MEM_ENA <= '1';
-                    MEM_WEA <= "0";
-                    MEM_ADDRA <= X"000";
+                    -- MEM_ENA <= '1';
+                    -- MEM_WEA <= "0";
+                    -- MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
                     JumpDisablePipline <= '1';
                     PC_MEMORY_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
@@ -190,6 +196,21 @@ begin
                     -- Save the values of the Register Data.  Again this ifor timing operations.
                     ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
+                    FirstRTIData <= false;
+
+                when MEMFETCH_S =>
+                    if  ffopcode = oRTI then
+                        if IsReadDataValid(
+                                ARG_MEMORY_READ_IN, 
+                                ARG_MEMORY_READ_OUT, 
+                                MEM_ID_STACK) then
+                            if not FirstRTIData then
+                                FirstRTIData <= true;
+                                varLocalProgCounter := unsigned(STACK_ARG(ProgCounterLocal'Range));
+                                varJumpExpected := true;
+                            end if;
+                        end if;
+                    end if;
 
                 when EXECUTE_S    =>
                     if AluRegisterLocked = '0' 
@@ -208,10 +229,16 @@ begin
                                 end case;
                                 varJumpExpected := true;
 
-                            when oRTN | oRTI =>
+                            -- when oRTN | oRTI =>
+                            --     varLocalProgCounter := unsigned(STACK_ARG(ProgCounterLocal'Range));
+                            --     varJumpExpected := true;
+
+                            when oRTI =>
+                                varJumpExpected := true;
+                            when oRTN =>
                                 varLocalProgCounter := unsigned(STACK_ARG(ProgCounterLocal'Range));
                                 varJumpExpected := true;
-    
+                                
                             when oBE =>
                                 case ffmemop is
                                     when IMMEDIATE  =>
@@ -333,24 +360,24 @@ begin
             end case;
 
             case fsm_interrupt_cycle_p is
-                when JUMP_S       =>
+                when JUMP2_S       =>
                     varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
                 when others =>
             end case;
 
-            if fsm_interrupt_cycle_p = JUMP_S
+            if fsm_interrupt_cycle_p = JUMP2_S
                 or (fsm_inst_cycle_n = EXECUTE_S
                     and not varJumpExpected)
             then
                 ProgCounterLocal <= varLocalProgCounter;
-                MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
-                PC_MEMORY_OUT <= SetReadAddress(STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), MEM_ID_PC);
-                MEM_ENA <= '1';
+                -- MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
+                PC_MEMORY_OUT <= SetReadAddress(PC_MEMORY_OUT, STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), MEM_ID_PC);
+                -- MEM_ENA <= '1';
             elsif fsm_inst_cycle_n = INSTFETCH_S and varJumpExpected then 
                 ProgCounterLocal <= varLocalProgCounter;
-                MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
-                PC_MEMORY_OUT <= SetReadAddress(STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), MEM_ID_PC);
-                MEM_ENA <= '1';
+                -- MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(varLocalProgCounter));
+                PC_MEMORY_OUT <= SetReadAddress(PC_MEMORY_OUT, STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), MEM_ID_PC);
+                -- MEM_ENA <= '1';
             end if;
             
         end if;

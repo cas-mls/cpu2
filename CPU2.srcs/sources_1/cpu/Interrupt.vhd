@@ -120,6 +120,7 @@ entity Interrupt_Entity is
         cpuRegs : in REG_TYPE;
         fsm_inst_cycle_p : in CYCLETYPE_FSM;
         MEM_ARG : in std_logic_vector(31 downto 0);
+        STACK_ARG       : in  STD_LOGIC_VECTOR(31 downto 0);
         INTERRUPT : in std_logic_vector (31 downto 0);
         timerAlarm : in std_logic;
         timerInt : in unsigned (4 downto 0);
@@ -134,7 +135,11 @@ entity Interrupt_Entity is
         interruptReset : out STD_LOGIC := '0';
         statusMask : out std_logic_vector(31 downto 0) := X"00000000";
 
-        AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
+        AXI4_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+        AXI4_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+        AXI4_MEMORY_WRITE_OUT: in AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+        AXI4_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+
         -- Debug Interface
         DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
 
@@ -230,7 +235,10 @@ begin
         fsm_interrupt_cycle_p_local,
         fsm_inst_cycle_p,
         interruptRun,
-        AXI4_MEMORY_READ_IN
+        AXI4_MEMORY_READ_IN,
+        AXI4_MEMORY_READ_OUT,
+        AXI4_MEMORY_WRITE_IN,
+        AXI4_MEMORY_WRITE_OUT
         )
     begin
         case fsm_interrupt_cycle_p_local is
@@ -242,13 +250,22 @@ begin
                     fsm_interrupt_cycle_n <= INTRWAIT_S;
                 end if;
             when SAVEENA_S =>
+                if OkTowrite(AXI4_MEMORY_WRITE_IN, AXI4_MEMORY_WRITE_OUT) then
+                    fsm_interrupt_cycle_n <= DISABLEINT_S;
+                else
+                    fsm_interrupt_cycle_n <= SAVEENA_S;
+                end if;
                 fsm_interrupt_cycle_n <= DISABLEINT_S;
             when DISABLEINT_S =>
-                fsm_interrupt_cycle_n <= JMPADDR_S;
+                if OkTowrite(AXI4_MEMORY_WRITE_IN, AXI4_MEMORY_WRITE_OUT) then
+                    fsm_interrupt_cycle_n <= JMPADDR_S;
+                else
+                    fsm_interrupt_cycle_n <= DISABLEINT_S;
+                end if;
             when JMPADDR_S =>
                 fsm_interrupt_cycle_n <= JMPFETCH_S;
             when JMPFETCH_S =>
-                if IsReadDataValid(AXI4_MEMORY_READ_IN, MEM_ID_PC) then
+                if IsReadDataValid(AXI4_MEMORY_READ_IN, AXI4_MEMORY_READ_OUT, MEM_ID_PC) then
                     fsm_interrupt_cycle_n <= JUMP_S;
                 else
                     fsm_interrupt_cycle_n <= JMPFETCH_S;
@@ -273,10 +290,10 @@ process (SYS_CLK)
 begin
     if rising_edge(SYS_CLK) then
 
-        if cpuRegs(0).OpCode = oRTI
-        then
-            interruptMaskLocal <= MEM_ARG;
-        end if;
+        -- if cpuRegs(0).OpCode = oRTI
+        -- then
+        --     interruptMaskLocal <= STACK_ARG;
+        -- end if;
         
         if fsm_interrupt_cycle_p = INTRWAIT_S
         then
@@ -334,7 +351,8 @@ begin
                                 when others =>
                                 end case;
                         end if;
-
+                    elsif ffopcode = oRTI then
+                        interruptMaskLocal <= STACK_ARG;
                     end if;
 
                     -- Check for Software Interrupt

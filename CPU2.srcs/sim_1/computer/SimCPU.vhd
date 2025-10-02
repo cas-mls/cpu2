@@ -68,10 +68,11 @@ architecture Behavioral of SimCPU is
             -- AXI Memory Interface
             AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
             AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
-            AXI_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
-            AXI_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+            AXI4_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+            AXI4_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+            -- DEBUG Interface
             DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
-                DEBUGOUT    : out DEBUGOUTTYPE
+            DEBUGOUT    : out DEBUGOUTTYPE
             );
     end component;
 
@@ -263,8 +264,8 @@ port map(
     MEM_DOUTB     => MEM_DOUTB,
     AXI4_MEMORY_READ_OUT => axi4MemoryReadOut,
     AXI4_MEMORY_READ_IN  => axi4MemoryReadIn,
-    AXI_MEMORY_WRITE_OUT => axi4MemoryWriteOutRun,
-    AXI_MEMORY_WRITE_IN  => axi4MemoryWriteIn,
+    AXI4_MEMORY_WRITE_OUT => axi4MemoryWriteOutRun,
+    AXI4_MEMORY_WRITE_IN  => axi4MemoryWriteIn,
     DEBUGIN       => DebugIn,
     DEBUGOUT      => DebugOut
 );

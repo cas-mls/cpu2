@@ -121,12 +121,6 @@ architecture Behavioral of sim_AxiMemory is
     constant HALF_PERIOD : TIME := 5 ns;
 
     constant PERIOD        : TIME    := 10 ns;
-    constant CLK_FREQ      : NATURAL := 50e6;
-    constant BAUD_RATE     : NATURAL := 115200;
-    constant TRANS_COUNT   : NATURAL := 2 ** 8;
-    constant CLK_PERIOD    : TIME    := 1 ns * INTEGER(real(1e9)/real(CLK_FREQ));
-    constant UART_PERIOD_I : NATURAL := INTEGER(real(1e9)/real(BAUD_RATE));
-    constant UART_PERIOD   : TIME    := 1 ns * UART_PERIOD_I;
 
 
     signal clk         : STD_LOGIC;
@@ -153,8 +147,7 @@ architecture Behavioral of sim_AxiMemory is
 
     signal test_number : integer := 0;
     signal dataValue : std_logic_vector(31 downto 0) := (others => '0');
-
-
+    signal waitCounter : integer := 0;
 
 begin
 
@@ -267,6 +260,26 @@ s_aclk <= clk;
 --     axi4MemoryWriteOut.s_axi_wvalid <= '0';
 --     axi4MemoryWriteOut.s_axi_wdata <= (others => '0');
 
+--         wait until axi4MemoryWriteIn.s_axi_bvalid = '1' 
+--         and axi4MemoryWriteOut.s_axi_bready = '1'
+--         and rising_edge (clk);
+--     axi4MemoryWriteOut.s_axi_bready <= '0';
+
+--     axi4MemoryWriteOut.s_axi_awvalid <= '1';
+--     axi4MemoryWriteOut.s_axi_awaddr <= X"00000004";
+--     axi4MemoryWriteOut.s_axi_awid   <= "01";
+--     axi4MemoryWriteOut.s_axi_wvalid  <= '1';
+--     axi4MemoryWriteOut.s_axi_wdata   <= X"BEEFDEAD";
+--     axi4MemoryWriteOut.s_axi_wstrb   <= "1111";
+--     axi4MemoryWriteOut.s_axi_bready  <= '1';
+    
+--     wait until axi4MemoryWriteIn.s_axi_awready = '1'
+--         and axi4MemoryWriteOut.s_axi_awvalid = '1' 
+--         and rising_edge (clk);
+--     axi4MemoryWriteOut.s_axi_awvalid <= '0';
+--     axi4MemoryWriteOut.s_axi_awaddr <= (others => '0');
+
+
 --     wait until axi4MemoryWriteIn.s_axi_bvalid = '1' 
 --         and axi4MemoryWriteOut.s_axi_bready = '1'
 --         and rising_edge (clk);
@@ -297,6 +310,22 @@ s_aclk <= clk;
 --     wait until axi4MemoryReadIn.s_axi_arready = '1' and rising_edge (clk);
 --     axi4MemoryReadOut.s_axi_arvalid <= '1';
 --     axi4MemoryReadOut.s_axi_araddr  <= X"00000000";
+--     axi4MemoryReadOut.s_axi_arid    <= "10";
+
+--     --  This wait is required for the Read to work.
+--     wait until rising_edge (clk);
+--     axi4MemoryReadOut.s_axi_rready  <= '1';
+--     wait until axi4MemoryReadIn.s_axi_arready = '1' and rising_edge (clk);
+--     axi4MemoryReadOut.s_axi_arvalid <= '0';
+
+--     wait until axi4MemoryReadIn.s_axi_rvalid = '1' and rising_edge (clk);
+--     axi4MemoryReadOut.s_axi_rready  <= '0';
+
+--     -- #2.5 Read
+--     wait until rising_edge (clk);
+--     wait until axi4MemoryReadIn.s_axi_arready = '1' and rising_edge (clk);
+--     axi4MemoryReadOut.s_axi_arvalid <= '1';
+--     axi4MemoryReadOut.s_axi_araddr  <= X"00000004";
 --     axi4MemoryReadOut.s_axi_arid    <= "10";
 
 --     --  This wait is required for the Read to work.
@@ -371,40 +400,88 @@ test_memory1 : process (clk)
     variable readResults : std_logic_vector(31 downto 0) := (others => '0');
 begin
     if rising_edge(clk) then
-        if s_aresetn = '1' and rsta_busy = '0' and rstb_busy = '0' then
-            axi4MemoryWriteOut <= ClearWriteFlags(axi4MemoryWriteOut, axi4MemoryWriteIn);
 
-            -- Test 1 Set Write Address
-            if test_number = 1 and axi4MemoryWriteIn.s_axi_awready = '1' then
-                tmpWO := SetWrite(X"000", "01", X"DEADBEEF");
-                axi4MemoryWriteOut <= tmpWO;
-                -- axi4MemoryWriteOut <= SetWrite(X"000", "01", X"DEADBEEF");
-                -- axi4MemoryWriteOut <= SetWrite(X"000", "01", X"00000020");
-                test_number <= 2;
-            elsif test_number = 2 then
-                test_number <= 3;
-            -- Test 3 Set Read Address
-            elsif test_number = 3 and axi4MemoryReadIn.s_axi_arready = '1' then
-                tmpRO := SetReadAddress(X"000", "10");
-                axi4MemoryReadOut <= tmpRO;
-                test_number <= 4;
-            -- Test 4 Read Data with Valis
-            elsif test_number = 4 then
-            -- elsif test_number = 4 and IsReadDataValid(axi4MemoryReadOut, axi4MemoryReadIn, "10") then
-                axi4MemoryReadOut <= ClearReadAddressData(axi4MemoryReadOut, axi4MemoryReadIn);
-                dataValue <= GetReadData(axi4MemoryReadIn, "10");
-                test_number <= 5;
-            elsif test_number = 5 then
-                dataValue <= GetReadData(axi4MemoryReadIn, "10");
-                axi4MemoryReadOut <= ClearReadAddressData(axi4MemoryReadOut, axi4MemoryReadIn);
-                report "Read Data 1 = " & to_hstring(to_bitvector(dataValue)) severity note;
-                test_number <= 6;
-            elsif test_number = 6 then
-                report "Read Data 1 = " & to_hstring(to_bitvector(dataValue)) severity note;
-                test_number <= 7;
-            end if;
+        -- axi4MemoryReadOut.prior_rvalid <= axi4MemoryReadIn.s_axi_rvalid;
+
+        if s_aresetn = '1' and rsta_busy = '0' and rstb_busy = '0' then
+            tmpWO :=  ClearWriteFlags(axi4MemoryWriteOut, axi4MemoryWriteIn);
+            axi4MemoryWriteOut <= tmpWO;
+
+
+            case test_number is
+                when 1 =>
+                    test_number <= 10;
+                -- Test 1 Set Write Address 000 - Data DEADBEEF
+                when 10 =>
+                    if OkTowrite(axi4MemoryWriteIn, axi4MemoryWriteOut) then
+                        tmpWO := SetWrite(X"000", "01", X"DEADBEEF");
+                        axi4MemoryWriteOut <= tmpWO;
+                        test_number <= 20;
+                        -- test_number <= 30;
+                    end if;
+                -- Test 1 Set Write Address 001 - Data BEEFDEAD
+                when 20 =>
+                    if OkTowrite(axi4MemoryWriteIn, axi4MemoryWriteOut) then
+                        tmpWO := SetWrite(X"001", "01", X"BEEFDEAD");
+                        axi4MemoryWriteOut <= tmpWO;
+                        test_number <= 30;
+                    end if;
+                -- Test 3 Set Read Address
+                when 30 =>
+                    if axi4MemoryReadIn.s_axi_arready = '1' then
+                        tmpRO := SetReadAddress(axi4MemoryReadOut, X"000", "10");
+                        axi4MemoryReadOut <= tmpRO;
+                        test_number <= 32;
+                    end if;
+                when 32 =>
+                    if IsReadDataValid(axi4MemoryReadIn, axi4MemoryReadOut, "10")
+                    then
+                        readResults := GetReadData(axi4MemoryReadIn, "10");
+                        dataValue <= readResults;
+                        tmpRO := ClearReadAddress(axi4MemoryReadOut, axi4MemoryReadIn);
+                        axi4MemoryReadOut <= tmpRO;
+                        test_number <= 33;
+                    end if;
+                when 33 =>
+                    tmpRO := ClearReadData(axi4MemoryReadOut, axi4MemoryReadIn);
+                    axi4MemoryReadOut <= tmpRO;
+                    report "Read Data 30 = " & to_hstring(to_bitvector(dataValue)) severity note;
+                    test_number <= 100;
+                    waitCounter <= 20;
+                when 100 =>
+                    waitCounter <= waitCounter - 1;
+                    if waitCounter < 1 then
+                        test_number <= 40;
+                    end if;
+                when 40 =>
+                    if axi4MemoryReadIn.s_axi_arready = '1' then
+                        tmpRO := SetReadAddress(axi4MemoryReadOut, X"001", "10");
+                        axi4MemoryReadOut <= tmpRO;
+                        test_number <= 42;
+                    end if;
+                when 42 =>
+                    if IsReadDataValid(axi4MemoryReadIn, axi4MemoryReadOut, "10")
+                    then
+                        readResults := GetReadData(axi4MemoryReadIn, "10");
+                        dataValue <= readResults;
+                        tmpRO := ClearReadAddress(axi4MemoryReadOut, axi4MemoryReadIn);
+                        axi4MemoryReadOut <= tmpRO;
+                        test_number <= 43;
+                    end if;
+                when 43 =>
+                    tmpRO := ClearReadData(axi4MemoryReadOut, axi4MemoryReadIn);
+                    axi4MemoryReadOut <= tmpRO;
+                    report "Read Data 30 = " & to_hstring(to_bitvector(dataValue)) severity note;
+                    test_number <= 400;
+                when others =>
+                    finish;
+            end case;
+            
+            -- axi4MemoryReadOut.prior_rvalid <= axi4MemoryReadIn.s_axi_rvalid;
+
         else
             test_number <= 1;
+        --     axi4MemoryWriteOut.s_axi_bready <= '1';
         end if;
     end if;
 
