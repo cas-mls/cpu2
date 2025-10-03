@@ -105,11 +105,7 @@ entity MemoryAccess is
         interruptMask : in std_logic_vector(interruptNums downto 0);
         AluRegisterLocked         : in std_logic;
 
-        MEM_ENB : out std_logic := '1';
-        MEM_WEB : out std_logic_vector(0 downto 0) := "0";
-        MEM_ADDRB : out std_logic_vector(11 downto 0);
-        MEM_DINB : out std_logic_vector(31 downto 0);
-                -- AXI Memory Interface
+         -- AXI Memory Interface
         ARG_MEMORY_READ_OUT : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
         ARG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
         ARG_MEMORY_WRITE_OUT: OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
@@ -200,18 +196,12 @@ begin
 
             case fsm_inst_cycle_p is
                 when RESET_STATE_S =>
-                    -- MEM_ENB <= '0';
-                    -- MEM_WEB <= "0";
-                    -- MEM_ADDRB <= X"000";
-                    -- MEM_DINB <= X"00000000";
                     ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
                     ARG_MEMORY_WRITE_OUT <= AXI4_MEMORY_WRITE_OUT_DEFAULTS;
                     ARG_MEMORY_WRITE_OUT.s_axi_bready <= '0';
                     NEXT_CYCLE <= EXECUTE_S;
 
                 when INSTFETCH_S =>
-                    -- MEM_ENB <= '0';
-                    -- MEM_WEB <= "0";
 
                 when DECODE_S =>
 
@@ -317,8 +307,6 @@ begin
                     NEXT_CYCLE <= MEMFETCH_S;
                     tempWait <= 0;
 
-                -- TODO (RTI): Need to work on the RTI contains 2 stack elements.
-                -- Needs to read both of them.  Might need perform the MEMFETCH twice?
                 when MEMFETCH_S  =>
                     if ARG_MEMORY_READ_IN.s_axi_rvalid = '1' 
                         and (ARG_MEMORY_READ_IN.s_axi_rid = "10"
@@ -371,8 +359,6 @@ begin
 
                                         end if;
                                     when others =>
-                                        -- MEM_ENB <= '0';
-                                        -- MEM_WEB <= "0";
                                 end case;
                             when INDEX =>
                                 case ffopcode is
@@ -395,12 +381,8 @@ begin
 
                                         end if;
                                     when others =>
-                                        -- MEM_ENB <= '0';
-                                        -- MEM_WEB <= "0";
                                 end case;
                             when others =>
-                                -- MEM_ENB <= '0';
-                                -- MEM_WEB <= "0";
                         end case;
                     end if;
                     ARG_MEMORY_READ_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;

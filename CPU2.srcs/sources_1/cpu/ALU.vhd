@@ -104,10 +104,6 @@ entity ALU is
         cpuRegs              : out REG_TYPE;
         AluRegisterLocked    : out STD_LOGIC;
 
-        -- AXI4 Memory Read Interface
-        AXI4_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
-        AXI4_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
-
         DEBUGIN              : in  DEBUGINTYPE := DEBUGIN_DEFAULTS
     );
 
@@ -164,7 +160,6 @@ architecture Behavioral of ALU is
 
     signal delayReg1 : unsigned(31 downto 0);
     signal delayReg2 : unsigned(31 downto 0);
-    signal delayirsp : INTEGER range 0 to 15;
 
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;
@@ -216,6 +211,14 @@ architecture Behavioral of ALU is
             m_axis_dout_tdata      : out STD_LOGIC_VECTOR(63 downto 0)
         );
     end component;
+
+    function SetRegisterValue ( value : STD_LOGIC_VECTOR(31 downto 0) ) 
+        return REG_TYPE_REC is
+    variable newRegs : REG_TYPE_REC := REG_DEFAULTS;
+    begin
+        newRegs.Value := value;
+        return newRegs;        
+    end SetRegisterValue;
 
 begin
 
@@ -292,24 +295,20 @@ begin
                     case cpuRegs(reg).OpCode is
                         when oMul =>
                             if cpuRegs(reg).Flag = '0' then
-                                cpuRegs(reg).Value <= SProduct(31 downto 0);
+                                cpuRegs(reg) <= SetRegisterValue(SProduct(31 downto 0));
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '0' when signed(SProduct(63 downto 32)) = 0 
                                 --                 or signed(SProduct(63 downto 32)) = -1 
                                 --             else '1';
                             else
-                                cpuRegs(reg).Value <= UProduct(31 downto 0);
+                                cpuRegs(reg) <= SetRegisterValue(UProduct(31 downto 0));
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '0' when signed(UProduct(63 downto 34)) = 0 
                                 --             else '1';
                             end if;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
 
                         when oAdd =>
-                            cpuRegs(reg).Value <= STD_LOGIC_VECTOR(delayReg1);
+                            cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
                             if cpuRegs(reg).Flag = '0' then
                                 -- localStatusWord(OverUnderflow) :=  
                                 --             (AValS(31) xnor BValS(31)) 
@@ -317,13 +316,9 @@ begin
                             else
                                 -- localStatusWord(OverUnderflow) := RValU(32);
                             end if;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
 
                         when oSub =>
-                            cpuRegs(reg).Value <= STD_LOGIC_VECTOR(delayReg1);
+                            cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
                             if cpuRegs(reg).Flag = '0' then
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '1' when AValS < 0 and  BValS > 0 and RValS < AValS
@@ -333,64 +328,41 @@ begin
                                 --         '1' when BValU > AValU
                                 --             else '0';
                             end if;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
 
                         when oRWIO =>
                             if cpuRegs(reg).flag = '0'
                                 and (cpuRegs(reg).memop = REGREG
                                     or cpuRegs(reg).memop = IMMEDIATE) 
                             then 
-                                cpuRegs(reg).Value <= IOR_DATA;
+                                cpuRegs(reg) <= SetRegisterValue(IOR_DATA);
                             end if;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).RegOpNum  <= 0;
-                            cpuRegs(reg).MemOp <= REGREG;
 
                         when oIOST =>
-                            cpuRegs(reg).Value       <= IO_STATUS;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
+                            cpuRegs(reg) <= SetRegisterValue(IO_STATUS);
 
                         when oRTI =>
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
+                            cpuRegs(reg) <= SetRegisterValue(cpuRegs(reg).Value);
 
                         when oAND | oOR | oXOR | oShLR | oJmp | oSWDM =>
-                            cpuRegs(reg).Value       <= STD_LOGIC_VECTOR(delayReg1);
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
+                            cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
 
                         when oJsr | oRTN =>
-                            cpuRegs(reg).Value       <= STD_LOGIC_VECTOR(delayReg2);
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
+                            cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg2));
 
                         when oPUSHPOP =>
-                            if cpuRegs(reg).Flag = '1' and reg /= delayirsp then
-                                -- Pop & Data Value
-                                cpuRegs(reg).Value <= STD_LOGIC_VECTOR(delayReg1);
-                            else
-                                -- Push or Pop and Stack Pointer
-                                cpuRegs(reg).Value <= STD_LOGIC_VECTOR(delayReg2);
-                                ireg2value <= STD_LOGIC_VECTOR(delayReg2);
+                            if cpuRegs(reg).Flag = '0' then -- Push
+                                -- Update Stack Pointer
+                                cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg2));
+                            else -- Pop 
+                                -- Update the Register Value and Stack Pointer
+                                if cpuRegs(reg).RegOpNum = 1 then
+                                    -- Pop and update the Register
+                                    cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
+                                else
+                                    -- Update Stack Pointer
+                                    cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg2));
+                                end if;
                             end if;
-                            cpuRegs(reg).OpCode      <= oNOP;
-                            cpuRegs(reg).Countdown   <= 0;
-                            cpuRegs(reg).Flag  <= '0';
-                            cpuRegs(reg).MemOp <= REGREG;
 
                         when others =>
 
@@ -462,12 +434,6 @@ begin
                         then -- Register needs to be locked
                             AluRegisterLocked <= '1';
                         end if;
-                    -- else
-                    --     if cpuRegs(ffiregop1).OpCode = oNOP
-                    --         and cpuRegs(ffiregop2).OpCode = oNOP
-                    --     then -- Unlock the register.
-                    --         AluRegisterLocked <= '0';
-                    --     end if;
                     end if;
 
                 when EXECUTE_S =>
@@ -636,24 +602,36 @@ begin
                                         if ffflag = '0' then -- Push
                                             delayReg2 <= to_unsigned(
                                                          to_integer(unsigned(ireg2value)) - 1, 32);
+                                            cpuRegs(ffiregop2).OpCode    <= ffopcode;
+                                            cpuRegs(ffiregop2).Flag      <= ffflag;
+                                            cpuRegs(ffiregop2).RegOpNum  <= 2;
+                                            cpuRegs(ffiregop2).Countdown <= 0;
+
                                         else -- Pop
                                             delayReg2 <= to_unsigned(
                                                          to_integer(unsigned(ireg2value)) + 1, 32);
-                                            delayReg1                    <= unsigned(STACK_ARG);
-                                            delayirsp                    <= ffiregop2;
-                                            cpuRegs(ffiregop1).OpCode    <= ffopcode;
-                                            cpuRegs(ffiregop1).Countdown <= 0;
+                                            cpuRegs(ffiregop2).OpCode    <= ffopcode;
                                             cpuRegs(ffiregop2).Flag      <= ffflag;
+                                            cpuRegs(ffiregop2).RegOpNum  <= 2;
+                                            cpuRegs(ffiregop2).Countdown <= 0;
+
+                                            delayReg1                    <= unsigned(STACK_ARG);
+                                            cpuRegs(ffiregop1).OpCode    <= ffopcode;
+                                            cpuRegs(ffiregop1).Flag      <= ffflag;
+                                            cpuRegs(ffiregop1).RegOpNum  <= 1;
+                                            cpuRegs(ffiregop1).Countdown <= 0;
                                         end if;
                                     when IMMEDIATE =>
                                         if ffflag = '0' then
                                             delayReg2 <= to_unsigned(
                                                          to_integer(unsigned(ireg2value)) - 1, 32);
+                                            cpuRegs(ffiregop2).OpCode    <= ffopcode;
+                                            cpuRegs(ffiregop2).Flag      <= ffflag;
+                                            cpuRegs(ffiregop2).RegOpNum  <= 2;
+                                            cpuRegs(ffiregop2).Countdown <= 0;
                                         end if;
                                     when others =>
                                 end case;
-                                cpuRegs(ffiregop2).OpCode    <= ffopcode;
-                                cpuRegs(ffiregop2).Countdown <= 0;
 
                             when oRTI =>
                                 if ffmemop = REGREG then

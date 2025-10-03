@@ -55,16 +55,6 @@ architecture Behavioral of SimCPU is
             IO_STATUS     : in  STD_LOGIC_VECTOR (31 downto 0);
             IO_STATUS_REQ : out STD_LOGIC;
             interrupt     : in  STD_LOGIC_VECTOR (31 downto 0);
-            MEM_ENA       : out STD_LOGIC                     := '1';
-            MEM_WEA       : out STD_LOGIC_VECTOR(0 downto 0)  := "0";
-            MEM_ADDRA     : out STD_LOGIC_VECTOR(11 downto 0) := X"000";
-            MEM_DINA      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_DOUTA     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_ENB       : out STD_LOGIC                     := '1';
-            MEM_WEB       : out STD_LOGIC_VECTOR(0 downto 0)  := "0";
-            MEM_ADDRB     : out STD_LOGIC_VECTOR(11 downto 0) := X"000";
-            MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
             -- AXI Memory Interface
             AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
             AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
@@ -163,19 +153,6 @@ architecture Behavioral of SimCPU is
 
     signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
-    -- Memory Information
-    signal MEM_CLK   : STD_LOGIC                     := '1';
-    signal MEM_ENA   : STD_LOGIC                     := '1';
-    signal MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_ENB   : STD_LOGIC                     := '1';
-    signal MEM_WEB   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal MEM_ADDRB : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal MEM_DINB  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-
     -- AXI Memory Interface
     signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
     signal axi4MemoryWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
@@ -252,16 +229,6 @@ port map(
     IO_STATUS     => IOStatus,
     IO_STATUS_REQ => IOStatusReq,
     interrupt     => interrupt,
-    MEM_ENA       => RUN_ENA,
-    MEM_WEA       => RUN_WEA,
-    MEM_ADDRA     => RUN_ADDRA,
-    MEM_DINA      => RUN_DINA,
-    MEM_DOUTA     => RUN_DOUTA,
-    MEM_ENB       => MEM_ENB,
-    MEM_WEB       => MEM_WEB,
-    MEM_ADDRB     => MEM_ADDRB,
-    MEM_DINB      => MEM_DINB,
-    MEM_DOUTB     => MEM_DOUTB,
     AXI4_MEMORY_READ_OUT => axi4MemoryReadOut,
     AXI4_MEMORY_READ_IN  => axi4MemoryReadIn,
     AXI4_MEMORY_WRITE_OUT => axi4MemoryWriteOutRun,
@@ -284,23 +251,7 @@ port map(
     RdStatus  => RdStatus
 );
 
-memory : cpumemory
-port map(
-    clka  => MEM_CLK,
-    ena   => MEM_ENA,
-    wea   => MEM_WEA,
-    addra => MEM_ADDRA,
-    dina  => MEM_DINA,
-    douta => MEM_DOUTA,
-    clkb  => MEM_CLK,
-    enb   => MEM_ENB,
-    web   => MEM_WEB,
-    addrb => MEM_ADDRB,
-    dinb  => MEM_DINB,
-    doutb => MEM_DOUTB
-);
-
-    cpuMemoryAxi : cpuAxiMemory
+  cpuMemoryAxi : cpuAxiMemory
   PORT MAP (
     rsta_busy       => rsta_busy,
     rstb_busy       => rstb_busy,
@@ -329,15 +280,10 @@ port map(
     s_axi_rready    => axi4MemoryReadOut.s_axi_rready
   );
 
--- Link the LOAD Program and RUN program memory signals.
-MEM_CLK <= clk;
-MEM_ENA <=   RUN_ENA    ;
-MEM_WEA <=   RUN_WEA    ;
-MEM_ADDRA <= RUN_ADDRA  ;
-MEM_DINA <=  RUN_DINA   ;
-RUN_DOUTA <= MEM_DOUTA  ;
 
-axi4MemoryWriteOut <= axi4MemoryWriteOutRun when not Init else axi4MemoryWriteOutInit;
+axi4MemoryWriteOut <= axi4MemoryWriteOutRun 
+    when not Init 
+    else axi4MemoryWriteOutInit;
 
 s_aclk <= clk;
 

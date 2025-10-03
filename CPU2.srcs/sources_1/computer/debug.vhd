@@ -41,14 +41,13 @@ entity debug is
             RdByte    : in  STD_LOGIC_VECTOR (7 downto 0);
             RdValid   : in  STD_LOGIC; -- not RxStatus(0)
            
-           -- Memory Signals
-           MEM_ADDRA : out STD_LOGIC_VECTOR(11 downto 0);
-           MEM_DOUTA : in STD_LOGIC_VECTOR(31 downto 0);
-           MEM_DINA : out STD_LOGIC_VECTOR(31 downto 0);
-           MEM_ENA : out STD_LOGIC;
-           MEM_WEA : out STD_LOGIC_VECTOR(0 downto 0);
-           
-           -- Button Signals
+           -- AXI Memory Interface
+           DEBUG_MEMORY_READ_OUT : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+           DEBUG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+           DEBUG_MEMORY_WRITE_OUT: OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+           DEBUG_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+
+            -- Button Signals
            dmode       : in STD_LOGIC;
            dbreakBtn : in STD_LOGIC;
            dstepBtn : in STD_LOGIC;
@@ -100,7 +99,6 @@ architecture Behavioral of debug is
     signal WB_WE :  STD_LOGIC;
     signal WB_ACK : STD_LOGIC;
     signal WB_CYC : STD_LOGIC;
-    signal WB_STB : STD_LOGIC;
     signal WB_TGA : std_logic_vector(6 downto 0);  
     signal WB_STALL : STD_LOGIC;
     signal WB_DIN : STD_LOGIC_VECTOR(31 downto 0);
@@ -126,18 +124,6 @@ architecture Behavioral of debug is
     -- attribute MARK_DEBUG    of WB_DIN       : signal is "TRUE"; 
     -- attribute keep          of WB_DOUT       : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of WB_DOUT       : signal is "TRUE"; 
-
-    -- Memory Elements ILA
-    -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
-    -- attribute keep          of MEM_WEA          : signal is "TRUE";
-    -- attribute MARK_DEBUG    of MEM_WEA          : signal is "TRUE";
-    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DINA         : signal is "TRUE";
-    -- attribute MARK_DEBUG    of MEM_DINA         : signal is "TRUE";
 
     -- DEBUG ELEMENTS
     -- attribute keep          of DebugIn      : signal is "TRUE";
@@ -170,7 +156,7 @@ begin
         RdByte    => RdByte,
         RdValid   => RdValid,
         WB_CYC    => WB_CYC  ,
-        WB_STB    => WB_STB  ,
+        WB_STB    => open   ,
         WB_WE     => WB_WE   ,
         WB_ADDR   => WB_ADDR ,
         WB_TGA    => WB_TGA  ,
@@ -189,10 +175,6 @@ begin
                 WB_STALL <= '0';
                 DebugIn <= DEBUGIN_DEFAULTS;
                 dmemReadCount <= 0;
-                MEM_ADDRA <= (others => '0');
-                MEM_ENA <= '0';
-                MEM_WEA(0) <= '0';
-                MEM_DINA <= (others => '0');
             else
                 DebugIn.DebugMode <= dmode;
                 if dstepBtn = '1' then
@@ -305,27 +287,20 @@ begin
 
                         when TGA_MEMORY => -- MEMORY COMMAND
                             if WB_WE = '0' then
-                                if dmemReadCount < 3 then
-                                    MEM_ADDRA <= WB_ADDR(11 downto 0);
-                                    MEM_ENA <= '1';
-                                    MEM_WEA(0) <= '0';
-                                    dmemReadCount <= dmemReadCount + 1;
-                                else
-                                    MEM_ENA <= '0';
-                                    WB_DIN <= MEM_DOUTA;
+                                if not IsReadDataValid(DEBUG_MEMORY_READ_IN, DEBUG_MEMORY_READ_OUT, MEM_ID_ARG)  then -- Set Address
+                                    DEBUG_MEMORY_READ_OUT <= SetReadAddress(
+                                        DEBUG_MEMORY_READ_OUT,
+                                        WB_ADDR(11 downto 0),
+                                        MEM_ID_ARG);
+                                else -- Read Data / Reset Flags
+                                    WB_DIN <= GetReadData(DEBUG_MEMORY_READ_IN, MEM_ID_ARG);
                                     WB_ACK <= '1';
-                                    dmemReadCount <= 0;
                                 end if;
                             else
-                                if dmemReadCount < 1 then
-                                    MEM_ADDRA <= WB_ADDR(11 downto 0);
-                                    MEM_ENA <= '1';
-                                    MEM_WEA(0) <= '1';
-                                    MEM_DINA <= WB_DOUT;
+                                if dmemReadCount < 1 then -- Set address and Data
+                                    DEBUG_MEMORY_WRITE_OUT <= SetWrite(WB_ADDR(11 downto 0), MEM_ID_ARG, WB_DOUT);
                                     dmemReadCount <= dmemReadCount + 1;
-                                else
-                                    MEM_ENA <= '0';
-                                    MEM_WEA(0) <= '0';
+                                else -- Reset Flags
                                     WB_ACK <= '1';
                                     dmemReadCount <= 0;
                                 end if;

@@ -135,16 +135,6 @@ entity CPU is
         IO_STATUS : in std_logic_vector (31 downto 0);
         IO_STATUS_REQ : out std_logic;
         INTERRUPT : in std_logic_vector (31 downto 0);
-        MEM_ENA : out std_logic := '1';
-        MEM_WEA : out std_logic_vector(0 downto 0) := "0";
-        MEM_ADDRA : out std_logic_vector(11 downto 0) := X"000";
-        MEM_DINA : out std_logic_vector(31 downto 0) := X"00000000";
-        MEM_DOUTA : in std_logic_vector(31 downto 0) := X"00000000";
-        MEM_ENB : out std_logic := '1';
-        MEM_WEB : out std_logic_vector(0 downto 0) := "0";
-        MEM_ADDRB : out std_logic_vector(11 downto 0) := X"000";
-        MEM_DINB : out std_logic_vector(31 downto 0) := X"00000000";
-        MEM_DOUTB : in std_logic_vector(31 downto 0) := X"00000000";
         -- AXI Memory Interface
         AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC;
         AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
@@ -175,9 +165,7 @@ architecture Behavioral of CPU is
             statusWord           : out STATUS_WORD_TYPE;
             cpuRegs              : out REG_TYPE;
             AluRegisterLocked    : out std_logic;
-            -- AXI Memory Interface
-            AXI4_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
-            AXI4_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+
             DEBUGIN              : in DEBUGINTYPE := DEBUGIN_DEFAULTS
             );
 
@@ -200,10 +188,6 @@ architecture Behavioral of CPU is
             interruptMask        : in std_logic_vector(interruptNums downto 0);
             AluRegisterLocked    : in std_logic;
 
-            MEM_ENB  : out std_logic := '1';
-            MEM_WEB  : out std_logic_vector(0 downto 0) := "0";
-            MEM_ADDRB: out std_logic_vector(11 downto 0);
-            MEM_DINB : out std_logic_vector(31 downto 0);
                 -- AXI Memory Interface
             ARG_MEMORY_READ_OUT : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
             ARG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
@@ -225,10 +209,6 @@ architecture Behavioral of CPU is
             fsm_interrupt_cycle_p: in INTERRUPT_FSM;
             MEM_ARG              : in std_logic_vector(31 downto 0);
             STACK_ARG             : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-
-            MEM_ENA  : out std_logic := '1';
-            MEM_WEA  : out std_logic_vector(0 downto 0) := "0";
-            MEM_ADDRA: out std_logic_vector(11 downto 0);
 
             -- AXI Memory Interface
             PC_Memory_OUT: OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
@@ -341,8 +321,8 @@ architecture Behavioral of CPU is
     signal axi4DataMemoryReadOut : AXI4_MEMORY_READ_OUT_TYPE_REC;
     signal axi4DataMemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
     signal axi4DataMemoryWriteOut: AXI4_MEMORY_WRITE_OUT_TYPE_REC;
-    signal MEM_ARG_1             : std_logic_vector(31 downto 0) := X"00000000";
-    signal STACK_ARG_1           : std_logic_vector(31 downto 0) := X"00000000";
+    signal MEM_ARG             : std_logic_vector(31 downto 0) := X"00000000";
+    signal STACK_ARG           : std_logic_vector(31 downto 0) := X"00000000";
     signal MEM_NEXT_CYCLE        : CYCLETYPE_FSM := RESET_STATE_S;
 
     -- Decode information
@@ -370,7 +350,7 @@ architecture Behavioral of CPU is
     signal interruptNum         : integer range 0 to interruptNums := 0;
     signal interruptMask        : std_logic_vector(interruptNums downto 0) := X"00000000";
     signal interruptSpNum       : integer range 0 to interruptNums;
-    signal interruptSpAddrValue : integer range 0 to 2 ** MEM_ADDRB'length - 1;
+    signal interruptSpAddrValue : integer range 0 to 2 ** 12 - 1;
     signal interruptReset       : STD_LOGIC                 := '0';
     signal statusMask           : std_logic_vector(31 downto 0) := X"00000000";
 
@@ -415,14 +395,14 @@ begin
             and (fsm_inst_cycle_p = DECODE_S)
         else (others => '0');
     -- 
-    MEM_ARG_1 <= AXI4_MEMORY_READ_IN.s_axi_rdata 
+    MEM_ARG <= AXI4_MEMORY_READ_IN.s_axi_rdata 
         when (AXI4_MEMORY_READ_IN.s_axi_rvalid = '1') 
             and (AXI4_MEMORY_READ_IN.s_axi_rid = "10")
             and (fsm_inst_cycle_p = EXECUTE_S
                 or fsm_inst_cycle_p = WAITS_S)
         else (others => '0');
 
-    STACK_ARG_1 <= AXI4_MEMORY_READ_IN.s_axi_rdata 
+    STACK_ARG <= AXI4_MEMORY_READ_IN.s_axi_rdata 
         when (AXI4_MEMORY_READ_IN.s_axi_rvalid = '1') 
             and (AXI4_MEMORY_READ_IN.s_axi_rid = "11")
             and (fsm_inst_cycle_p = EXECUTE_S 
@@ -439,29 +419,6 @@ begin
     iregop1 <= to_integer(unsigned(regop1));
     iregop2 <= to_integer(unsigned(regop2));
 
-    -- axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN 
-    --     when fsm_inst_cycle_p = INSTFETCH1_S 
-    --         or fsm_inst_cycle_p = INSTFETCH2_S 
-    --         or fsm_inst_cycle_p = DECODE_S 
-    --         or fsm_inst_cycle_p = WAITS_S
-    --         or fsm_inst_cycle_p = DEBUGWAIT_S 
-    --     else AXI4_MEMORY_READ_IN_DEFAULTS;
-    -- axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN
-    --     when fsm_inst_cycle_p = MEMFETCH1_S 
-    --         or fsm_inst_cycle_p = MEMFETCH2_S 
-    --     else AXI4_MEMORY_READ_IN_DEFAULTS;
-
-    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut;
-    -- AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
-    --         when fsm_inst_cycle_p = EXECUTE_S
-    --             or fsm_inst_cycle_p = INSTFETCH_S
-    --             or fsm_inst_cycle_p = WAITS_S
-    -- --             -- or fsm_inst_cycle_p = DEBUGWAIT_S
-    --         else axi4DataMemoryReadOut
-    --             when fsm_inst_cycle_p = DECODE_S
-    --                 or fsm_inst_cycle_p = MEMFETCH1_S
-    --                 or fsm_inst_cycle_p = MEMFETCH2_S
-    --         else AXI4_MEMORY_READ_OUT_DEFAULTS;
 
     AXI4_MEMORY_READ_OUT <= axi4PcMemoryReadOut
             when axi4PcMemoryReadOut.s_axi_arid = "01"
@@ -470,13 +427,11 @@ begin
                     or axi4DataMemoryReadOut.s_axi_arid = "11"
             else AXI4_MEMORY_READ_OUT_DEFAULTS;
 
-    -- axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN;
     axi4DataMemoryReadIn <= AXI4_MEMORY_READ_IN 
         when AXI4_MEMORY_READ_IN.s_axi_rid = "10"
             or AXI4_MEMORY_READ_IN.s_axi_rid = "11"
         else AXI4_MEMORY_READ_IN_DEFAULTS;
 
-    -- axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN;
      axi4PcMemoryReadIn <= AXI4_MEMORY_READ_IN 
         when AXI4_MEMORY_READ_IN.s_axi_rid = "01"
         else AXI4_MEMORY_READ_IN_DEFAULTS;
@@ -487,9 +442,8 @@ begin
     port map(
            SYS_CLK               => SYS_CLK,
            INSTRUCTION           => MEM_INST,
-        -- MEM_ARG               => MEM_DOUTB,
-           MEM_ARG               => MEM_ARG_1,
-           STACK_ARG             => STACK_ARG_1,
+           MEM_ARG               => MEM_ARG,
+           STACK_ARG             => STACK_ARG,
            fsm_inst_cycle_p      => fsm_inst_cycle_p,
            fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
            interruptSpNum        => interruptSpNum,
@@ -499,8 +453,6 @@ begin
            statusWord            => statusWord,
            cpuRegs               => cpuRegs,
            AluRegisterLocked     => AluRegisterLocked,
-           AXI4_MEMORY_READ_OUT  => axi4DataMemoryReadOut,
-           AXI4_MEMORY_READ_in   => axi4DataMemoryReadIn,
            DebugIn               => DEBUGIN
     );
 
@@ -521,10 +473,6 @@ begin
         interruptMask         => interruptMask,
         AluRegisterLocked     => AluRegisterLocked,
 
-        MEM_ENB              => MEM_ENB,
-        MEM_WEB              => MEM_WEB,
-        MEM_ADDRB            => MEM_ADDRB,
-        MEM_DINB             => MEM_DINB,
         ARG_MEMORY_READ_OUT  => axi4DataMemoryReadOut,
         ARG_MEMORY_READ_IN   => axi4DataMemoryReadIn,
         ARG_MEMORY_WRITE_OUT => axi4DataMemoryWriteOut,
@@ -541,14 +489,10 @@ begin
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         fsm_inst_cycle_n => fsm_inst_cycle_n,
         fsm_interrupt_cycle_p => fsm_interrupt_cycle_p,
-        -- MEM_ARG => MEM_DOUTB,
-        MEM_ARG => MEM_ARG_1,
-        STACK_ARG             => STACK_ARG_1,
+        MEM_ARG => MEM_ARG,
+        STACK_ARG             => STACK_ARG,
 
-        MEM_ENA => MEM_ENA,
-        MEM_WEA => MEM_WEA,
-        MEM_ADDRA => MEM_ADDRA,
-
+        -- AXI Memory Interface
         PC_Memory_OUT => axi4PcMemoryReadOut,
         PC_Memory_IN => axi4PcMemoryReadIn,
 
@@ -567,7 +511,7 @@ begin
         SYS_CLK => SYS_CLK,
         INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
-        MEM_ARG => MEM_ARG_1,
+        MEM_ARG => MEM_ARG,
 
         fsm_inst_cycle_p => fsm_inst_cycle_p,
 
@@ -599,8 +543,8 @@ begin
         INSTRUCTION => MEM_INST,
         cpuRegs => cpuRegs,
         fsm_inst_cycle_p => fsm_inst_cycle_p,
-        MEM_ARG => MEM_ARG_1,
-        STACK_ARG => STACK_ARG_1,
+        MEM_ARG => MEM_ARG,
+        STACK_ARG => STACK_ARG,
         INTERRUPT => INTERRUPT,
         timerAlarm => timerAlarm,
         timerInt => timerInt,
@@ -628,8 +572,7 @@ begin
         fsm_inst_cycle_p => fsm_inst_cycle_p,
         programCounter => ProgramCounter,
         cpuRegs => cpuRegs,
-        MEM_ARG => MEM_DOUTB,
-        -- MEM_ARG => MEM_ARG_1,
+        MEM_ARG => MEM_ARG,
         interruptNum => interruptNum,
         interruptMask => interruptMask,
         statusWord => statusWord,
