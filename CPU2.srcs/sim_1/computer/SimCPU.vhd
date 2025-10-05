@@ -66,23 +66,6 @@ architecture Behavioral of SimCPU is
             );
     end component;
 
-    component cpumemory
-        port (
-            clka  : in  STD_LOGIC;
-            ena   : in  STD_LOGIC;
-            wea   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addra : in  STD_LOGIC_VECTOR(11 downto 0);
-            dina  : in  STD_LOGIC_VECTOR(31 downto 0);
-            douta : out STD_LOGIC_VECTOR(31 downto 0);
-            clkb  : in  STD_LOGIC;
-            enb   : in  STD_LOGIC;
-            web   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addrb : in  STD_LOGIC_VECTOR(11 downto 0);
-            dinb  : in  STD_LOGIC_VECTOR(31 downto 0);
-            doutb : out STD_LOGIC_VECTOR(31 downto 0)
-        );
-    end component;
-
         COMPONENT cpuAxiMemory
     PORT (
         rsta_busy : OUT STD_LOGIC;
@@ -131,15 +114,10 @@ architecture Behavioral of SimCPU is
     constant HALF_PERIOD : TIME := 5 ns;
 
     constant PERIOD        : TIME    := 10 ns;
-    constant CLK_FREQ      : NATURAL := 50e6;
     constant BAUD_RATE     : NATURAL := 115200;
-    constant TRANS_COUNT   : NATURAL := 2 ** 8;
-    constant CLK_PERIOD    : TIME    := 1 ns * INTEGER(real(1e9)/real(CLK_FREQ));
     constant UART_PERIOD_I : NATURAL := INTEGER(real(1e9)/real(BAUD_RATE));
     constant UART_PERIOD   : TIME    := 1 ns * UART_PERIOD_I;
 
-    signal RUN : BOOLEAN := true;
-    -- signal RUN : boolean := false;
 
     signal clk         : STD_LOGIC;
     signal ioAddr      : STD_LOGIC_VECTOR (7 downto 0)  := (others => '0');
@@ -150,8 +128,6 @@ architecture Behavioral of SimCPU is
     signal IOStatus    : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
     signal IOStatusReq : STD_LOGIC                      := '0';
     signal interrupt   : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
-
-    signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
     -- AXI Memory Interface
     signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
@@ -167,15 +143,6 @@ architecture Behavioral of SimCPU is
     signal rstb_busy       : STD_LOGIC;
     signal s_aclk          : STD_LOGIC;
     signal s_aresetn       : STD_LOGIC := '0';
-
-
-    -- Program Running
-    -- signal RUN_CLK      : STD_LOGIC                     := '1';
-    signal RUN_ENA   : STD_LOGIC                     := '1';
-    signal RUN_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal RUN_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal RUN_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal RUN_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
     -- signal data1 : std_ulogic_vector(31 downto 0) := X"00000000";
 
@@ -201,7 +168,6 @@ procedure UART_DRIVER (
     signal UART_DIN   : in  STD_LOGIC_VECTOR(7 downto 0);
     signal UART_TXD   : out STD_LOGIC
 ) is
-    variable rnd_delay : NATURAL;
 begin
     -- start bit
     UART_TXD <= '0';
@@ -288,7 +254,7 @@ axi4MemoryWriteOut <= axi4MemoryWriteOutRun
 s_aclk <= clk;
 
 -- Clock Generation
-clk <= '0' after HALF_PERIOD when clk = '1' and RUN else
+clk <= '0' after HALF_PERIOD when clk = '1' else
        '1' after HALF_PERIOD;
 
 test_proc_read : process
@@ -316,43 +282,33 @@ interrupt(12) <= UARTInterrupt;
 test : process
 begin
 
-    if not RUN then
-        -- InitRamFromFile
-        -- ("cpumemory.mif",
-        -- LD_CLK,
-        -- LD_ENA,
-        -- LD_WEA(0),
-        -- LD_ADDRA,
-        -- LD_DINA);
-        -- RUN <= TRUE;
-    else
 
-        interrupt(0) <= '1';
-        for j in 1 to 10 loop
-            wait until rising_edge (clk);
-            s_aresetn <= '0';
-        end loop;
-        s_aresetn <= '1';
-        wait until rsta_busy = '0' and rstb_busy = '0' and rising_edge (clk);
-        
+    interrupt(0) <= '1';
+    for j in 1 to 10 loop
         wait until rising_edge (clk);
-        wait until rising_edge (clk);
-        Init <= TRUE;
-        -- #1 Write
-        axi4MemoryWriteOutInit.s_axi_awvalid <= '1';
-        axi4MemoryWriteOutInit.s_axi_awaddr <= X"00000000";
-        axi4MemoryWriteOutInit.s_axi_awid   <= "01";
-        axi4MemoryWriteOutInit.s_axi_wvalid  <= '1';
-        axi4MemoryWriteOutInit.s_axi_wdata   <= X"00000020";
-        axi4MemoryWriteOutInit.s_axi_wstrb   <= "1111";
-        axi4MemoryWriteOutInit.s_axi_bready  <= '1';
-        wait until rising_edge (clk);
-        
-        wait until axi4MemoryWriteIn.s_axi_awready = '1'
-            and axi4MemoryWriteOutInit.s_axi_awvalid = '1' 
-            and rising_edge (clk);
-        axi4MemoryWriteOutInit.s_axi_awvalid <= '0';
-        axi4MemoryWriteOutInit.s_axi_awaddr <= (others => '0');
+        s_aresetn <= '0';
+    end loop;
+    s_aresetn <= '1';
+    wait until rsta_busy = '0' and rstb_busy = '0' and rising_edge (clk);
+    
+    wait until rising_edge (clk);
+    wait until rising_edge (clk);
+    Init <= TRUE;
+    -- #1 Write
+    axi4MemoryWriteOutInit.s_axi_awvalid <= '1';
+    axi4MemoryWriteOutInit.s_axi_awaddr <= X"00000000";
+    axi4MemoryWriteOutInit.s_axi_awid   <= "01";
+    axi4MemoryWriteOutInit.s_axi_wvalid  <= '1';
+    axi4MemoryWriteOutInit.s_axi_wdata   <= X"00000020";
+    axi4MemoryWriteOutInit.s_axi_wstrb   <= "1111";
+    axi4MemoryWriteOutInit.s_axi_bready  <= '1';
+    wait until rising_edge (clk);
+    
+    wait until axi4MemoryWriteIn.s_axi_awready = '1'
+        and axi4MemoryWriteOutInit.s_axi_awvalid = '1' 
+        and rising_edge (clk);
+    axi4MemoryWriteOutInit.s_axi_awvalid <= '0';
+    axi4MemoryWriteOutInit.s_axi_awaddr <= (others => '0');
 
 --        wait until axi4MemoryWriteIn.s_axi_wready = '1' 
 --            and axi4MemoryWriteOutInit.s_axi_wvalid = '1' 
@@ -364,43 +320,42 @@ begin
 --            and axi4MemoryWriteOutInit.s_axi_bready = '1'
 --            and rising_edge (clk);
 --        axi4MemoryWriteOutInit.s_axi_bready <= '0';
-        Init <= FALSE;
+    Init <= FALSE;
 
 
-        interrupt(0) <= '0';
+    interrupt(0) <= '0';
 
-        while true loop
-            wait until rising_edge (clk);
+    while true loop
+        wait until rising_edge (clk);
 
-            -- UART Device Interface
-            if ioaddr = X"0c"
-                and IOWena = '1'
-                and IOStatusReq = '1'
-            then
-                IOStatus <= TxStatus;
-            elsif ioaddr = X"0c"
-                and IOWena = '1'
-                and IOStatusReq = '0'
-            then
-                TxByte  <= IOWdata(7 downto 0);
-                TxAvail <= '1';
-            elsif ioaddr = X"0c"
-                and IORena = '1'
-                and IOStatusReq = '1'
-            then
-                IOStatus <= RdStatus;
-            elsif ioaddr = X"0c"
-                and IORena = '1'
-                and IOStatusReq = '0'
-            then
-                IORdata <= X"000000" & RdByte;
-            else
-                TxAvail <= '0';
-                -- IOStatus <= X"00000000";
-            end if;
+        -- UART Device Interface
+        if ioaddr = X"0c"
+            and IOWena = '1'
+            and IOStatusReq = '1'
+        then
+            IOStatus <= TxStatus;
+        elsif ioaddr = X"0c"
+            and IOWena = '1'
+            and IOStatusReq = '0'
+        then
+            TxByte  <= IOWdata(7 downto 0);
+            TxAvail <= '1';
+        elsif ioaddr = X"0c"
+            and IORena = '1'
+            and IOStatusReq = '1'
+        then
+            IOStatus <= RdStatus;
+        elsif ioaddr = X"0c"
+            and IORena = '1'
+            and IOStatusReq = '0'
+        then
+            IORdata <= X"000000" & RdByte;
+        else
+            TxAvail <= '0';
+            -- IOStatus <= X"00000000";
+        end if;
 
-        end loop;
-    end if;
+    end loop;
 
 end process;
 

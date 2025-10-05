@@ -103,6 +103,8 @@ architecture Behavioral of debug is
     signal WB_STALL : STD_LOGIC;
     signal WB_DIN : STD_LOGIC_VECTOR(31 downto 0);
     signal WB_DOUT : STD_LOGIC_VECTOR(31 downto 0);
+    
+    signal AddressDone : BOOLEAN := FALSE;
 
     -- attribute keep                          : STRING;
     -- attribute MARK_DEBUG                    : string;
@@ -131,8 +133,8 @@ architecture Behavioral of debug is
     -- attribute keep          of DebugOut     : signal is "TRUE";
     -- attribute MARK_DEBUG    of DebugOut     : signal is "TRUE";
     
-    -- attribute keep          of dmemReadCount         : signal is "TRUE";
-    -- attribute MARK_DEBUG    of dmemReadCount         : signal is "TRUE";
+    -- attribute keep          of AddressDone         : signal is "TRUE";
+    -- attribute MARK_DEBUG    of AddressDone         : signal is "TRUE";
     -- attribute keep          of dcontBtn    : signal is "TRUE"; 
     -- attribute MARK_DEBUG    of dcontBtn    : signal is "TRUE"; 
     -- attribute keep          of dstepBtn    : signal is "TRUE"; 
@@ -192,6 +194,22 @@ begin
                 elsif DebugIn.Step = '1' then
                     DebugIn.Step <= '0';
                 end if;
+
+                DEBUG_MEMORY_READ_OUT <= 
+                    ClearReadAddress(
+                        DEBUG_MEMORY_READ_OUT, 
+                        DEBUG_MEMORY_READ_IN);
+
+                DEBUG_MEMORY_READ_OUT <= 
+                    ClearReadData(
+                        DEBUG_MEMORY_READ_OUT, 
+                        DEBUG_MEMORY_READ_IN);
+
+                DEBUG_MEMORY_WRITE_OUT <= 
+                    ClearWriteFlags(
+                        DEBUG_MEMORY_WRITE_OUT, 
+                        DEBUG_MEMORY_WRITE_IN);
+
 
                 if WB_CYC = '1' then
                     case WB_TGA is
@@ -287,14 +305,22 @@ begin
 
                         when TGA_MEMORY => -- MEMORY COMMAND
                             if WB_WE = '0' then
-                                if not IsReadDataValid(DEBUG_MEMORY_READ_IN, DEBUG_MEMORY_READ_OUT, MEM_ID_ARG)  then -- Set Address
+                                if not AddressDone  then -- Set Address
                                     DEBUG_MEMORY_READ_OUT <= SetReadAddress(
                                         DEBUG_MEMORY_READ_OUT,
                                         WB_ADDR(11 downto 0),
                                         MEM_ID_ARG);
-                                else -- Read Data / Reset Flags
-                                    WB_DIN <= GetReadData(DEBUG_MEMORY_READ_IN, MEM_ID_ARG);
-                                    WB_ACK <= '1';
+                                    if DEBUG_MEMORY_READ_IN.s_axi_arready = '1' 
+                                        and DEBUG_MEMORY_READ_OUT.s_axi_arvalid = '1' then -- Read Data / Reset Flags
+                                            DEBUG_MEMORY_READ_OUT <= ClearReadAddress(
+                                                DEBUG_MEMORY_READ_OUT, 
+                                                DEBUG_MEMORY_READ_IN);
+                                            AddressDone <= TRUE;
+                                    end if; 
+                                elsif AddressDone and IsReadDataValid(DEBUG_MEMORY_READ_IN, DEBUG_MEMORY_READ_OUT, MEM_ID_ARG) then
+                                            WB_DIN <= GetReadData(DEBUG_MEMORY_READ_IN, MEM_ID_ARG);
+                                            WB_ACK <= '1';
+                                            AddressDone <= FALSE;
                                 end if;
                             else
                                 if dmemReadCount < 1 then -- Set address and Data

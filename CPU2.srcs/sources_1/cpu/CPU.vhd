@@ -182,7 +182,6 @@ architecture Behavioral of CPU is
             interruptSPNum       : in integer range 0 to 31;
             IOR_DATA             : in std_logic_vector(31 downto 0);
             interruptSpAddrValue : in integer range 0 to 2 ** 12 - 1;
-            interruptRun         : in std_logic;
             interruptNum         : in integer range 0 to interruptNums := 0;
             ProgramCounter       : in PCTYPE;
             interruptMask        : in std_logic_vector(interruptNums downto 0);
@@ -467,7 +466,6 @@ begin
         interruptSPNum        => interruptSPNum,
         IOR_DATA              => IOR_DATA,
         interruptSpAddrValue  => interruptSpAddrValue,
-        interruptRun          => interruptRun,
         interruptNum          => interruptNum,
         ProgramCounter        => ProgramCounter,
         interruptMask         => interruptMask,
@@ -607,10 +605,11 @@ begin
         ffopcode,
         ffflag,
         flag,
+        ffiregop2,
         memop,
         waitAlarm,
         waitCancel,
-        interruptRun,
+        waitRun,
         DEBUGOUT.Stopped,
         DebugStart,
         fsm_interrupt_cycle_p,

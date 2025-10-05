@@ -198,7 +198,7 @@ package Utilities is
     end record;
 
     constant DEBUGOUT_DEFAULTS : DEBUGOUTTYPE := (
-        Stopped => '1',
+        Stopped => '0',
         CycleCount => (others => '0'),
         ProgCounter => (others => '0'),
         Regs => (others => (others => '0')),

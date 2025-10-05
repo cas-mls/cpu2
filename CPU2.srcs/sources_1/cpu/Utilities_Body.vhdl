@@ -42,7 +42,9 @@ package body Utilities is
     is
         variable ret : AXI4_MEMORY_READ_OUT_TYPE_REC := readOut;
     begin
-        ret.s_axi_araddr := (31 downto addr'length+2 => '0') & addr & "00";
+        -- ret.s_axi_araddr := (31 downto addr'length+2 => '0') & addr & "00";
+        ret.s_axi_araddr := (others => '0');
+        ret.s_axi_araddr(addr'length+1 downto 2) := addr;
         ret.s_axi_arvalid := '1';
         ret.s_axi_arid := id;
         ret.s_axi_rready := '1';

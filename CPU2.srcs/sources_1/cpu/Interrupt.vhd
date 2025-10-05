@@ -166,8 +166,8 @@ architecture Behavioral of Interrupt_Entity is
     signal ireg2value : std_logic_vector(31 downto 0) := X"00000000";
     signal ffimmop : IMMTYPE;
 
-    attribute keep : string;
-    attribute MARK_DEBUG : string;
+    -- attribute keep : string;
+    -- attribute MARK_DEBUG : string;
 
     -- attribute keep of        fsm_interrupt_cycle_p : signal is "TRUE";
     -- attribute MARK_DEBUG of  fsm_interrupt_cycle_p : signal is "TRUE";
@@ -233,7 +233,6 @@ begin
 
     intrrupt_Proc : process (
         fsm_interrupt_cycle_p_local,
-        fsm_inst_cycle_p,
         interruptRun,
         AXI4_MEMORY_READ_IN,
         AXI4_MEMORY_READ_OUT,

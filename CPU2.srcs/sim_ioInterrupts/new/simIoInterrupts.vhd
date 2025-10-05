@@ -66,25 +66,7 @@ architecture Behavioral of SimCPU_Interrupt is
             DEBUGOUT    : out DEBUGOUTTYPE
         );
     end component;
-
-    component cpumemory
-        port (
-            clka  : in  STD_LOGIC;
-            ena   : in  STD_LOGIC;
-            wea   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addra : in  STD_LOGIC_VECTOR(11 downto 0);
-            dina  : in  STD_LOGIC_VECTOR(31 downto 0);
-            douta : out STD_LOGIC_VECTOR(31 downto 0);
-            clkb  : in  STD_LOGIC;
-            enb   : in  STD_LOGIC;
-            web   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addrb : in  STD_LOGIC_VECTOR(11 downto 0);
-            dinb  : in  STD_LOGIC_VECTOR(31 downto 0);
-            doutb : out STD_LOGIC_VECTOR(31 downto 0)
-        );
-    end component; -- vhdl-linter-disable-line component
-
-        COMPONENT cpuAxiMemory
+    COMPONENT cpuAxiMemory
     PORT (
         rsta_busy : OUT STD_LOGIC;
         rstb_busy : OUT STD_LOGIC;
