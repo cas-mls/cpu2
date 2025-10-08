@@ -27,8 +27,10 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.numeric_std_unsigned.all;
 use std.textio.all;
 library xil_defaultlib;
-use xil_defaultlib.Utilities.all;
 use std.env.all;
+
+use xil_defaultlib.Utilities.all;
+use xil_defaultlib.AxiMemory.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values

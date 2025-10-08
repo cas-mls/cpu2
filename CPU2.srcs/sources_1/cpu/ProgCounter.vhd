@@ -24,7 +24,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 
 use xil_defaultlib.Utilities.ALL;
-
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 ---------------------------------------------------------------------------
 -- ### Program Counter

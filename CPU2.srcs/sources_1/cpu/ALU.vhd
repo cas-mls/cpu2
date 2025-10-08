@@ -26,10 +26,11 @@ use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 -- use ieee.std_logic_unsigned.all;
 
-use xil_defaultlib.Utilities.all;
-
 library UNISIM;
 use UNISIM.VComponents.all;
+
+use xil_defaultlib.Utilities.all;
+use xil_defaultlib.DebugPkg.all;
 
 ---------------------------------------------------------------------------
 -- ### Arithmetic Logic Unit (ALU)

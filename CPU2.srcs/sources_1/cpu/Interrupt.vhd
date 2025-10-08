@@ -24,6 +24,8 @@ use IEEE.STD_LOGIC_1164.all;
 use ieee.numeric_std.all;
 
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 ---------------------------------------------------------------------------
 -- ### Interrupts

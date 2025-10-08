@@ -23,7 +23,10 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 library xil_defaultlib;
+
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 -- Uncomment the following library declaration if instantiating
 -- any Xilinx leaf cells in this code.
@@ -196,11 +199,6 @@ begin
                 end if;
 
                 DEBUG_MEMORY_READ_OUT <= 
-                    ClearReadAddress(
-                        DEBUG_MEMORY_READ_OUT, 
-                        DEBUG_MEMORY_READ_IN);
-
-                DEBUG_MEMORY_READ_OUT <= 
                     ClearReadData(
                         DEBUG_MEMORY_READ_OUT, 
                         DEBUG_MEMORY_READ_IN);
@@ -305,19 +303,20 @@ begin
 
                         when TGA_MEMORY => -- MEMORY COMMAND
                             if WB_WE = '0' then
-                                if not AddressDone  then -- Set Address
+                                if not AddressDone  and WB_ACK = '0' then -- Set Address
                                     DEBUG_MEMORY_READ_OUT <= SetReadAddress(
                                         DEBUG_MEMORY_READ_OUT,
                                         WB_ADDR(11 downto 0),
                                         MEM_ID_ARG);
-                                    if DEBUG_MEMORY_READ_IN.s_axi_arready = '1' 
-                                        and DEBUG_MEMORY_READ_OUT.s_axi_arvalid = '1' then -- Read Data / Reset Flags
+                                    if AddressIsSet(DEBUG_MEMORY_READ_OUT, DEBUG_MEMORY_READ_IN) then -- Read Data / Reset Flags
+                                    -- if DEBUG_MEMORY_READ_IN.s_axi_arready = '1' 
+                                    --     and DEBUG_MEMORY_READ_OUT.s_axi_arvalid = '1' then -- Read Data / Reset Flags
                                             DEBUG_MEMORY_READ_OUT <= ClearReadAddress(
                                                 DEBUG_MEMORY_READ_OUT, 
                                                 DEBUG_MEMORY_READ_IN);
                                             AddressDone <= TRUE;
                                     end if; 
-                                elsif AddressDone and IsReadDataValid(DEBUG_MEMORY_READ_IN, DEBUG_MEMORY_READ_OUT, MEM_ID_ARG) then
+                                elsif IsReadDataValid(DEBUG_MEMORY_READ_IN, DEBUG_MEMORY_READ_OUT, MEM_ID_ARG) then
                                             WB_DIN <= GetReadData(DEBUG_MEMORY_READ_IN, MEM_ID_ARG);
                                             WB_ACK <= '1';
                                             AddressDone <= FALSE;

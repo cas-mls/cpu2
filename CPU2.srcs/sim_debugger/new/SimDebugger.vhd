@@ -26,8 +26,11 @@ use ieee.numeric_std.all;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.numeric_std_unsigned.all;
 use std.textio.all;
+
 library xil_defaultlib;
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -233,7 +236,7 @@ begin
     DebugIn.DebugMode <= '1';
 
     -- Test for Breakpoints
-    DebugIn.BreakPoints(0) <= x"081";
+    DebugIn.BreakPoints(0) <= x"120";
     wait until DebugOut.Stopped = '1';
     wait until rising_edge (clk);
     -- --Continue

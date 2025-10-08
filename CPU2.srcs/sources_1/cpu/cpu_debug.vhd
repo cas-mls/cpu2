@@ -23,7 +23,9 @@ library IEEE;
 library xil_defaultlib;
 
 use IEEE.STD_LOGIC_1164.ALL;
+
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.DebugPkg.all;
 
 
 -- Uncomment the following library declaration if using

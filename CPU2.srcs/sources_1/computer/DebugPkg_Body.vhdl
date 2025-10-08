@@ -32,7 +32,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 -- library UNISIM;
 -- use UNISIM.VComponents.all;
 
-package body Utilities is
+package body DebugPkg is
 
     
-end Package Body Utilities;
+end Package Body DebugPkg;
