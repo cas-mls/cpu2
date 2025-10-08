@@ -647,6 +647,7 @@ begin
                 -- Decoding is completed in the combinatorial logic and should only be used in this cycle.
                 --       (opcode, memop, flag, iregop1, iregop2, and immop)
                 -- Set up memory address for ABSOLUTE and INDEX
+                -- TODO: Simplify by setting the next state by using a variable instead of a signal.  This elminates if-then-else statements.
             when DECODE_S =>
                 case memop is
                     when REGREG =>

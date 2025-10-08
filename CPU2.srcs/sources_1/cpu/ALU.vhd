@@ -297,12 +297,14 @@ begin
                         when oMul =>
                             if cpuRegs(reg).Flag = '0' then
                                 cpuRegs(reg) <= SetRegisterValue(SProduct(31 downto 0));
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '0' when signed(SProduct(63 downto 32)) = 0 
                                 --                 or signed(SProduct(63 downto 32)) = -1 
                                 --             else '1';
                             else
                                 cpuRegs(reg) <= SetRegisterValue(UProduct(31 downto 0));
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '0' when signed(UProduct(63 downto 34)) = 0 
                                 --             else '1';
@@ -311,20 +313,24 @@ begin
                         when oAdd =>
                             cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
                             if cpuRegs(reg).Flag = '0' then
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) :=  
                                 --             (AValS(31) xnor BValS(31)) 
                                 --         and (AValS(31) xor RValS(31));
                             else
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) := RValU(32);
                             end if;
 
                         when oSub =>
                             cpuRegs(reg) <= SetRegisterValue(STD_LOGIC_VECTOR(delayReg1));
                             if cpuRegs(reg).Flag = '0' then
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) := 
                                 --         '1' when AValS < 0 and  BValS > 0 and RValS < AValS
                                 --             else '0';
                             else
+                                -- XXX: Fix the status word processing for timing issues.
                                 -- localStatusWord(OverUnderflow) :=  
                                 --         '1' when BValU > AValU
                                 --             else '0';
@@ -380,6 +386,7 @@ begin
                     cpuRegs(divRegNum).OpCode <= oNOP;
                     cpuRegs(divRegNum).Value  <= SQuotRem(63 downto 32); -- Quotent
                 end if;
+                -- XXX: Fix the status word processing for timing issues.
                 -- statusWord(DivideByZero) <= divideZero;
             elsif UQuotRemValid = '1' then
                 divideZero := UUsrZeroReg(0);
@@ -392,6 +399,7 @@ begin
                 end if;
             end if;
 
+            -- XXX: Fix the status word processing for timing issues.
             -- statusWord <= localStatusWord;
 
             case fsm_inst_cycle_p is

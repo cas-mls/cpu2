@@ -56,31 +56,94 @@ This is a simple CPU architecture that I used to verify that I understand how to
     - VHDL
     - CustomAsm
 - [CustomAsm](https://github.com/hlorenzi/customasm) 
+- Visual Studio 2022
 
 ## IPs
 
 - Block Memory Generator v8.4
 
   - Interface Type: Native
-
   - Memory Type :True Dual Port RAM
+  - Name: cpuAxiMemory
+  - Basic Tab
+    - Interface Type: AXI4
 
-  - Port A/B
+    - Memory Type: Simple Dual Port RAM
 
-    - Write Width - 32 bits
-    - Read Width - 32 bits
-    - Write Depth - 4096
-    - Read Depth - 4096
-    - Primitive Output Register
+    - ECC Type: No ECC
 
-  - Other Options
+    - Algorithm
+      - Minimum Area
 
-    - Load Init File - Program.coe
-    - Fill Remaining Memory Locations - A5
+  - AXI4 Tab
+    - AXI Type: AXI4 Lite
+    - AXI Slave Type:  Memory Slave
+    - ID Width Configuration: 2
+  - Port A Options Tab
+    - Memory Size
+      - Port A Width: 32
+      - Port A Depth: 4096
+  - Port B Options Tab: None
+  - Other Options Tab
+    - Memory Initialization
+      - Load Init File fpga.coe
+    - Fill Remaining Memory Location: a5a5a5a5
+- AXI Uartlite (2.0)
+  - Name: SerialDevice115k
+  - Board Tab
+    - IP Interface: uart
+    - Board Interface: usb uart
 
-  - Read Latency - 2 cycles
+  - Configuration Tab
+    - AXI CLK Frequency: 100
+    - Baud Rate: 115200
+    - Data Bits: 8
+    - Parity: No Parity
 
-    
+- Divider Generator (5.1)
+  - Name: SIntDiv
+  - Channel Settings Tab
+    - Algorithm: Radix2
+    - Operand Sign: Signed
+    - Dividend Width: 32
+    - Has TUSER
+    - TUSER Width: 4
+    - Divisor Width: 32
+    - Remainder Type: Remainder
+    - Detect Divid-By-Zero
+
+  - Options Tab
+    - Clocks per Division: 1
+    - AXI-Stream Options
+      - Flow Control: Non Blocking
+
+    - Latency Options
+      - Latency Configuration: Automatic
+
+- Divider Generator (5.1) - Copy on SinitDiv with changes below
+  - Name: UIntDiv
+  - Channel Settings Tab
+    - Operand Signed: Unsigned
+
+- Multiplier (12.0)
+  - Name: SIntMult
+  - Basic Tab
+    - Multiplier Type: Parallel Multiplier
+    - Input Options:
+      - Data Type: A-Signed, B-Signed
+      - Width: A-32, B-32
+
+    - Multiplier Construction: Use Mults
+    - Optimization Options: Speed Optimized
+
+  - Output and Control Tab
+    - Pipeline Stages: 6
+
+- Multiplier (12.0) - Copy from SIntMult with changes below
+  - Name: UIntMult
+  - Basic Tab
+    - Input Options:
+      - Data Type: A-Unsigned, B-Unsigned
 
 ## Specifictions
 
@@ -241,13 +304,10 @@ During each cycle, the Access (Memory) value is selected (Case statement) and th
 
 | Cycle          | Description                                                  |
 | -------------- | ------------------------------------------------------------ |
-| INSTFETCH1     | Wait for instruction data.                                   |
-| INSTFETCH2     | Wait for instruction data.                                   |
-| DECODE         | Instruction Data is available and the Instruction is separated into different fields.<br/>The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1 the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address. |
-| MEMFETCH1      | Wait for Access (Memory) types 2 and 3.<br />The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask. |
-| MEMFETCH2      | Wait for Read for Access (Memory) types 2 and 3.             |
+| INSTFETCH      | Wait for instruction data.                                   |
+| DECODE         | Instruction Data is available and the Instruction is separated into different fields.<br/>The main purpose is to get the values required to perform the operations.  For Memory operations 0 (Register/Register), the register values are obtained.  For Memory Operation 1, the Registers and the Immediate values.  For Memory Operation 2, the Immediate value is used as the Memory address.  For Memory Operation 3, the Register and the Immediate values are added and used as the Memory address. |
+| MEMFETCH       | Wait for Access (Memory) types 2 and 3.<br />The Return from Interrupt (RTI) operation reads the stack for the Interrupt Mask. |
 | EXECUTE        | Perform the operations.                                      |
-| CLEANUP        | Perform additional items after Execute.  Read and Write operations are the only operations that use this cycle state to reset the enable flag. |
 | WAIT           | Wait for the pre-interrupt processing to complete.  Wait for instructions. |
 | DEBUGSTABILIZE | Cycle once for debug information to stabilize when the program stops. |
 | DEBUGWAIT      | The program stopped for debugging.                           |
@@ -259,25 +319,20 @@ During each cycle, the Access (Memory) value is selected (Case statement) and th
 stateDiagram
     [*] --> RESET_S : Reset (Interrupt 0)
     RESET_S --> WAIT_S
-    INSTFETCH1_S --> INSTFETCH2_S
-    INSTFETCH2_S --> DECODE_S
-    DECODE_S --> MEMFETCH1_S : addr modes 2 & 3
-    MEMFETCH1_S --> MEMFETCH2_S
-    MEMFETCH2_S --> EXECUTE_S
-    MEMFETCH2_S --> DEBUGSTABLEIZE_S : Debug Stop
+    INSTFETCH_S --> DECODE_S : Instruction Available
+    DECODE_S --> MEMFETCH_S : addr modes 2 & 3
+    MEMFETCH_S --> EXECUTE_S : Argument Available
+    MEMFETCH_S --> DEBUGSTABLEIZE_S : Debug Stop
     DECODE_S --> DEBUGSTABLEIZE_S : Debug Stop
     DECODE_S --> EXECUTE_S : addr modes 0 & 1
-    EXECUTE_S --> INSTFETCH1_S : jumps & branches
-    EXECUTE_S --> CLEANUP_S : rio & wio
-    EXECUTE_S --> DECODE_S : addr modes 2 & 3 -or- multi-cycle operations
-    EXECUTE_S --> INSTFETCH2_S : addr modes 0 & 1
-    CLEANUP_S --> INSTFETCH1_S
+    EXECUTE_S --> INSTFETCH_S
+    EXECUTE_S --> WAIT_S : Wait & Timer
     %%WAIT_S --> WAIT_S
-    WAIT_S --> INSTFETCH1_S
+    WAIT_S --> INSTFETCH_S
     
     
-    DEBUGSTABLEIZE_S --> DEBUGWAIT_S : DebugOut.Stopped = 0
-    DEBUGWAIT_S --> EXECUTE_S
+    DEBUGSTABLEIZE_S --> DEBUGWAIT_S
+    DEBUGWAIT_S --> EXECUTE_S : not Debug Stopped
 ```
 
 ------
@@ -663,7 +718,7 @@ stateDiagram
 | `be`<br />`bne` (not flag)[^2] <br />`bz` (R2=0)<br />`bnz` (R2=0, Flag=1)[^3] | `01100` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
 | `bl`<br />`bge` (not flag)[^4] <br />`bn` (R2=0)[^5]         | `01110` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
 | `bg`<br />`ble` (not flag)[^6]<br />`bp` (R2=0)[^7]          | `10000` | Not               | NA                                                           | $imm → PC$                                                   | $mem(imm) → PC$                         | NA                                   |
-| `push`[^1]                                                   | `10010` | 0                 | $R1 → mem(R2)\\R1-1 → R1$                                    | $imm → mem(R2)\\R2-1 → R2$                                   | NA[^8]                                  | NA[^8]                               |
+| `push`[^1]                                                   | `10010` | 0                 | $R1 → mem(R2)\\R2-1 → R2$                                    | $imm → mem(R2)\\R2-1 → R2$                                   | NA[^8]                                  | NA[^8]                               |
 | `pop`[^1]                                                    | `10010` | 1                 | $R2+1 → R2\\mem(R2) → R1$                                    | NA                                                           | NA[^8]                                  | NA[^8]                               |
 | `wait`[^13]                                                  | `10101` | 0                 |                                                              | $R1 --  Counter,\\imm→ resolution\\'1' → waitEna$            |                                         |                                      |
 | `timer`[^14]                                                 | `10101` | 0                 |                                                              | $R1 -- Counter,\\ R2 -> TimerInt\\imm->resolution\\'1' → TimeeFlag$ |                                         |                                      |
@@ -1175,7 +1230,7 @@ Read/Write Status word is formatted with the following fields:
 | 9      | Frame Error   | Read            | Indicates that a frame error has occurred after the last time the status register was read. Frame error is defined as detection of a stop bit with the value 0. The receive character is ignored and not written to the receive FIFO. |
 | 10     | Parity Error  | Read            | Indicates that a parity error has occurred after the last time the status register was read. If the UART is configured without any parity handling, this bit is always 0. |
 
-### AXI4
+### AXI4-Lite
 
 | Globals |              |                                                              | UART |
 | ------- | ------------ | ------------------------------------------------------------ | ---- |
@@ -1212,7 +1267,7 @@ Read/Write Status word is formatted with the following fields:
 
 ```mermaid
 ---
-title: Wishbone State Model
+title: Memory State Model
 ---
 
 sequenceDiagram
@@ -1345,61 +1400,7 @@ packet-beta
 * Data Out - Data Output Array (DAT_O).  This is the 32-bit data to be transmitted to the Computer. 
 * Response - Wishbone ACK_I / Echo the Command.  TODO: This should be extended to handle Error Ouput (ERR_I) and Retry (RTY_I).
 
-## GCC Backend Processing
 
-[ChatGPT Dialog](https://chatgpt.com/share/675098aa-4a90-8000-8823-883505618efd)
-
-### GCC’s Register Transfer Language (RTL)
-
-[Instruction Attributes](https://gcc.gnu.org/onlinedocs/gccint/machine-descriptions/instruction-attributes.html)
-
-[GCC Internals Standard Names for RTL Patterns](https://gcc.gnu.org/onlinedocs/gccint/Standard-Names.html)
-
-## Other Information
-
-### Synthesis
-
-update_compile_order -fileset sources_1
-reset_run synth_1
-launch_runs synth_1 -jobs 16
-
-### Implementation
-
-launch_runs impl_1 -jobs 16
-
-### Create Bitstream
-
-launch_runs impl_1 -to_step write_bitstream -jobs 16
-
-### Reset Memory IP
-
-reset_target all [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
-export_ip_user_files -of_objects  [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -sync -no_script -force -quiet
-delete_ip_run [get_files -of_objects [get_fileset cpumemory] D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
-
-### Generate Memory IP
-
-generate_target all [get_files  
-
-```
-generate_target all [get_files  D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
-
-export_ip_user_files -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -no_script -sync -force -quiet
-
-create_ip_run [get_files -of_objects [get_fileset sources_1] D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci]
-
-launch_runs cpumemory_synth_1 -jobs 16
-
-wait_on_run cpumemory_synth_1
-
-export_simulation -of_objects [get_files D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.srcs/sources_1/ip/cpumemory/cpumemory.xci] -directory D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/sim_scripts -ip_user_files_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files -ipstatic_source_dir D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.ip_user_files/ipstatic -lib_map_path [list {modelsim=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/modelsim} {questa=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/questa} {riviera=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/riviera} {activehdl=D:/Users/Craig/Documents/000_ArtyS7/CPU2/CPU2.cache/compile_simlib/activehdl}] -use_ip_compiled_libs -force -quiet
-```
-
-
-
-add_condition -name stop06d -radix hex {/SimCPU/cpuCUT/ProgramCounter == 06d} {stop}
-
-add_condition -name stopEXE {/SimCPU/cpuCUT/fsm_inst_cycle_n != EXECUTE} {stop}
 
 
 
