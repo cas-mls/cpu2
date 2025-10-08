@@ -22,8 +22,11 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.all;
 use IEEE.NUMERIC_STD.ALL;
+
 library xil_defaultlib;
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -62,58 +65,48 @@ architecture Behavioral of Computer is
             IO_STATUS     : in  STD_LOGIC_VECTOR (31 downto 0);
             IO_STATUS_REQ : out STD_LOGIC;
             INTERRUPT     : in  STD_LOGIC_VECTOR (31 downto 0);
-            MEM_ENA       : out STD_LOGIC                     := '1';
-            MEM_WEA       : out STD_LOGIC_VECTOR(0 downto 0)  := "0";
-            MEM_ADDRA     : out STD_LOGIC_VECTOR(11 downto 0) := X"000";
-            MEM_DINA      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_DOUTA     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_ENB       : out STD_LOGIC                     := '1';
-            MEM_WEB       : out STD_LOGIC_VECTOR(0 downto 0)  := "0";
-            MEM_ADDRB     : out STD_LOGIC_VECTOR(11 downto 0) := X"000";
-            MEM_DINB      : out STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-            MEM_DOUTB     : in  STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
 
-            DEBUGIN     : in DEBUGINTYPE := (
-                DebugMode => '0',
-                BreakPoints => (others => (others => '0')),
-                Break => '0', 
-                Step => '0', 
-                Continue => '0',
-                BWhenReg => 0,
-                BWhenValue => (others => '0'),
-                BWhenOp => REG_NOTHING,
-                Reset => '0',
-                UpdateValue => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ),
-                UpdateReg => (
-                    Number => 0,
-                    Value => (others => '0'),
-                    Valid => '0'
-                ));
+            -- AXI Memory Interface
+            AXI4_MEMORY_READ_OUT : out AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+            AXI4_MEMORY_READ_IN : in AXI4_MEMORY_READ_IN_TYPE_REC;
+            AXI4_MEMORY_WRITE_OUT : out AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+            AXI4_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+
+            DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
             DEBUGOUT    : out DEBUGOUTTYPE
 
             );
     end component;
 
-    component cpumemory
-        port (
-            clka  : in  STD_LOGIC;
-            ena   : in  STD_LOGIC;
-            wea   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addra : in  STD_LOGIC_VECTOR(11 downto 0);
-            dina  : in  STD_LOGIC_VECTOR(31 downto 0);
-            douta : out STD_LOGIC_VECTOR(31 downto 0);
-            clkb  : in  STD_LOGIC;
-            enb   : in  STD_LOGIC;
-            web   : in  STD_LOGIC_VECTOR(0 downto 0);
-            addrb : in  STD_LOGIC_VECTOR(11 downto 0);
-            dinb  : in  STD_LOGIC_VECTOR(31 downto 0);
-            doutb : out STD_LOGIC_VECTOR(31 downto 0)
-        );
-    end component;
+    COMPONENT cpuAxiMemory
+    PORT (
+        rsta_busy : OUT STD_LOGIC;
+        rstb_busy : OUT STD_LOGIC;
+        s_aclk : IN STD_LOGIC;
+        s_aresetn : IN STD_LOGIC;
+        s_axi_awid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_awaddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_awvalid : IN STD_LOGIC;
+        s_axi_awready : OUT STD_LOGIC;
+        s_axi_wdata : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_wstrb : IN STD_LOGIC_VECTOR(3 DOWNTO 0);
+        s_axi_wvalid : IN STD_LOGIC;
+        s_axi_wready : OUT STD_LOGIC;
+        s_axi_bid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_bvalid : OUT STD_LOGIC;
+        s_axi_bready : IN STD_LOGIC;
+        s_axi_arid : IN STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_araddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_arvalid : IN STD_LOGIC;
+        s_axi_arready : OUT STD_LOGIC;
+        s_axi_rid : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rdata : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+        s_axi_rresp : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+        s_axi_rvalid : OUT STD_LOGIC;
+        s_axi_rready : IN STD_LOGIC 
+    );
+    END COMPONENT;
 
     component UartDevice is
         port (
@@ -141,14 +134,13 @@ architecture Behavioral of Computer is
          RdByte    : in  STD_LOGIC_VECTOR (7 downto 0);
          RdValid   : in  STD_LOGIC; -- not RxStatus(0)
         
-        -- Memory Signals
-        MEM_ADDRA : out STD_LOGIC_VECTOR(11 downto 0);
-        MEM_DOUTA : in STD_LOGIC_VECTOR(31 downto 0);
-        MEM_DINA : out STD_LOGIC_VECTOR(31 downto 0);
-        MEM_ENA : out STD_LOGIC;
-        MEM_WEA : out STD_LOGIC_VECTOR(0 downto 0);
-        
-        -- Button Signals
+        -- AXI Memory Interface
+        DEBUG_MEMORY_READ_OUT : OUT AXI4_MEMORY_READ_OUT_TYPE_REC := AXI4_MEMORY_READ_OUT_DEFAULTS;
+        DEBUG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+        DEBUG_MEMORY_WRITE_OUT: OUT AXI4_MEMORY_WRITE_OUT_TYPE_REC := AXI4_MEMORY_WRITE_OUT_DEFAULTS;
+        DEBUG_MEMORY_WRITE_IN : in AXI4_MEMORY_WRITE_IN_TYPE_REC;
+
+           -- Button Signals
         dmode       : in STD_LOGIC;
         dbreakBtn : in STD_LOGIC;
         dstepBtn : in STD_LOGIC;
@@ -171,31 +163,23 @@ architecture Behavioral of Computer is
     signal echoIO : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
     -- Memory Information
-    signal MEM_CLK   : STD_LOGIC                     := '1';
-    signal MEM_ENA   : STD_LOGIC                     := '1';
-    signal MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_ENB   : STD_LOGIC                     := '1';
-    signal MEM_WEB   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal MEM_ADDRB : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal MEM_DINB  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal MEM_DOUTB : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+    -- AXI Memory Signals
+    signal axi4MemoryWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal axi4MemoryWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+    signal axi4MemoryReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4MemoryReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
 
-    -- CPU Memory (A)
-    signal CPU_MEM_ENA   : STD_LOGIC                     := '1';
-    signal CPU_MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal CPU_MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal CPU_MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal CPU_MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+    -- CPU AXI Memory Signals
+    signal axi4CpuWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal axi4CpuWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+    signal axi4CpuReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4CpuReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
 
-    -- Debug Memory (A)
-    signal DEBUG_MEM_ENA   : STD_LOGIC                     := '1';
-    signal DEBUG_MEM_WEA   : STD_LOGIC_VECTOR(0 downto 0)  := "0";
-    signal DEBUG_MEM_ADDRA : STD_LOGIC_VECTOR(11 downto 0) := X"000";
-    signal DEBUG_MEM_DINA  : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
-    signal DEBUG_MEM_DOUTA : STD_LOGIC_VECTOR(31 downto 0) := X"00000000";
+    -- CPU AXI Memory Signals
+    signal axi4DebugWriteOut : AXI4_MEMORY_WRITE_OUT_TYPE_REC;
+    signal axi4DebugWriteIn : AXI4_MEMORY_WRITE_IN_TYPE_REC;
+    signal axi4DebugReadOut  : AXI4_MEMORY_READ_OUT_TYPE_REC;
+    signal axi4DebugReadIn  : AXI4_MEMORY_READ_IN_TYPE_REC;
 
     -- UART Device 
     signal TxByte        : STD_LOGIC_VECTOR (7 downto 0);
@@ -223,30 +207,11 @@ architecture Behavioral of Computer is
     signal interrupt_L : STD_LOGIC_VECTOR (31 downto 0) := (others => '0');
 
     -- Debug Items
-    signal DebugIn      : DEBUGINTYPE := 
-        (DebugMode => '0',
-        BreakPoints => (others => (others => '0')), 
-        Break => '0', 
-        Step => '0', 
-        Continue => '0',
-        BWhenReg => 0,
-        BWhenValue => (others => '0'),
-        BWhenOp => REG_NOTHING,
-        Reset => '0',
-        UpdateValue => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        ),
-        UpdateReg => (
-            Number => 0,
-            Value => (others => '0'),
-            Valid => '0'
-        )
-        );
+    signal DebugIn      : DEBUGINTYPE := DEBUGIN_DEFAULTS;
     -- Debug output
     signal DebugOut     : DEBUGOUTTYPE;
     -- Debug metastability
+
     signal dmode1       : STD_LOGIC := '0';
     signal dmode2       : STD_LOGIC := '0';
     signal dmode3       : STD_LOGIC := '0';
@@ -265,12 +230,16 @@ architecture Behavioral of Computer is
     signal dstepBtn   : STD_LOGIC;
     signal dcontBtn    : STD_LOGIC;
 
-    signal dmemReadCount: integer range 0 to 3;
+
+
+    signal rsta_busy       : STD_LOGIC;
+    signal rstb_busy       : STD_LOGIC;
+
 
     -- attribute keep                          : STRING;
     -- attribute MARK_DEBUG                    : string;
-    -- attribute keep          of rst          : signal is "TRUE";
-    -- attribute MARK_DEBUG    of rst          : signal is "TRUE";
+    -- attribute keep          of interrupt    : signal is "TRUE";
+    -- attribute MARK_DEBUG    of interrupt    : signal is "TRUE";
 
     -- IO Elements ILA
     -- attribute keep          of ioAddr       : signal is "TRUE";
@@ -303,39 +272,47 @@ architecture Behavioral of Computer is
     -- attribute MARK_DEBUG    of RdStatus     : signal is "TRUE";
 
     -- Memory Elements ILA
-    -- attribute keep          of MEM_ENA          : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ENA          : signal is "TRUE"; 
-    -- attribute keep          of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ADDRA        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DOUTA        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_DOUTA        : signal is "TRUE"; 
-    -- attribute keep          of MEM_ENB          : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ENB          : signal is "TRUE"; 
-    -- attribute keep          of MEM_WEB          : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_WEB          : signal is "TRUE"; 
-    -- attribute keep          of MEM_ADDRB        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_ADDRB        : signal is "TRUE"; 
-    -- attribute keep          of MEM_DOUTB        : signal is "TRUE"; 
-    -- attribute MARK_DEBUG    of MEM_DOUTB        : signal is "TRUE"; 
+    -- attribute keep          of axi4MemoryReadIn          : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of axi4MemoryReadIn          : signal is "TRUE"; 
+    -- attribute keep          of axi4MemoryReadOut         : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of axi4MemoryReadOut         : signal is "TRUE"; 
+    -- attribute keep          of axi4MemoryWriteIn         : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of axi4MemoryWriteIn         : signal is "TRUE"; 
+    -- attribute keep          of axi4MemoryWriteOut        : signal is "TRUE"; 
+    -- attribute MARK_DEBUG    of axi4MemoryWriteOut        : signal is "TRUE"; 
+
 
 begin
 
-    memory : cpumemory
-    port map(
-        clka  => MEM_CLK,
-        ena   => MEM_ENA,
-        wea   => MEM_WEA,
-        addra => MEM_ADDRA,
-        dina  => MEM_DINA,
-        douta => MEM_DOUTA,
-        clkb  => MEM_CLK,
-        enb   => MEM_ENB,
-        web   => MEM_WEB,
-        addrb => MEM_ADDRB,
-        dinb  => MEM_DINB,
-        doutb => MEM_DOUTB
-    );
 
+    cpuMemoryAxi : cpuAxiMemory
+    PORT MAP (
+        rsta_busy       => rsta_busy,
+        rstb_busy       => rstb_busy,
+        s_aclk          => SYS_CLK,
+        s_aresetn       => not rst,
+        s_axi_awid      => axi4MemoryWriteOut.s_axi_awid,
+        s_axi_awaddr    => axi4MemoryWriteOut.s_axi_awaddr,
+        s_axi_awvalid   => axi4MemoryWriteOut.s_axi_awvalid,
+        s_axi_awready   => axi4MemoryWriteIn.s_axi_awready,
+        s_axi_wdata     => axi4MemoryWriteOut.s_axi_wdata,
+        s_axi_wstrb     => axi4MemoryWriteOut.s_axi_wstrb,
+        s_axi_wvalid    => axi4MemoryWriteOut.s_axi_wvalid,
+        s_axi_wready    => axi4MemoryWriteIn.s_axi_wready,
+        s_axi_bid       => axi4MemoryWriteIn.s_axi_bid,
+        s_axi_bresp     => axi4MemoryWriteIn.s_axi_bresp,
+        s_axi_bvalid    => axi4MemoryWriteIn.s_axi_bvalid,
+        s_axi_bready    => axi4MemoryWriteOut.s_axi_bready,
+        s_axi_arid      => axi4MemoryReadOut.s_axi_arid,
+        s_axi_araddr    => axi4MemoryReadOut.s_axi_araddr,
+        s_axi_arvalid   => axi4MemoryReadOut.s_axi_arvalid,
+        s_axi_arready   => axi4MemoryReadIn.s_axi_arready,
+        s_axi_rid       => axi4MemoryReadIn.s_axi_rid,
+        s_axi_rdata     => axi4MemoryReadIn.s_axi_rdata,
+        s_axi_rresp     => axi4MemoryReadIn.s_axi_rresp,
+        s_axi_rvalid    => axi4MemoryReadIn.s_axi_rvalid,
+        s_axi_rready    => axi4MemoryReadOut.s_axi_rready
+    );
     cpu1 : CPU
     port map(
         SYS_CLK         => SYS_CLK,
@@ -347,17 +324,10 @@ begin
         IO_STATUS       => IOStatus,
         IO_STATUS_REQ   => IOStatusReq,
         INTERRUPT       => interrupt,
-        MEM_ENA         => CPU_MEM_ENA,
-        MEM_WEA         => CPU_MEM_WEA,
-        MEM_ADDRA       => CPU_MEM_ADDRA,
-        MEM_DINA        => CPU_MEM_DINA,
-        MEM_DOUTA       => CPU_MEM_DOUTA,
-        MEM_ENB         => MEM_ENB,
-        MEM_WEB         => MEM_WEB,
-        MEM_ADDRB       => MEM_ADDRB,
-        MEM_DINB        => MEM_DINB,
-        MEM_DOUTB       => MEM_DOUTB,
-
+        AXI4_MEMORY_READ_OUT  => axi4CpuReadOut,
+        AXI4_MEMORY_READ_IN => axi4CpuReadIn,
+        AXI4_MEMORY_WRITE_OUT => axi4CpuWriteOut,
+        AXI4_MEMORY_WRITE_IN => axi4CpuWriteIn,
         DEBUGIN         => DebugIn,
         DEBUGOUT        => DebugOut
     );
@@ -385,11 +355,11 @@ begin
         TxReady   => not DebugTxStatus(0),
         RdByte    => DebugRdByte,
         RdValid   => RdValid,
-        MEM_ADDRA => DEBUG_MEM_ADDRA,
-        MEM_DOUTA => DEBUG_MEM_DOUTA,
-        MEM_DINA => DEBUG_MEM_DINA,
-        MEM_ENA => DEBUG_MEM_ENA,
-        MEM_WEA => DEBUG_MEM_WEA,
+
+        DEBUG_MEMORY_READ_OUT => axi4DebugReadOut,
+        DEBUG_MEMORY_READ_IN  => axi4DebugReadIn,
+        DEBUG_MEMORY_WRITE_OUT=> axi4DebugWriteOut,
+        DEBUG_MEMORY_WRITE_IN => axi4DebugWriteIn,
 
         dmode => dmode,
         dbreakBtn => dbreakBtn,
@@ -404,7 +374,6 @@ begin
                         & interrupt_L(11 downto 1)
                         & rst;
 
-    MEM_CLK <= SYS_CLK;
 
     -- Debug/CPU <--> UART MUXes
     TxByte          <= CpuTxByte    when dmode = '0' 
@@ -427,18 +396,30 @@ begin
                                    else '0';
 
     -- Debug/CPU <--> Memory MUXes
-    MEM_ENA         <= CPU_MEM_ENA  when DebugOut.Stopped = '0'
-                                    else DEBUG_MEM_ENA;
-    MEM_WEA         <= CPU_MEM_WEA  when DebugOut.Stopped = '0'
-                                    else DEBUG_MEM_WEA;
-    MEM_ADDRA       <= CPU_MEM_ADDRA when DebugOut.Stopped = '0'
-                                    else DEBUG_MEM_ADDRA;
-    MEM_DINA        <= CPU_MEM_DINA when DebugOut.Stopped = '0'
-                                    else DEBUG_MEM_DINA;
-    CPU_MEM_DOUTA   <= MEM_DOUTA    when DebugOut.Stopped = '0'
-                                    else (others => '0');
-    DEBUG_MEM_DOUTA <= MEM_DOUTA    when DebugOut.Stopped = '1'
-                                    else (others => '0');
+    axi4MemoryReadOut  <= axi4CpuReadOut   when DebugOut.Stopped = '0'
+                                    else axi4DebugReadOut;
+    axi4MemoryWriteOut <= axi4CpuWriteOut  when DebugOut.Stopped = '0'
+                                    else axi4DebugWriteOut;  
+    axi4CpuReadIn <= axi4MemoryReadIn when DebugOut.Stopped = '0'
+                                    else AXI4_MEMORY_READ_IN_DEFAULTS;
+    axi4DebugReadIn <= axi4MemoryReadIn when DebugOut.Stopped = '1'
+                                    else AXI4_MEMORY_READ_IN_DEFAULTS;
+    axi4CpuWriteIn <= axi4MemoryWriteIn when DebugOut.Stopped = '0'
+                                    else AXI4_MEMORY_WRITE_IN_DEFAULTS;
+    axi4DebugWriteIn <= axi4MemoryWriteIn when DebugOut.Stopped = '1'
+                                    else AXI4_MEMORY_WRITE_IN_DEFAULTS;
+    -- MEM_ENA         <= CPU_MEM_ENA  when DebugOut.Stopped = '0'
+    --                                 else DEBUG_MEM_ENA;
+    -- MEM_WEA         <= CPU_MEM_WEA  when DebugOut.Stopped = '0'
+    --                                 else DEBUG_MEM_WEA;
+    -- MEM_ADDRA       <= CPU_MEM_ADDRA when DebugOut.Stopped = '0'
+    --                                 else DEBUG_MEM_ADDRA;
+    -- MEM_DINA        <= CPU_MEM_DINA when DebugOut.Stopped = '0'
+    --                                 else DEBUG_MEM_DINA;
+    -- CPU_MEM_DOUTA   <= MEM_DOUTA    when DebugOut.Stopped = '0'
+    --                                 else (others => '0');
+    -- DEBUG_MEM_DOUTA <= MEM_DOUTA    when DebugOut.Stopped = '1'
+    --                                 else (others => '0');
 
     meta_debug_proc : process (SYS_CLK)
     begin

@@ -89,7 +89,7 @@
     srl {op : operands}                             => 15`5  @ 1`1 @ op
 
     ; JUMP
-    jmp r{r2: u4}                                   => 6`5  @ 0`1 @ 0`2 @ 0x0 @ r2 @ 0x0000
+    jmp r{r1: u4}                                   => 6`5  @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
     jmp {imm: u16}                                  => 6`5  @ 0`1 @ 1`2 @ 0x0 @ 0x0 @ imm
     jmp #{imm: u16}                                  => 6`5  @ 0`1 @ 1`2 @ 0x0 @ 0x0 @ imm
     jmp [{address: u16}]                            => 6`5  @ 0`1 @ 2`2 @ 0x0 @ 0x0 @ address
@@ -126,9 +126,9 @@
 
     ; Subroutine
     jsr r{r1: u4}, r{r2: u4}                        => 8`5  @ 0`1 @ 0`2 @ r1 @ r2  @ 0x0000
-    jsr r{r1: u4}, {imm: u16}                       => 8`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    jsr r{r1: u4}, #{imm: u16}                       => 8`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    rtn r{r1: u4}                                   => 10`5 @ 0`1 @ 0`2 @ r1 @ 0x0 @ 0x0000
+    jsr r{r2: u4}, {imm: u16}                       => 8`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
+    jsr r{r2: u4}, #{imm: u16}                      => 8`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
+    rtn r{r2: u4}                                   => 10`5 @ 0`1 @ 0`2 @ 0x0 @ r2 @ 0x0000
 
     ; Input / Output
     rio r{r1: u4}, r{r2: u4}                        => 22`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
@@ -156,8 +156,8 @@
 
     ; Stack Operations
     push r{r1: u4}, r{r2: u4}                       => 18`5  @ 0`1 @ 0`2 @ r1 @ r2 @ 0x0000
-    push r{r1: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
-    push r{r1: u4}, #{imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ r1 @ 0x0 @ imm
+    push r{r2: u4}, {imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
+    push r{r2: u4}, #{imm: u16}                      => 18`5  @ 0`1 @ 1`2 @ 0x0 @ r2 @ imm
     pop r{r1: u4}, r{r2: u4}                        => 18`5  @ 1`1 @ 0`2 @ r1 @ r2 @ 0x0000
 
     ; Interrupt

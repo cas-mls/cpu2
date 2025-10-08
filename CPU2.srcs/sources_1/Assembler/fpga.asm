@@ -5,7 +5,23 @@
 
 INT0:
     ; jmp START
-    #d32    START
+;    #d32    START ; 0
+    #d32    0x5A5A_5020 ; 0
+    #d32    0x5A5A_5A5A ; 1
+    #d32    0x5A5A_5A5A ; 2
+    #d32    0x5A5A_5A5A ; 3
+    #d32    0x5A5A_5A5A ; 4
+    #d32    0x5A5A_5A5A ; 5
+    #d32    0x5A5A_5A5A ; 6
+    #d32    0x5A5A_5A5A ; 7
+    #d32    0x5A5A_5A5A ; 8
+    #d32    0x5A5A_5A5A ; 9
+    #d32    0x5A5A_5A5A ; 10
+    #d32    0x5A5A_5A5A ; 11
+    #d32    0x5A5A_5A5A ; 12
+    #d32    0x5A5A_5A5A ; 13
+    #d32    0x5A5A_5A5A ; 14
+    #d32    0x5A5A_5A5A ; 15
 
 SP1 = 15 ; Stack Pointer Register
 Stack1 = 0xAFF ; Stack Location
@@ -50,16 +66,16 @@ STACKTESTS:
     ld r2, #0x54321
     ld r3, #0x55555
     ld r4, #0x1234
-    push r SP1, r2
+    push r2, r SP1
     push r SP1, #0x1234
-    pop r SP1, r5
+    pop r5, r SP1
     bne r4, r5, STACKERR
     add r tr, #1
-    push r SP1, r3
-    pop r SP1, r5
+    push r3, r SP1
+    pop r5, r SP1
     bne r3, r5, STACKERR
     add r tr, #1
-    pop r SP1, r5
+    pop r5, r SP1
     bne r2, r5, STACKERR
     add r tr, #1
     jmp STACKCOMPLETE
@@ -852,7 +868,7 @@ JMPCOMPLETE:
 
     ld r tr, #0x50
     ld r1, SUB1
-    jsr r15, r1
+    jsr r1, r15
     add r tr, #1
     jsr r15, SUB1
     add r tr, #1

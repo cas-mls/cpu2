@@ -24,6 +24,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 library xil_defaultlib;
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.DebugPkg.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values

@@ -24,7 +24,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 
 use xil_defaultlib.Utilities.ALL;
-
+use xil_defaultlib.AxiMemory.all;
+use xil_defaultlib.DebugPkg.all;
 
 ---------------------------------------------------------------------------
 -- ### Program Counter
@@ -91,36 +92,23 @@ entity ProgCounter is
         cpuRegs               : IN REG_TYPE;
 
         fsm_inst_cycle_p      : IN CYCLETYPE_FSM;
+        fsm_inst_cycle_n      : IN CYCLETYPE_FSM;
         fsm_interrupt_cycle_p : IN INTERRUPT_FSM;
         MEM_ARG               : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+        STACK_ARG             : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
     
-        MEM_ENA               : OUT STD_LOGIC := '1';
-        MEM_WEA               : OUT STD_LOGIC_VECTOR(0 DOWNTO 0) := "0";
-        MEM_ADDRA             : OUT STD_LOGIC_VECTOR(11 DOWNTO 0);
+        -- AXI Memory Interface
+        PC_MEMORY_OUT          : OUT AXI4_MEMORY_READ_OUT_TYPE_REC;
+        PC_MEMORY_IN         : IN  AXI4_MEMORY_READ_IN_TYPE_REC;
+
+        ARG_MEMORY_READ_OUT : in AXI4_MEMORY_READ_OUT_TYPE_REC;
+        ARG_MEMORY_READ_IN  : in AXI4_MEMORY_READ_IN_TYPE_REC;
+
+
         ProgramCounter        : OUT PCTYPE;
         JumpDisablePipline    : OUT STD_LOGIC;
-        AluDecodeDone         : in std_logic;
-        DEBUGIN     : in DEBUGINTYPE := (
-            DebugMode => '0',
-            BreakPoints => (others => (others => '0')),
-            Break => '0',
-            Step => '0',
-            Continue => '0',
-            BWhenReg => 0,
-            BWhenValue => (others => '0'),
-            BWhenOp => REG_NOTHING,
-            Reset => '0',
-            UpdateValue => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            ),
-            UpdateReg => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            )
-            )
+        AluRegisterLocked         : in std_logic;
+        DEBUGIN     : in DEBUGINTYPE := DEBUGIN_DEFAULTS
     );
 end ProgCounter;
 
@@ -140,6 +128,8 @@ architecture Behavioral of ProgCounter is
 
     signal ProgCounterLocal : PCTYPE;
 
+    signal FirstRTIData : boolean := true;
+
     -- attribute keep : string;
     -- attribute MARK_DEBUG : string;
     -- attribute keep of ProgCounterLocal : signal is "TRUE";
@@ -157,18 +147,30 @@ begin
     ProgramCounter <= ProgCounterLocal;
   
     procCounter_proc : process (SYS_CLK)
+        variable varLocalProgCounter : PCTYPE := X"000";
+        variable varJumpExpected : boolean := false;
+
     begin
         if rising_edge  (SYS_CLK) then
+
+            varJumpExpected := false;
+            PC_MEMORY_OUT <= 
+                ClearReadAddress(
+                    PC_MEMORY_OUT, 
+                    PC_MEMORY_IN);
+
+            if fsm_inst_cycle_n = DECODE_S THEN
+                PC_MEMORY_OUT.s_axi_rready <= '0';
+            end if;
+
             case fsm_inst_cycle_p is
                 when RESET_STATE_S=>
-                    MEM_ENA <= '1';
-                    MEM_WEA <= "0";
-                    MEM_ADDRA <= X"000";
                     ProgCounterLocal <= X"000";
-                    JumpDisablePipline <= '0';
-                when ADDRESS_S    =>
-                    MEM_ENA <= '1';
-                    MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal));
+                    JumpDisablePipline <= '1';
+                    PC_MEMORY_OUT <= AXI4_MEMORY_READ_OUT_DEFAULTS;
+
+                when INSTFETCH_S =>
+
                 when DECODE_S     =>
 
                     -- Maintain Flip-Flop (Memory) protions of the instruction.
@@ -183,73 +185,75 @@ begin
                     -- Save the values of the Register Data.  Again this ifor timing operations.
                     ireg1value <= cpuRegs(to_integer(unsigned(INSTRUCTION(23 downto 20)))).Value;
                     ireg2value <= cpuRegs(to_integer(unsigned(INSTRUCTION(19 downto 16)))).Value;
+                    FirstRTIData <= false;
 
-                    -- Continued until the ALU is done.
-                    if AluDecodeDone = '1' then
-                        if     opcode = oJMP 
-                            or opcode = oBE 
-                            or opcode = oBLT 
-                            or opcode = oBGT 
-                            or opcode = oJSR 
-                            or opcode = oRTN 
-                            or opcode = oRTI 
-                            or (opcode = oSWIENA and flag = SWIFLAG)
-                        then -- Branch / Jump operations.
-                            MEM_ENA <= '0';
-                            JumpDisablePipline <= '1';
-                        else -- ignore all Jump operations.
-                            MEM_ENA <= '1';
-                            MEM_ADDRA <= STD_LOGIC_VECTOR(unsigned(ProgCounterLocal+1));
-                            JumpDisablePipline <= '0';
+                when MEMFETCH_S =>
+                    if  ffopcode = oRTI then
+                        if IsReadDataValid(
+                                ARG_MEMORY_READ_IN, 
+                                ARG_MEMORY_READ_OUT, 
+                                MEM_ID_STACK) then
+                            if not FirstRTIData then
+                                FirstRTIData <= true;
+                                varLocalProgCounter := unsigned(STACK_ARG(ProgCounterLocal'Range));
+                                varJumpExpected := true;
+                            end if;
                         end if;
-                    else
-                        null;
                     end if;
 
                 when EXECUTE_S    =>
-                    if AluDecodeDone = '1' 
+                    if AluRegisterLocked = '0' 
                     then -- Execute Instruction
 
                         case ffopcode is
                             when oJMP | oJSR =>
                                 case ffmemop is
                                     when REGREG     =>
-                                        ProgCounterLocal <= unsigned(ireg2value(ProgCounterLocal'Range)); 
+                                        varLocalProgCounter := unsigned(ireg1value(ProgCounterLocal'Range)); 
                                     when IMMEDIATE  =>
-                                        ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                        varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
                                     when ABSOLUTE | INDEX =>
-                                        ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                        varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
                                     when others     =>
                                 end case;
+                                varJumpExpected := true;
 
-                            when oRTN | oRTI =>
-                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
-    
+                            when oRTI =>
+                                varJumpExpected := true;
+
+                            when oRTN =>
+                                varLocalProgCounter := unsigned(STACK_ARG(ProgCounterLocal'Range));
+                                varJumpExpected := true;
+                                
                             when oBE =>
                                 case ffmemop is
                                     when IMMEDIATE  =>
                                         if  ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value = ireg2value)
                                             or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) = 0)
                                             or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when ABSOLUTE | INDEX =>
                                         if  ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value = ireg2value)
                                             or (ffflag = '1' and ireg1value /= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) = 0)
                                             or (ffflag = '1' and signed(ireg1value) /= 0)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when others     =>
                                 end case;
@@ -261,28 +265,32 @@ begin
                                             and ((ffflag = '0' and ireg1value < ireg2value) 
                                                 or (ffflag = '1' and ireg1value >= ireg2value)) 
                                                 then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                    varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                    varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and ((ffflag = '0' and signed(ireg1value) < 0) 
                                                 or (ffflag = '1' and signed(ireg1value) >= 0))
                                                 then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                    varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                    varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when ABSOLUTE | INDEX =>
                                         if ffiregop2 /= 0 
                                             and ((ffflag = '0' and ireg1value < ireg2value) 
                                                 or (ffflag = '1' and ireg1value >= ireg2value)) 
-                                                then
-                                                    ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                            then
+                                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and ((ffflag = '0' and signed(ireg1value) < 0) 
                                                 or (ffflag = '1' and signed(ireg1value) >= 0))
                                         then
-                                            ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                            varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                            varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when others     =>
                                 end case;
@@ -293,50 +301,74 @@ begin
                                         if ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value > ireg2value) 
                                             or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) > 0) 
                                             or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                                ProgCounterLocal <= unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(ffimmop(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when ABSOLUTE | INDEX =>
                                         if ffiregop2 /= 0 
                                             and  ((ffflag = '0' and ireg1value > ireg2value) 
                                             or (ffflag = '1' and ireg1value <= ireg2value)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         elsif ffiregop2 = 0 
                                             and  ((ffflag = '0' and signed(ireg1value) > 0) 
                                             or (ffflag = '1' and signed(ireg1value) <= 0)) then
-                                                ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
+                                                varJumpExpected := true;
                                         else
-                                            ProgCounterLocal <= ProgCounterLocal + 1;
+                                            varLocalProgCounter := ProgCounterLocal + 1;
                                         end if;
                                     when others     =>
                                 end case;
 
                             when others =>
-                                ProgCounterLocal <= ProgCounterLocal + 1;
+                                varLocalProgCounter := ProgCounterLocal + 1;
                         end case;
+                    else
+                        ireg1value <= cpuRegs(ffiregop1).Value;
                     end if;
                 when DEBUGSTABLEIZE_S =>
                 when DEBUGWAIT_S =>
                     if  DEBUGIN.UpdateValue.Valid = '1' then
                         if DEBUG_DATA'VAL(DEBUGIN.UpdateValue.Number) = DBG_PROG_COUNTER
                         then
-                            ProgCounterLocal <= unsigned(DEBUGIN.UpdateValue.Value(ProgCounterLocal'Range));
+                            varLocalProgCounter := unsigned(DEBUGIN.UpdateValue.Value(ProgCounterLocal'Range));
                         end if;
                     end if;
                 when others =>
             end case;
 
             case fsm_interrupt_cycle_p is
-                when JUMP_S       =>
-                    ProgCounterLocal <= unsigned(MEM_ARG(ProgCounterLocal'Range));
+                when JUMP2_S       =>
+                    varLocalProgCounter := unsigned(MEM_ARG(ProgCounterLocal'Range));
                 when others =>
             end case;
 
+            if fsm_interrupt_cycle_p = JUMP2_S
+                or (fsm_inst_cycle_n = EXECUTE_S
+                    and not varJumpExpected)
+            then
+                ProgCounterLocal <= varLocalProgCounter;
+                PC_MEMORY_OUT <= SetReadAddress(
+                    PC_MEMORY_OUT, 
+                    STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), 
+                    MEM_ID_PC);
+
+            elsif fsm_inst_cycle_n = INSTFETCH_S and varJumpExpected then 
+                ProgCounterLocal <= varLocalProgCounter;
+                PC_MEMORY_OUT <= SetReadAddress(
+                    PC_MEMORY_OUT, 
+                    STD_LOGIC_VECTOR(resize(unsigned(varLocalProgCounter), 12)), 
+                    MEM_ID_PC);
+            end if;
+            
         end if;
     end process procCounter_proc;
 end Behavioral;

@@ -23,7 +23,9 @@ library IEEE;
 library xil_defaultlib;
 
 use IEEE.STD_LOGIC_1164.ALL;
+
 use xil_defaultlib.Utilities.all;
+use xil_defaultlib.DebugPkg.all;
 
 
 -- Uncomment the following library declaration if using
@@ -49,27 +51,7 @@ entity cpu_debug is
         statusMask : in std_logic_vector(31 downto 0);
         DebugDisablePipline : out STD_LOGIC;
         DebugStart : out STD_LOGIC;
-        DebugIn     : in DEBUGINTYPE := (
-            DebugMode => '0',
-            BreakPoints => (others => (others => '0')),
-            Break => '0',
-            Step => '0',
-            Continue => '0',
-            BWhenReg => 0,
-            BWhenValue => (others => '0'),
-            BWhenOp => REG_NOTHING,
-            Reset => '0',
-            UpdateValue => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            ),
-            UpdateReg => (
-                Number => 0,
-                Value => (others => '0'),
-                Valid => '0'
-            )            
-        );
+        DebugIn     : in DEBUGINTYPE := DEBUGIN_DEFAULTS;
         DebugOut    : out DEBUGOUTTYPE
     );
 end cpu_debug;
@@ -78,11 +60,7 @@ architecture Behavioral of cpu_debug is
 
     signal StepWait : STD_LOGIC;
     signal ProgCounterLast : PCTYPE;
-    signal RegsLast : REG_TYPE := (others => (
-        value => (others => '0'),
-        opcode => oNOP,
-        flag => '0',
-        countdown => 0));
+    signal RegsLast : REG_TYPE := (others => REG_DEFAULTS);
 
     function debug_reg_compare(
         RegLast : std_logic_vector;
@@ -124,28 +102,12 @@ begin
     begin
         if rising_edge (SYS_CLK) then
             if fsm_inst_cycle_p = RESET_STATE_S then
-                DEBUGOUT <= ( 
-                    stopped => '0',
-                    cycleCount => (others => '0'),
-                    progCounter => (others => '0'),
-                    Regs => (others => (others => '0')),
-                    Instruction => (others =>'0'),
-                    Interrupt => (others => '0'),
-                    InterruptMask => (others => '0'),
-                    Status => (others => '0'),
-                    StatusMask => (others => '0'),
-                    MEMORY_ARG => (others => '0'),
-                    Reset => '0'
-                    );
+                DEBUGOUT <= DEBUGOUT_DEFAULTS;
                 StepWait <= '0';
                 DebugDisablePipline <= '0';
                 DebugStart <= '0';
                 ProgCounterLast <= X"000";
-                RegsLast <= (others => (
-                    value => (others => '0'),
-                    opcode => oNOP,
-                    flag => '0',
-                    countdown => 0));
+                RegsLast <= (others => REG_DEFAULTS);
             elsif fsm_inst_cycle_p = DECODE_S then
                 -- Maintain Flip-Flop (Memory) portions of the instruction.
                 -- The INSTRUCTION might change because of the pipeline.
